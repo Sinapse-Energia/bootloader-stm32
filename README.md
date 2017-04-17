@@ -35,6 +35,8 @@ For more information about a global view of how a generic bootloader should work
 
 The workflow of the bootloader should be the following one:
 
+!Bootloader_flowchart.jpg!
+
 
 # Technical description
 
