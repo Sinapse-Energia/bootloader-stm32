@@ -39,6 +39,23 @@ The workflow of the bootloader should be the following one:
 
 
 # Technical description
+Here are explained the technical requirements that should be covered by the Sinapse Generic Bootloader. The technical requirements aims to be almost unitary and testable. Each technical requirement should be tested as OK in order to give it as a valid
+
+The requirements are divided by flow diagram elements
+
+## Process - Start
+## Process - Check FTP folder connection through ETH or WIFI
+## Decision - FTP folder connection through ETH or WIFI
+## Decision - GPRS enabled
+## Process - Check FTP folder connection through GPRS
+## Decision - FTP folder connection through GPRS
+## Process - Check availability of new FW
+## Decision - New FW available
+## Process - Download new FW
+## Decision - Download correct
+## Process - Stop previous FW and install the new one
+## Process - END - Execution Handover to main program
+
 
 # Testing
 
