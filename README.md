@@ -44,6 +44,13 @@ Here are explained the technical requirements that should be covered by the Sina
 The requirements are divided by flow diagram elements
 
 ## Process - Start
+
+1. The Bootloader should be executed after each start / restart of the Sinapse Device before the main program
+2. The Bootloader should take maximum X (TODO) seconds if there is not a new FW to be downloaded
+3. The Bootloader should take maximum Y (TODO) minutes if there is a new FW to be downloaded
+4. The Bootloader should start in the memory address AAAAAA (TODO) and should occupy maximum Z (TODO) KB of flash memory
+5. The Bootloader will be installed during the fabrication process and will not be updated during the device longlife. This fact could change in future versions but is out of the scope.
+
 ## Process - Check FTP folder connection through ETH or WIFI
 ## Decision - FTP folder connection through ETH or WIFI
 ## Decision - GPRS enabled
