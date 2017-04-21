@@ -21,7 +21,7 @@ The Readme of the project works as a technical requirements document and like a 
 
 * ATOLLIC TrueSTUDIO for ARM: Complete IDE to development firmware under C/C++ language and over a lot of microcontrollers, generic ARM and STM32Fxx devices. 
 
-* STM32CubeMX: to generate all HAL drivers needed and integrate into True MICRO Studio.
+* STM32CubeMX: to generate all HAL drivers needed and integrate into ATOLLIC TrueSTUDIO.
 
 * STLink Utility: to program HEX files into STM32Fxx devices.
 
