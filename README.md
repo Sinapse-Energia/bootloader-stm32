@@ -19,7 +19,15 @@ The Readme of the project works as a technical requirements document and like a 
 
 # Development environment and needed tools
 
-FJP TODO
+* ATOLLIC TrueSTUDIO for ARM: Complete IDE to development firmware under C/C++ language and over a lot of microcontrollers, generic ARM and STM32Fxx devices. 
+
+* STM32CubeMX: to generate all HAL drivers needed and integrate into True MICRO Studio.
+
+* STLink Utility: to program HEX files into STM32Fxx devices.
+
+* GNU Tools ARM Embedded : GCC compiler and more tools.
+
+* Sinapse Devices: Devices running with STM32Fxx processor where BOOTLOADER firmware will be loaded. They are also the devices under test (DUT): Basically devices with STM32F030CC, STM32F405VG  processor and STM32F030K6T6 processor
 <hr>
 
 # Global view
