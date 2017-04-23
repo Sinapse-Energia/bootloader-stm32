@@ -60,40 +60,47 @@ The requirements are divided by flow diagram elements
 4. The Bootloader should start in the memory address 0x08000000 and should occupy maximum 10KB of flash memory. Anyway all reserved memory for Bootloader code goes from 0x08000000 to 0x08002800
 5. The Bootloader will be installed during the fabrication process and will not be updated during the device longlife. This fact could change in future versions but is out of the scope.
 
-## Process - Check FTP folder connection through ETH / WIFI 
+## Decision - ETH / WIFI enabled 
 
 1. Determine if exists one ETH/WIFI device connected over Sinapse device or if it is enabled.
-2. If device exists, performs all needed operations to connect with one prefixed FTP server.
-3. Return ETHWIFI_FTP_FOLDER_FOUND if ETH/WIFI has been able to connect with the prefixed FTP server and it has found the folder (this folder is prefixed over Sinapse device) return ERROR_ETHWIFI_NOT_FOUND , ERROR_ETHWIFI_DISABLED , ERROR_ETHWIFI_FTP_NOT_CONNECT, ERROR_ETHWIFI_FOLDER_NOT_FOUND in other cases.
+2. If device exists, jump to "Process - Check FTP folder connection through ETH / WIFI".
+3. If device does not exist, jump to "Decision - GPRS enabled". 
+
+## Process - Check FTP folder connection through ETH / WIFI 
+
+1. To peform all needed operations to connect with one prefixed FTP server, available in the CF.
+2. Return ETHWIFI_FTP_FOLDER_FOUND if ETH/WIFI has been able to connect with the prefixed FTP server and it has found the folder (this folder is prefixed over Sinapse device) return ERROR_ETHWIFI_NOT_FOUND , ERROR_ETHWIFI_DISABLED , ERROR_ETHWIFI_FTP_NOT_CONNECT, ERROR_ETHWIFI_FOLDER_NOT_FOUND in other cases.
 
 ## Decision - FTP folder connection through ETH or WIFI
 
- If answer in previous process was ETHWIFI_FTP_FOLDER_FOUND, we jump to "CHECK AVAILABILITY OF NEW FW", if answers was different we jump to "GPRS ENABLED"
+1. If answer in previous process was ETHWIFI_FTP_FOLDER_FOUND, we jump to "Process - Check availability of new FW". 
+2. If answer was different we jump to "Decision - GPRS Enabled"
 
 ## Decision - GPRS enabled
 
 1. Determine if exists one GPRS device connected on Sinapse device or if it is enabled.
-2. If device exists, performs all needed operations to connect with one prefixed FTP server.
-3. Return GPRS_FTP_CONNECT if GPRS has been able to connect with the prefixed ftp server and jump to "CHECK FTP FOLDER CONNECTION THROUGH GPRS", return ERROR_GPRS_NOT_FOUND, ERROR_GPRS_DISABLED or ERROR_GPRS_FTP_NOT_CONNECT in other cases.
+2. If device exists, jump to "Process - Check FTP folder connection through GPRS"
+3. If device does not exist, jump to "Process - Execution handover to main program"
 
 ## Process - Check FTP folder connection through GPRS
 
- 1. One prefixed folder name will be searched into the root structure of prefixed FTP server.
- 2. Return GPRS_FTP_FOLDER_FOUND if folder has been found, ERROR_FTP_NOT_FOLDER_EXISTS in another case.
+ 1. To peform all needed operations to connect with one prefixed FTP server, available in the CF.
+ 2. Return GPRS_FTP_FOLDER_FOUND if GPRS has been able to connect with the prefixed FTP server and it has found the folder (this  folder is prefixed over Sinapse device) return ERROR_GPRS_NOT_FOUND , ERROR_GPRS_DISABLED , ERROR_GPRS_FTP_NOT_CONNECT, ERROR_GPRS_FOLDER_NOT_FOUND in other cases.
 
 ## Decision - FTP folder connection through GPRS
 
-If answer in previous process was GPRS_FTP_FOLDER_FOUND, we jump to "CHECK AVAILABILITY OF NEW FW", if answers was different we jump to "END"
+1. If answer in previous process was GPRS_FTP_FOLDER_FOUND, we jump to "Process - Check availability of new FW". 
+2. If answer was differen, jump to "Process - Execution handover to main program"
 
 ## Process - Check availability of new FW
 
 1. Inside the folder there will be one or two files. The main file will be one file ended in .HEX extension, the name is prefixed in bootloader code over Sinapse device. i. e: UPGRADE_STM32F0_020315.HEX
 2. Return NEW_AVAILABLE_FIRMWARE if the name of HEX file matchs with prefixed name in code. Return NO_NEW_FIRMWARE exists in another case.
 
-
 ## Decision - New FW available
 
-If answer in previous process was NEW_AVAILABLE_FIRMWARE, we jump to "DOWNLOAD NEW FW", if answers was different we jump to "END"
+1. If answer in previous process was NEW_AVAILABLE_FIRMWARE, jump to "Process - Download new FW".
+2. If answer was different we jump to "Process - Execution handover to main program"
 
 ## Process - Download new FW
 
@@ -112,7 +119,8 @@ If answer in previous process was NEW_AVAILABLE_FIRMWARE, we jump to "DOWNLOAD N
 1. The .HEX files will have in last 4 bytes of file one CRC32 of all previous data
 2. The process of download of UPGRADE PROGRAM in section 3 is correct if the calculate CRC32 from position:
 - 0x8002800+MAX_SIZE_APPLICATION_PROGRAM to (0x8002800+2 * (MAX_SIZE_APPLICATION_PROGRAM)-5) matchs with last 4 bytes of UPGRADE PROGRAM
-3. Return DOWNLOAD_CORRECT if calculated CRC32 matchs with CRC32 of 4-last-bytes saved in UPGRADE PROGRAM and jump to "STOP PREVIOUS FW AND INSTALL THE NEW ONE". If download is incorrect, it will return DOWNLOAD_INCORRECT and jump to "END".
+3. Return DOWNLOAD_CORRECT if calculated CRC32 matchs with CRC32 of 4-last-bytes saved in UPGRADE PROGRAM and jump to "Process - Stop previous FW and install the new one". 
+4. If download is incorrect, it will return DOWNLOAD_INCORRECT and jump to "Process - Execution handover to main program".
 
 ## Process - Stop previous FW and install the new one
 
@@ -120,18 +128,24 @@ If answer in previous process was NEW_AVAILABLE_FIRMWARE, we jump to "DOWNLOAD N
 2) Section 3 is erased completely.
 3) It is needed to generate in FTP SERVER and folder directory the file UPDATED.LOG in order no to load the new firmware in each restarting.
 3) Return PROCESS_OK
-3) Jump to "END".
+3) Jump to "Process - Execution Handover to main program".
 
-## Process - END - Execution Handover to main program
+## Process - Execution Handover to main program
 
 1. A new CRC32 calculation must be done over section 2) APPLICATION PROGRAM and the CRC must matchs with 4-last-bytes saved in APPLICATION PROGRAM.
 2. If CRC32 matchs with 4-last-bytes then we load APPLICATION IRQ VECTORS on MAIN VECTORS and load program counter of microcontroller  with first entry for APPLICATION PROGRAM. (We launch application program)
-3) If CRC32 DOES NOT match with 4-last-bytes, then the APPLICATION PROGRAM is corrupt, we must continue in BOOTLOADER mode
+3. If CRC32 DOES NOT match with 4-last-bytes, then the APPLICATION PROGRAM is corrupt, we must continue in BOOTLOADER mode, jump to " Decision - ETH / WIFI enabled"
+4. If any new firmware was downloaded, the bootloader should perform the handover to the main program without the CRC32 calculations
+
+## Process - END
+
+1. The bootloader finish when the "Process - Execution Handover to main program" is correctly done
+2. If the bootloader was not correctly done, then try again until a main program is correctly installed
 
 ## Some interesting points to define:
 
-1) Is good idea to inform FTP server in some file status of all process?
-2) Is good idea to do retries?. In this flowchart there is not specification of some retrie if something goes wrong.
+1) Is good idea to inform FTP server in some file status of all process? - > RAE : I think YES, TODO
+2) Is good idea to do retries?. In this flowchart there is not specification of some retrie if something goes wrong. -> ALREADY Explained
 
 
 # Testing
