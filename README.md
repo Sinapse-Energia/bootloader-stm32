@@ -150,9 +150,28 @@ The requirements are divided by flow diagram elements
 
 # Testing
 
+## Unit tests - Designed and developed by the Developers
+Each function should contains a unit test verifying the correct behavior of each use case
+
+## Integration tests - Designed and developed by Sinapse 
+Several integration tests should be performed in order to verify the correct behaviour of the Bootloader in the most common situations. These tests should be executed in ALL the available Sinapse Devices
+
+### Sinapse Device Empty - ETH/WIFI Connection - LED Main Program OK & LED Main Program KO
+TODO
+
+### Sinapse Device Empty - GPRS Connection - LED Main Program OK & LED Main Program KO
+TODO
+
+### Sinapse Device with Main Program - ETH/WIFI Connection - New Main Program OK & New Main Program KO
+TODO
+
+### Sinapse Device with Main Program - ETH/WIFI Connection - New Main Program OK & New Main Program KO
 TODO
 
 # Validation and closing
 
-TODO
-            
+To validate and close the project it is necessary to provide the following documentation and results, as well as the code:
+
+1. Documentation of structure and behaviour of the code, including interaction diagrams
+2. Unit tests and its results
+3. Results of the integration tests, all of then should be passed
