@@ -44,7 +44,7 @@ For more information about a global view of how a generic bootloader should work
 
 The workflow of the bootloader should be the following one:
 
-![flowchart](https://github.com/Sinapse-Energia/bootloader-stm32/blob/master/Bootloader_flowchart.png)
+![flowchart](https://github.com/Sinapse-Energia/bootloader-stm32/blob/master/Bootloader_flowchart_2.png)
 
 
 # Technical description
