@@ -40,6 +40,19 @@ If there is not a new version, the bootloader should realise the execution hando
 For more information about a global view of how a generic bootloader should works, it is possible to consult the following url: http://blog.atollic.com/how-to-develop-and-debug-bootloader-application-systems-on-arm-cortex-m-devices
 <hr>
 
+# Hardware description
+
+- Microprocessors: STM32F030CC, STM32F405VG & STM32F030K6T6 
+- GPRS Peripheral: Quectel M95. More information in docs/
+- WIFI/ETH Peripheral: USR-WIFI232-D2. More information in docs/
+
+# FTP Client
+A basic FTP client over GPRS and WIFI/ETH should be developed. 
+
+- GPRS: The peripheral used includes native support for FTP. It is only necessary to encapsulate the AT commands in some C functions in order to connect / download / disconnect from FTP server
+
+- ETH / WIFI: The peripheral used for WIFI / ETH connection does not have native FTP support but provides a transparent transmission TCP protocol mode over UART. In this case is necessary to create the FTP packages and send it directly to the UART where USR device is connected, the answers will be received also over the UART.
+
 # Flow diagram and use case diagram
 
 The workflow of the bootloader should be the following one:
