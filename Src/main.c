@@ -39,6 +39,7 @@
 #include "main.h"
 #include "stm32f4xx_hal.h"
 #include "M95lite.h"
+#include "Definitions.h"
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -71,6 +72,35 @@ static void MX_USART6_UART_Init(void);
 
 /* USER CODE BEGIN 0 */
 
+IWDG_HandleTypeDef hiwdg;
+
+ TIM_HandleTypeDef htim7;
+
+ UART_HandleTypeDef huart3;
+ UART_HandleTypeDef huart6;
+
+
+uint16_t elapsed10seconds=0; /// At beginning this is 0
+  uint8_t LOG_ACTIVATED=1; /// Enable to 1 if you want to show log through logUART
+  uint8_t LOG_GPRS=1;  /// For showing only GPRS information
+  uint8_t WDT_ENABLED=1; /// Enable for activate independent watch dog timer
+  uint8_t timeoutGPRS=0; /// At beginning this is 0
+  uint32_t timeout=1000; /// Timeout between AT command sending is 1000 ms.
+  uint8_t rebootSystem=0; /// At beginning this is 0
+  uint8_t nTimesMaximumFail_GPRS=2; /// For initial loop of initializing GPRS device
+  uint8_t retriesGPRS=1; /// only one retries per AT command if something goes wrong
+  uint8_t existDNS=1; /// The IP of main server to connect is not 4 number separated by dot. It is a DNS.
+  uint8_t offsetLocalHour=0; /// for getting UTC time
+  uint8_t APN[SIZE_APN]; ///
+  uint8_t IPPORT[SIZE_MAIN_SERVER];
+  uint8_t SERVER_NTP[SIZE_NTP_SERVER];
+  uint8_t calendar[10];
+  uint8_t idSIM[30];
+  uint8_t openFastConnection=0;
+  uint8_t setTransparentConnection=1;
+  uint8_t GPRSbuffer[SIZE_GPRS_BUFFER];
+  uint8_t dataByteBufferIRQ;
+  uint16_t GPRSBufferReceivedBytes;
 /* USER CODE END 0 */
 
 int main(void)
@@ -87,6 +117,10 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 
+
+
+
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -98,13 +132,58 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_IWDG_Init();
+ // MX_IWDG_Init();
   MX_TIM7_Init();
   MX_USART3_UART_Init();
   MX_USART6_UART_Init();
 
   /* USER CODE BEGIN 2 */
- decToBcd(2);
+    HAL_Delay(30);
+    memcpy(APN,const_APN,sizeof(const_APN));
+    memcpy(IPPORT,const_MAIN_SERVER,sizeof(const_MAIN_SERVER));
+    memcpy(SERVER_NTP,const_SERVER_NTP,sizeof(const_SERVER_NTP));
+    HAL_TIM_Base_Start_IT(&htim7); //Activate IRQ for Timer7
+
+
+     if (WDT_ENABLED==1)
+     {
+       	 MX_IWDG_Init();
+       	__HAL_IWDG_START(&hiwdg); //no se inicializar watchdog, se deshabilita para debug
+       	  HAL_IWDG_Refresh(&hiwdg);
+     }
+
+
+        M95_Connect(
+           		LOG_ACTIVATED,
+           		LOG_GPRS,
+           		WDT_ENABLED,
+           		&hiwdg,
+           		&huart3,
+           		&huart6,
+           		&timeoutGPRS,
+           		timeout,
+           		&rebootSystem,
+         		EMERG_GPIO_Port, EMERG_Pin,
+         		PWRKEY_GPIO_Port, PWRKEY_Pin,
+         		STATUSPINM95_GPIO_Port, STATUSPINM95_Pin,
+           		nTimesMaximumFail_GPRS,
+           		retriesGPRS,
+           		existDNS,
+           		offsetLocalHour,
+           		APN,
+           		IPPORT,
+           		SERVER_NTP,
+           		calendar,
+           		idSIM,
+           		&openFastConnection,
+           		setTransparentConnection,
+           		USART3_IRQn,
+         		GPRSbuffer,
+         		SIZE_GPRS_BUFFER,
+           		&dataByteBufferIRQ,
+           		&GPRSBufferReceivedBytes
+           		);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -176,7 +255,7 @@ static void MX_IWDG_Init(void)
 {
 
   hiwdg.Instance = IWDG;
-  hiwdg.Init.Prescaler = IWDG_PRESCALER_4;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_256;
   hiwdg.Init.Reload = 4095;
   if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
   {
@@ -191,21 +270,23 @@ static void MX_TIM7_Init(void)
 
   TIM_MasterConfigTypeDef sMasterConfig;
 
+
   htim7.Instance = TIM7;
-  htim7.Init.Prescaler = 0;
+  htim7.Init.Prescaler= (SystemCoreClock/1000)-1;  /// Este timer se pone a 1KHz
   htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim7.Init.Period = 0;
+  htim7.Init.Period = 10000; /// La interrupción se hará cada 10000/1000 -> 10 segundos
+
   if (HAL_TIM_Base_Init(&htim7) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-  if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
+  //sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  //sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  //if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+  //{
+  //  _Error_Handler(__FILE__, __LINE__);
+ // }
 
 }
 
@@ -214,7 +295,8 @@ static void MX_USART3_UART_Init(void)
 {
 
   huart3.Instance = USART3;
-  huart3.Init.BaudRate = 115200;
+  //huart3.Init.BaudRate = 115200;
+  huart3.Init.BaudRate = 19200;
   huart3.Init.WordLength = UART_WORDLENGTH_8B;
   huart3.Init.StopBits = UART_STOPBITS_1;
   huart3.Init.Parity = UART_PARITY_NONE;
@@ -284,6 +366,51 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+
+
+
+
+  if (huart->Instance==huart3.Instance)
+ {
+
+
+
+	  GPRSbuffer[GPRSBufferReceivedBytes]=dataByteBufferIRQ;
+	  GPRSBufferReceivedBytes=(GPRSBufferReceivedBytes+1)%SIZE_GPRS_BUFFER;
+	  HAL_UART_Receive_IT(huart,&dataByteBufferIRQ,1);
+  }
+
+
+
+
+
+
+
+}
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+
+
+	if (htim->Instance==TIM7)
+	{
+        elapsed10seconds++;
+		if (elapsed10seconds%TIMING_TIMEOUT_GPRS==0)
+
+		{
+			/// Tiempo timeoutGPRS
+			timeoutGPRS=1;
+
+		}
+
+
+	}
+
+
+
+}
 
 /* USER CODE END 4 */
 
@@ -331,3 +458,4 @@ void assert_failed(uint8_t* file, uint32_t line)
 */ 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+

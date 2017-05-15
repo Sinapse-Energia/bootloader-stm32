@@ -144,14 +144,9 @@ uint8_t receiveString(
 	found = 0;
 	while ((i < retries) & (found == 0)) {
 
-		if ((LOG_ACTIVATED==1)&(LOG_GPRS==1)) {
-			HAL_UART_Transmit(phuartLOG, receivedBuffer,
-					strlen((const char*) messageOrigin), 100);
-			HAL_UART_Transmit(phuartLOG, (uint8_t*) "\r", 1, 100);
-		}
 
-		HAL_UART_Receive_IT(phuart, dataByteBufferIRQ, 1); // Enabling IRQ
-	if (clearingBuffer == 1) cleanningReceptionBuffer(IRQn, receivedBuffer,sizeMAXReceivedBuffer, numberBytesReceived);
+	   if (clearingBuffer == 1) cleanningReceptionBuffer(IRQn, receivedBuffer,sizeMAXReceivedBuffer, numberBytesReceived);
+	    HAL_UART_Receive_IT(phuart, dataByteBufferIRQ, 1); // Enabling IRQ
 		HAL_UART_Transmit(phuart, messageOrigin, lengthMessageOrigin, timeout);
 
 		initialCounter = *numberBytesReceived;
@@ -159,13 +154,20 @@ uint8_t receiveString(
 		if (WDT_ENABLED == 1) HAL_IWDG_Refresh(hiwdg);
 		*timeoutGPRS = 0;
 
-		while ((initialCounter + lengthMessageSubst	> *numberBytesReceived) & (*timeoutGPRS == 0));
+		while ((initialCounter + ((uint16_t)lengthMessageSubst)	> *numberBytesReceived) && (*timeoutGPRS == 0))
+		{
+
+		}
 		// waiting
 
 		HAL_Delay(timeout);
 
 
 		if ((LOG_ACTIVATED==1)&(LOG_GPRS==1)) {
+			HAL_UART_Transmit(phuartLOG, (uint8_t*) "->", 2, 100);
+			HAL_UART_Transmit(phuartLOG, messageOrigin, lengthMessageOrigin, 100);
+			HAL_UART_Transmit(phuartLOG, (uint8_t*) "\r", 1, 100);
+			HAL_UART_Transmit(phuartLOG, (uint8_t*) "<-", 2, 100);
 			HAL_UART_Transmit(phuartLOG, receivedBuffer,*numberBytesReceived, 100);
 			HAL_UART_Transmit(phuartLOG, (uint8_t*) "\r", 1, 100);
 		}
@@ -1207,9 +1209,3 @@ openningTCPConnection:
 
 
 }
-
-
-
-
-
-
