@@ -107,6 +107,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+	/*RAE Test*/
 
   /* USER CODE END 1 */
 
