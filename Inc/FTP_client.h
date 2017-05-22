@@ -4,7 +4,7 @@
 //      FTP_client.h
 //
 //  Purpose:
-//      Read file from remmote FTP server
+//      Read file from remote FTP server
 //////////////////////////////////////////////////////////
 
 #ifndef __FTP_CLIENT_H
