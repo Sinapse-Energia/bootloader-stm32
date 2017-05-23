@@ -41,7 +41,7 @@
 #include "M95lite.h"
 #include "Definitions.h"
 /* USER CODE BEGIN Includes */
-
+/* RAE COMMENT TO DELETE */
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
