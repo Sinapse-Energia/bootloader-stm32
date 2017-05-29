@@ -129,8 +129,11 @@ ftp root/DEVICE_CODE_FW/DEVICE_ID/
 2. FW name is autodescribed, so it has to accomplish: FW_NAME_VXpY_ddmmyy
 
 Where:
+
 FW_NAME: No limitations, end with_
+
 VxpY: FW version i.e. V1p4 = V1.4
+
 ddmmyy: Release Date
 
 3. Check if VxpY and ddmmyy are higher that actual stored version and date
