@@ -84,6 +84,18 @@ The requirements are divided by flow diagram elements
 1. To peform all needed operations to connect with one prefixed FTP server, available in the CF.
 2. Return ETHWIFI_FTP_FOLDER_FOUND if ETH/WIFI has been able to connect with the prefixed FTP server and it has found the folder (this folder is prefixed over Sinapse device) return ERROR_ETHWIFI_NOT_FOUND , ERROR_ETHWIFI_DISABLED , ERROR_ETHWIFI_FTP_NOT_CONNECT, ERROR_ETHWIFI_FOLDER_NOT_FOUND in other cases.
 
+Note:
+Each device should check 2 FTP folders. 
+1. Global FW folder: All devices check the same folder. Will be used on production process to upload a general FW to all devices
+2. Device Folder: Each device has an unique Folder for device Update. FW mnay times contains device info, so the update have to be customizaed for device.
+
+So Bootloader program have to contain Device ID.
+Folders routes have to be generical and easily modificable.
+Will be setup as described below:
+
+ftp root/DEVICE_CODE_FW/
+ftp root/DEVICE_CODE_FW/DEVICE_ID/
+
 ## Decision - FTP folder connection through ETH or WIFI
 
 1. If answer in previous process was ETHWIFI_FTP_FOLDER_FOUND, we jump to "Process - Check availability of new FW". 
@@ -112,7 +124,16 @@ The requirements are divided by flow diagram elements
 
 ## Decision - New FW available
 
-1. If answer in previous process was NEW_AVAILABLE_FIRMWARE, jump to "Process - Download new FW".
+1. If answer in previous process was NEW_AVAILABLE_FIRMWARE, jump to check release date and version
+2. FW name is autodescribed, so it has to accomplish: FW_NAME_VXpY_ddmmyy
+
+Where:
+FW_NAME: No limitations, end with_
+VxpY: FW version i.e. V1p4 = V1.4
+ddmmyy: Release Date
+
+3. Check if VxpY and ddmmyy are higher that actual stored version and date
+4. If yes, jump to "Process - Download new FW".
 2. If answer was different we jump to "Process - Execution handover to main program"
 
 ## Process - Download new FW
