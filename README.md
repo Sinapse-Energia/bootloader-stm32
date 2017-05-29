@@ -94,6 +94,7 @@ Folders routes have to be generical and easily modificable.
 Will be setup as described below:
 
 ftp root/DEVICE_CODE_FW/
+
 ftp root/DEVICE_CODE_FW/DEVICE_ID/
 
 ## Decision - FTP folder connection through ETH or WIFI
