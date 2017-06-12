@@ -199,7 +199,60 @@ Each function should contains a unit test verifying the correct behavior of each
 Several integration tests should be performed in order to verify the correct behaviour of the Bootloader in the most common situations. These tests should be executed in ALL the available Sinapse Devices
 
 ### Sinapse Device Empty - ETH/WIFI Connection - LED Main Program OK & LED Main Program KO
-TODO
+
+
+# Test 1 : Ideal situation
+
+- Device start
+- Bootloader connect to HTTP server (over WiFi)
+- Bootloader download the code of the client App
+- Bootloader check the client App and is correct
+- Bootloader install the client App
+- Bootloader perform handover to the client App
+
+- Result: The LED blinks each second
+
+# Test 2 : The connection is before the program is downloaded
+
+- Device start
+- Bootloader connect to HTTP server (over WiFi)
+- Bootloader download the code of the client App
+- The connection is lost (External)
+- Bootloader check the client App and is NOT correct
+- Bootloader does not install the client App
+- Device does not have any client App installed
+- Bootloader is not able to perform handover
+- Bootloader start again and this time the connection is OK. It should work as is explained in test 1. 
+
+- Result: The LED blinks each second
+
+# Test 3 : The device is restarted before the application is installed
+
+- Device start
+- Bootloader connect to HTTP server (over WiFi)
+- Bootloader download the code of the client App
+- Bootloader check the client App and is correct
+- Bootloader start to install but the device is restarted
+- Bootloader start again and this time the whole process is OK. It should work as is explained in test 1.
+
+- Result: The LED blinks each second
+
+# Test 4 : The device is restarted after the application is installed but the handover is not done (if possible)
+
+- Device start
+- Bootloader connect to HTTP server (over WiFi)
+- Bootloader download the code of the client App
+- Bootloader check the client App and is correct
+- Bootloader install the client App
+- Device restart
+- Bootloader connect to HTTP server (over WiFi)
+- Bootloader check the version but the installed version is the last one
+- Bootloader does not download the program
+- Bootloader perform the handover to the client App
+
+- Result: The LED blinks each second
+
+
 
 ### Sinapse Device Empty - GPRS Connection - LED Main Program OK & LED Main Program KO
 TODO
