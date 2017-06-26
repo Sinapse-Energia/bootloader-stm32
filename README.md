@@ -84,6 +84,19 @@ The requirements are divided by flow diagram elements
 1. To peform all needed operations to connect with one prefixed FTP server, available in the CF.
 2. Return ETHWIFI_FTP_FOLDER_FOUND if ETH/WIFI has been able to connect with the prefixed FTP server and it has found the folder (this folder is prefixed over Sinapse device) return ERROR_ETHWIFI_NOT_FOUND , ERROR_ETHWIFI_DISABLED , ERROR_ETHWIFI_FTP_NOT_CONNECT, ERROR_ETHWIFI_FOLDER_NOT_FOUND in other cases.
 
+Note:
+Each device should check 2 FTP folders. 
+1. Global FW folder: All devices check the same folder. Will be used on production process to upload a general FW to all devices
+2. Device Folder: Each device has an unique Folder for device Update. FW mnay times contains device info, so the update have to be customizaed for device.
+
+So Bootloader program have to contain Device ID.
+Folders routes have to be generical and easily modificable.
+Will be setup as described below:
+
+ftp root/DEVICE_CODE_FW/
+
+ftp root/DEVICE_CODE_FW/DEVICE_ID/
+
 ## Decision - FTP folder connection through ETH or WIFI
 
 1. If answer in previous process was ETHWIFI_FTP_FOLDER_FOUND, we jump to "Process - Check availability of new FW". 
@@ -103,22 +116,38 @@ The requirements are divided by flow diagram elements
 ## Decision - FTP folder connection through GPRS
 
 1. If answer in previous process was GPRS_FTP_FOLDER_FOUND, we jump to "Process - Check availability of new FW". 
-2. If answer was differen, jump to "Process - Execution handover to main program"
+2. If answer was different, jump to "Process - Execution handover to main program"
 
 ## Process - Check availability of new FW
 
-1. Inside the folder there will be one or two files. The main file will be one file ended in .HEX extension, the name is prefixed in bootloader code over Sinapse device. i. e: UPGRADE_STM32F0_020315.HEX
-2. Return NEW_AVAILABLE_FIRMWARE if the name of HEX file matchs with prefixed name in code. Return NO_NEW_FIRMWARE exists in another case.
+1. Inside the folder there will be one .BIN file. The name describes the version of the FW, so it has to be: FW_NAME_VXpY_ddmmyy, where:
+
+FW_NAME: No limitations, end with_
+
+VxpY: FW version i.e. V1p4 = V1.4
+
+ddmmyy: Release Date
+
+3. Check if VxpY and ddmmyy are higher that actual stored version and date
+
+*Note
+The actual stored version and date are saved in the first positions of the first page of the flash memory. The bootloader from fabric has these values set to: "last_update = date_installation" and "version = Vp, for example 14 -> V1p4"
+
+4. If yes, jump to "Process - Download new FW", returning NEW_AVAILABLE_FIRMWARE
+5. If answer was different we jump to "Process - Execution handover to main program", returning NO_NEW_FIRMWARE
 
 ## Decision - New FW available
 
-1. If answer in previous process was NEW_AVAILABLE_FIRMWARE, jump to "Process - Download new FW".
+1. If answer in previous process was NEW_AVAILABLE_FIRMWARE, jump to Download new FW
+
+
+3. Check if VxpY and ddmmyy are higher that actual stored version and date
+4. If yes, jump to "Process - Download new FW".
 2. If answer was different we jump to "Process - Execution handover to main program"
 
 ## Process - Download new FW
 
-1. The file ended in .HEX will be downloaded if NOT EXISTS the file UPDATED.LOG inside folder.
-2. If file is downloaded, it must to be saved  beginning in position 0x08002800+MAX_SIZE_APPLICATION_PROGRAM. ( We have then three sections of different programs in Flash):
+1. If file is downloaded, it must to be saved  beginning in position 0x08002800+MAX_SIZE_APPLICATION_PROGRAM. ( We have then three sections of different programs in Flash):
 
 1) From 0x08000000 - 0x80027FF BOOTLOADER
 2) From 0x08002800 - (0x8002800+MAX_SIZE_APPLICATION_PROGRAM-1) APPLICATION PROGRAM
@@ -139,7 +168,7 @@ The requirements are divided by flow diagram elements
 
 1. If download was correct, then we ERASE all flash memory from section 2) APPLICATION PROGRAM and save all data from section 3) UPGRADE PROGRAM to section 2) APPLICATION PROGRAM.
 2) Section 3 is erased completely.
-3) It is needed to generate in FTP SERVER and folder directory the file UPDATED.LOG in order no to load the new firmware in each restarting.
+3) It is needed to update the flash memory with the last_update and version variables. These information is used to decide if a new version should be installed.
 3) Return PROCESS_OK
 3) Jump to "Process - Execution Handover to main program".
 
@@ -170,10 +199,111 @@ Each function should contains a unit test verifying the correct behavior of each
 Several integration tests should be performed in order to verify the correct behaviour of the Bootloader in the most common situations. These tests should be executed in ALL the available Sinapse Devices
 
 ### Sinapse Device Empty - ETH/WIFI Connection - LED Main Program OK & LED Main Program KO
-TODO
+
+
+# Test 1 : Ideal situation
+
+- Device start
+- Bootloader connect to HTTP server (over WiFi)
+- Bootloader download the code of the client App
+- Bootloader check the client App and is correct
+- Bootloader install the client App
+- Bootloader perform handover to the client App
+
+- Result: The LED blinks each second
+
+# Test 2 : The connection is before the program is downloaded
+
+- Device start
+- Bootloader connect to HTTP server (over WiFi)
+- Bootloader download the code of the client App
+- The connection is lost (External)
+- Bootloader check the client App and is NOT correct
+- Bootloader does not install the client App
+- Device does not have any client App installed
+- Bootloader is not able to perform handover
+- Bootloader start again and this time the connection is OK. It should work as is explained in test 1. 
+
+- Result: The LED blinks each second
+
+# Test 3 : The device is restarted before the application is installed
+
+- Device start
+- Bootloader connect to HTTP server (over WiFi)
+- Bootloader download the code of the client App
+- Bootloader check the client App and is correct
+- Bootloader start to install but the device is restarted
+- Bootloader start again and this time the whole process is OK. It should work as is explained in test 1.
+
+- Result: The LED blinks each second
+
+# Test 4 : The device is restarted after the application is installed but the handover is not done (if possible)
+
+- Device start
+- Bootloader connect to HTTP server (over WiFi)
+- Bootloader download the code of the client App
+- Bootloader check the client App and is correct
+- Bootloader install the client App
+- Device restart
+- Bootloader connect to HTTP server (over WiFi)
+- Bootloader check the version but the installed version is the last one
+- Bootloader does not download the program
+- Bootloader perform the handover to the client App
+
+- Result: The LED blinks each second
+
+
 
 ### Sinapse Device Empty - GPRS Connection - LED Main Program OK & LED Main Program KO
-TODO
+
+# Test 5 : Ideal situation
+
+- Device start
+- Bootloader connect to HTTP server (over GPRS)
+- Bootloader download the code of the client App
+- Bootloader check the client App and is correct
+- Bootloader install the client App
+- Bootloader perform handover to the client App
+
+- Result: The LED blinks each second
+
+# Test 6 : The connection is before the program is downloaded
+
+- Device start
+- Bootloader connect to HTTP server (over GPRS)
+- Bootloader download the code of the client App
+- The connection is lost (External)
+- Bootloader check the client App and is NOT correct
+- Bootloader does not install the client App
+- Device does not have any client App installed
+- Bootloader is not able to perform handover
+- Bootloader start again and this time the connection is OK. It should work as is explained in test 5. 
+
+- Result: The LED blinks each second
+
+# Test 7 : The device is restarted before the application is installed
+
+- Device start
+- Bootloader connect to HTTP server (over GPRS)
+- Bootloader download the code of the client App
+- Bootloader check the client App and is correct
+- Bootloader start to install but the device is restarted
+- Bootloader start again and this time the whole process is OK. It should work as is explained in test 5.
+
+- Result: The LED blinks each second
+
+# Test 8 : The device is restarted after the application is installed but the handover is not done (if possible)
+
+- Device start
+- Bootloader connect to HTTP server (over GPRS)
+- Bootloader download the code of the client App
+- Bootloader check the client App and is correct
+- Bootloader install the client App
+- Device restart
+- Bootloader connect to HTTP server (over GPRS)
+- Bootloader check the version but the installed version is the last one
+- Bootloader does not download the program
+- Bootloader perform the handover to the client App
 
 ### Sinapse Device with Main Program - ETH/WIFI Connection - New Main Program OK & New Main Program KO
 TODO
