@@ -2,13 +2,12 @@
 #define __STM32_BOOTLOADER_H
 
 // --- INCLUDES ---
-#include <string.h>
+#include <Crc32.h>
+#include <Socket_bank.h>
 #include "stm32f4xx_hal.h"
 #include "Flash_NVM.h"
-#include "socket_bank.h"
 #include "Definitions.h"
 #include "Flash_NVM.h"
-#include "crc16.h"
 
 
 // --- DEFINES ---

@@ -6,7 +6,7 @@
   * @param  fl_bank: flash area (application or its copy bank)
   * @retval true if OK,  otherwise return false
   */
-HAL_StatusTypeDef FlashNVM_EraseBank(uint8_t fl_bank)
+HAL_StatusTypeDef FlashNVM_EraseBank(FLASH_BANK fl_bank)
 {
 	HAL_StatusTypeDef status;
 	FLASH_EraseInitTypeDef EraseInitStruct;
@@ -123,6 +123,9 @@ uint32_t FlashNVM_GetSectorSize(uint8_t start_sector, uint8_t last_sector)
 
 	for (sect = start_sector; sect <= last_sector; sect++)
 	{
+#ifndef STM32F4
+		size += 4 * 1024; //4 Kbytes For STM32F0xx devices
+#else
 		switch (sect) {
 			case FLASH_SECTOR_0:
 			case FLASH_SECTOR_1:
@@ -139,7 +142,7 @@ uint32_t FlashNVM_GetSectorSize(uint8_t start_sector, uint8_t last_sector)
 				size += 128 * 1024; // 128 Kbytes
 				break;
 		}
-
+#endif
 	}
 	return size;
 }
@@ -151,8 +154,9 @@ uint32_t FlashNVM_GetSectorSize(uint8_t start_sector, uint8_t last_sector)
   * @param  fl_bank: flash area (bootloader/ application or its copy bank)
   * @retval overall data size in bytes
   */
-uint32_t FlashNVM_GetBankSize(uint8_t fl_bank)
+uint32_t FlashNVM_GetBankSize(FLASH_BANK fl_bank)
 {
+
 	if (fl_bank == FLASH_BANK_BOOTLOADER) {
 			return FlashNVM_GetSectorSize(FLASH_BANKB_START_SECTOR, FLASH_BANKB_START_SECTOR + FLASH_BANKB_SECTORS - 1);
 	}
@@ -164,6 +168,7 @@ uint32_t FlashNVM_GetBankSize(uint8_t fl_bank)
 	if (fl_bank == FLASH_BANK_COPY) {
 			return FlashNVM_GetSectorSize(FLASH_BANKC_START_SECTOR, FLASH_BANKC_SECTORS + FLASH_BANKB_SECTORS - 1);
 	}
+
 	return 0;
 }
 
@@ -173,18 +178,18 @@ uint32_t FlashNVM_GetBankSize(uint8_t fl_bank)
   * @param  fl_bank: flash area (bootloader/ application or its copy bank)
   * @retval start address value in FLASH
   */
-uint32_t FlashNVM_GetBankStartAddress(uint8_t fl_bank)
+uint32_t FlashNVM_GetBankStartAddress(FLASH_BANK fl_bank)
 {
 	if (fl_bank == FLASH_BANK_BOOTLOADER) {
-		return FLASH_BASE + FlashNVM_GetSectorSize(FLASH_SECTOR_0, FLASH_BANKB_START_SECTOR) - (16 * 1024);
+		return FLASH_BASE + FlashNVM_GetSectorSize(FLASH_SECTOR_0, FLASH_BANKB_START_SECTOR) - FlashNVM_GetSectorSize(FLASH_BANKB_START_SECTOR, FLASH_BANKB_START_SECTOR);
 	}
 
 	if (fl_bank == FLASH_BANK_APPLICATION) {
-		return FLASH_BASE + FlashNVM_GetSectorSize(FLASH_SECTOR_0, FLASH_BANKA_START_SECTOR) - (16 * 1024);
+		return FLASH_BASE + FlashNVM_GetSectorSize(FLASH_SECTOR_0, FLASH_BANKA_START_SECTOR) - FlashNVM_GetSectorSize(FLASH_BANKA_START_SECTOR, FLASH_BANKA_START_SECTOR);
 	}
 
 	if (fl_bank == FLASH_BANK_COPY) {
-		return FLASH_BASE + FlashNVM_GetSectorSize(FLASH_SECTOR_0, FLASH_BANKC_START_SECTOR) - (16 * 1024);
+		return FLASH_BASE + FlashNVM_GetSectorSize(FLASH_SECTOR_0, FLASH_BANKC_START_SECTOR) - FlashNVM_GetSectorSize(FLASH_BANKC_START_SECTOR, FLASH_BANKC_START_SECTOR);
 	}
 	return 0;
 }

@@ -1,11 +1,12 @@
 #ifndef __SOCKET_BANK_H
 #define __SOCKET_BANK_H
 
+// --- INCLUDES ---
 #include <string.h>
+#include <Wifi232.h>
 #include "stm32f4xx_hal.h"
 #include "Definitions.h"
 #include "M95lite.h"
-
 
 // Socket errors
 typedef enum
@@ -28,6 +29,7 @@ typedef enum
 // Public Functions
 SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in);
 SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in);
+SOCKET_STATUS Socket_Close(SOCKETS_SOURCE s_in);
 SOCKET_STATUS Socket_Write(SOCKETS_SOURCE s_in, const char *data_in, int data_len);
 int Socket_Read(SOCKETS_SOURCE s_in, char *buff_out, int buff_len);
 void Socket_Clear(SOCKETS_SOURCE s_in);

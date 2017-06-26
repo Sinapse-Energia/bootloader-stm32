@@ -50,10 +50,10 @@ void cleanningReceptionBuffer(
 
 
 	uint16_t counter=0;
-	//HAL_NVIC_DisableIRQ (IRQn);
+//	HAL_NVIC_DisableIRQ (IRQn);
 	for (counter = 0; counter < sizeBuffer; counter++) buffer[counter] = 0x00;
 	*numberBytesReceived = 0;
-	//HAL_NVIC_EnableIRQ(IRQn);
+//	HAL_NVIC_EnableIRQ(IRQn);
 
 }
 
@@ -473,14 +473,14 @@ M95Status M95_Connect(
 	if (WDT_ENABLED == 1) HAL_IWDG_Refresh(hiwdg);
 
 	HAL_UART_Transmit(phuart,(uint8_t*)"AT+IPR=115200&W\r",16,100);
-	if (WIFICommunication_Enabled==0) HAL_UART_Transmit(phuartLOG,(uint8_t*)"Micro in 19200bps sends -> AT+IPR=115200&W\r",43,100);
+//???	if (WIFICommunication_Enabled==0) HAL_UART_Transmit(phuartLOG,(uint8_t*)"Micro in 19200bps sends -> AT+IPR=115200&W\r",43,100);
 	HAL_UART_DeInit(phuart);
 
 	phuart->Init.BaudRate=115200;
 	HAL_UART_Init(phuart);
 
 	HAL_UART_Transmit(phuart,(uint8_t*)"AT+IPR=115200&W\r",16,100);
-	if (WIFICommunication_Enabled==0) HAL_UART_Transmit(phuartLOG,(uint8_t*)"Micro in 115200bps sends -> AT+IPR=115200&W\r",44,100);
+//???	if (WIFICommunication_Enabled==0) HAL_UART_Transmit(phuartLOG,(uint8_t*)"Micro in 115200bps sends -> AT+IPR=115200&W\r",44,100);
 	if (WDT_ENABLED == 1) HAL_IWDG_Refresh(hiwdg);
 
 
@@ -1209,3 +1209,4 @@ openningTCPConnection:
 
 
 }
+

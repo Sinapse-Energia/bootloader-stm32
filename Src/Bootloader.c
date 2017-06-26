@@ -45,6 +45,36 @@ uint8_t Boot_StartApplication(void)
 }
 
 
+/**
+  * @brief  Check connection to server
+  * @param  ssource - SOCKET_SRC_WIFI / SOCKET_SRC_GPRS
+  * @retval Return true if connection OK
+  */
+uint8_t Boot_CheckConnection(SOCKETS_SOURCE ssource)
+{
+	char* p;
+    uint32_t len, len_left;
+
+    // Check connection available
+    sprintf(boot_buff, "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_IP);
+    Socket_Clear(ssource);
+    Socket_Write(ssource, boot_buff, strlen(boot_buff));
+    // Read answer
+    Socket_ClearTimeout(ssource);
+    p = boot_buff;
+    len_left = BOOT_BUFFER_SIZE;
+    while (!Socket_GetTimeout(ssource)) {
+        len = Socket_Read(ssource, p, len_left);
+        if (len) {
+        	p += len;
+        	len_left -= len;
+        }
+    }
+    if ((BOOT_BUFFER_SIZE - len_left) < 10) {
+    	return 0; // Err
+    }
+    return 1; // Ok
+}
 
 /**
   * @brief  Check for new application firmware available on remote FTP server
@@ -62,65 +92,98 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     uint32_t fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
     uint32_t app_addr;
     unsigned int fw_len;
+    SOCKETS_SOURCE ssource;
+
+    // Init sources
+    Socket_Init(SOCKET_SRC_WIFI);
+    Socket_Init(SOCKET_SRC_GPRS);
+
+    // Check connection available first
+    // and select source
+    // WiFi first
+/*
+    if (Boot_CheckConnection(SOCKET_SRC_WIFI)) {
+    	ssource = SOCKET_SRC_WIFI;
+    } else {
+    	if ((Socket_Connect(SOCKET_SRC_GPRS) == SOCKET_OK) && Boot_CheckConnection(SOCKET_SRC_GPRS)) {
+        	ssource = SOCKET_SRC_GPRS;
+        } else {
+        	//No connections!
+        	return BOOT_ERR_CONNECTION; //Err
+        }
+    }
+
+*/
+	if (Socket_Connect(SOCKET_SRC_GPRS) == SOCKET_OK) {
+    	ssource = SOCKET_SRC_GPRS;
+    } else {
+    	//No connections!
+    	return BOOT_ERR_CONNECTION; //Err
+    }
+
 
     // Clear buffer flash first
     FlashNVM_EraseBank(FLASH_BANK_COPY);
 
-    Socket_Init(SOCKET_SRC_WIFI);
-
-    // Check connection available
-    // and select source
-    // WiFi first
+    // Get data
     sprintf(boot_buff, "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_FW_FILENAME, HTTP_SERVER_IP);
-    Socket_Write(SOCKET_SRC_WIFI, boot_buff, strlen(boot_buff));
+    Socket_Clear(ssource);
+    Socket_Write(ssource, boot_buff, strlen(boot_buff));
     // Read answer
-    Socket_ClearTimeout(SOCKET_SRC_WIFI);
+    Socket_ClearTimeout(ssource);
     total_len = 0;
-    while (!Socket_GetTimeout(SOCKET_SRC_WIFI)) {
-        len = Socket_Read(SOCKET_SRC_WIFI, boot_buff, BOOT_BUFFER_SIZE);
+    while (!Socket_GetTimeout(ssource)) {
+        len = Socket_Read(ssource, boot_buff, BOOT_BUFFER_SIZE);
         if (len) {
-        	total_len += len;
         	FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, len);
+        	total_len += len;
         	fl_addr += len;
+        	Socket_ClearTimeout(ssource);
         }
     }
     if (total_len < 10) {
-    	printf("Server no answer!");
+    	//No file on server!
     	return BOOT_ERR_CONNECTION; //Err
     }
+
+    // Stop HTTP session
+    Socket_Close(ssource);
 
     // NVM flash operation
 
 	// Find firmware length
     fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
-	len = 0;
-    for (i = 0; i < (len - 4); i++)
+	len = total_len - 24;
+    for (i = 0; i < len; i++)
     {
-    	FlashNVM_Read(fl_addr, (uint8_t*)boot_buff, 4);
-    	if (strstr(boot_buff, "length")){
-        	sscanf(boot_buff, "%ui", &fw_len);
+    	FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 24);
+    	boot_buff[15] = '\0';
+    	if (strstr(boot_buff, "Content-Length:")) {
+        	sscanf(boot_buff + 15 + 1, "%ui", &fw_len);
         	fw_len -= 4; //dec CRC
         	break;
     	}
     }
-    if (i == (len - 4)) {
-    	printf("no data length found!");
+    if (i == len) {
+    	//no data length found
     	return BOOT_ERR_NODATA; //Err
     }
 
 	// Find firmware start position
     fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
-	len = 0;
-    for (i = 0; i < (len - 4); i++)
+    len = total_len - 4;
+    for (i = 0; i < len; i++)
     {
-    	FlashNVM_Read(fl_addr, (uint8_t*)boot_buff, 4);
+    	FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 4);
+    	boot_buff[4] = '\0';
     	p = strstr(boot_buff, "\r\n\r\n");
     	if (p) {
-    		fl_addr += (4 + p - boot_buff);
+    		fl_addr += (i + 4);
+    		break;
     	}
     }
-    if (i == (len - 4)) {
-    	printf("no file found!");
+    if (i == len) {
+    	//no file found
     	return BOOT_ERR_NODATA; //Err
     }
 
@@ -136,15 +199,19 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 4);
     // And check it
     if (!memcmp(boot_buff, &crc32, 4)) {
-    	printf("Firmware CRC error!");
+    	//Firmware CRC error!
     	return BOOT_ERR_CRC; //Err
     }
 
+
     // Check is NEW firmware update available
-    FlashNVM_Read(fl_addr + APP_VER_ADDR_HIGH, (uint8_t*)&len, 2);
-    FlashNVM_Read(FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION) + APP_VER_ADDR_HIGH, (uint8_t*)&i, 2);
+    FlashNVM_Read(fl_addr + APP_VER_ADDR_LOW, (uint8_t*)&len, 2);
+    FlashNVM_Read(FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION) + APP_VER_ADDR_LOW, (uint8_t*)&i, 2);
+    i   &= 0xFFFF;
+    len &= 0xFFFF;
+    if (i != 0xFFFF)
     if (i >= len) {
-    	printf("No new firmware available!");
+    	//"No new firmware available!");
     	return BOOT_OK;
     }
 
@@ -158,9 +225,6 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     }
     // Compare memories again?
 
-    // Start new Application
-    //Boot_StartApplication();
-
     return BOOT_OK;
 }
 
@@ -172,7 +236,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
   */
 void Boot_RebootMCU(void)
 {
-    // Reset mcu
+    // Reset MCU
     NVIC_SystemReset();
 }
 

@@ -44,6 +44,12 @@ RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 128K
 CCMRAM (rw)      : ORIGIN = 0x10000000, LENGTH = 64K
 FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 1024K
 }
+/*
+FLASH (rx)      : ORIGIN = 0x8004000, LENGTH = 1024K
+FLASH (rx)      : ORIGIN = 0x8000000, LENGTH = 1024K
+MYVARS (x)      : ORIGIN = 0x8004000, LENGTH = 1K
+FLASH2 (rx)      : ORIGIN = 0x8004400, LENGTH = 1023K
+*/
 
 /* Define output sections */
 SECTIONS
@@ -60,6 +66,7 @@ SECTIONS
   .text :
   {
     . = ALIGN(4);
+    KEEP(*(.myvars))    
     *(.text)           /* .text sections (code) */
     *(.text*)          /* .text* sections (code) */
     *(.glue_7)         /* glue arm to thumb code */
@@ -144,6 +151,15 @@ SECTIONS
     _eccmram = .;       /* create a global symbol at ccmram end */
   } >CCMRAM AT> FLASH
 
+/* placing my named section at given address: */
+ 
+ /*
+  .myvars 0x8005000 :
+  {
+  	. = ALIGN(4);
+    KEEP(*(.myvars));     
+  } > FLASH
+*/    
   
   /* Uninitialized data section */
   . = ALIGN(4);
