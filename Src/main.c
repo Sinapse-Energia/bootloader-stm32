@@ -9,6 +9,7 @@
 
 // Program version memory map prototype
 const uint8_t __attribute__((section(".myvars"))) VERSION_NUMBER[6] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+//UART_HandleTypeDef huart6;
 
 // Private function prototypes
 void SystemClock_Config(void);
@@ -21,13 +22,24 @@ int main(void)
 	// Reset of all peripherals, Initializes the Flash interface and the Systick.
 	HAL_Init();
 
+
+
 	// Configure the system clock
 	SystemClock_Config();
 
+	/*
+	if (LOG_WIFI==1)
+		{
+		
+		HAL_UART_Transmit(&huart6, "(BOOT Init)\r\n", 15,100); //Francis, for logging
+		}
+		*/
+	
 	// Start to check firmware
 	while (Boot_PerformFirmwareUpdate() != BOOT_OK) {
 		if(++attempt > 5) break;
 		HAL_Delay(5000);
+		//if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT New retry over FW update)\r\n", 33,100); //Francis, for logging
 	}
 
 	// Start Application
@@ -43,6 +55,7 @@ int main(void)
 		// Socket_Write(SOCKET_SRC_WIFI, "HI app! ", 8);
 		// attempt = Socket_Read(SOCKET_SRC_WIFI, tmp, 100);
 		// Start to blink Err LED?
+		//if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT DANGEROUS ERROR. INFINITE LOOP!", 37,100); //Francis, for logging
 		HAL_Delay(1000);
 	}
 }

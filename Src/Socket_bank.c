@@ -200,15 +200,20 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 		HAL_UART_Receive_IT(&huart3, (uint8_t*) &dataByteBufferIRQ, 1);
 
 	    HAL_Delay(30);
+
 	    memcpy(APN, const_APN, sizeof(const_APN));
 	    memcpy(IPPORT, const_MAIN_SERVER, sizeof(const_MAIN_SERVER));
+
+
 	    memcpy(SERVER_NTP, const_SERVER_NTP, sizeof(const_SERVER_NTP));
+
 
 	} else {
 		MX_USART6_UART_Init();
 		HAL_UART_Receive_IT(&huart6, (uint8_t*) &WiFidataBufferIRQ, 1);
 
 	}
+
 
 	MX_TIM7_Init();
     HAL_TIM_Base_Start_IT(&htim7); //Activate IRQ for Timer7

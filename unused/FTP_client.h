@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+#include "socket_bank.h"
+#include "Definitions.h"
 
 // --- DEFINES ---
 // Comment below for embedded MCU compile
@@ -31,11 +33,12 @@ struct FTP_sockaddr_in{
 
 
 // --- FUNCTIONS PROTOTYPES ---
-int FTP_sockCMD_init(void);
+int FTP_initCMD(int s, const char* ftp_addr, int ftp_port);
 void FTP_readServ(int s) ;
-int FTP_sockDATA_init(int s);
-int FTP_login(int s);
+int FTP_initDAT(int s, const char* ftp_addr, int ftp_port);
+int FTP_login(int s, const char* ftp_login, const char* ftp_pass);
 int FTP_getfile(int s, int ds, const char *file, char *data_out, int max_len);
+int FTP_putfile(int s, int ds, const char *file, const char *data_in, int data_len);
 
 int FTP_test(void);
 

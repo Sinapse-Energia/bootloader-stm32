@@ -80,7 +80,7 @@ HAL_StatusTypeDef FlashNVM_Read(uint32_t start_address, uint8_t* data_out, uint3
   */
 HAL_StatusTypeDef FlashNVM_Write(uint32_t start_address, const uint8_t* data_in, uint32_t size)
 {
-	HAL_StatusTypeDef status;
+	HAL_StatusTypeDef status = HAL_ERROR;
 	uint32_t i;
 
 	// Check input data

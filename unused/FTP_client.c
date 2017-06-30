@@ -2,35 +2,35 @@
 
 #ifdef LINUX_ENV
 #include <arpa/inet.h>
+#include <select.h>
 
 //#include <netinet/in.h>
 //#include <sys/types.h>
 //#include <sys/socket.h>
 //#include <sys/time.h>
+#else
+#include "stm32f4xx_hal.h"
+
 #endif //LINUX_ENV
 
-
-// https://test.rebex.net/
-const char ftp_addr[] = "195.144.107.198";
-const unsigned char ftp_port = 21;
-const char ftp_login[] = "demo";
-const char ftp_pass[] = "password";
-const char ftp_filename[] = "readme.txt";
 
 // Input/Output buffer
 char ftp_buff[FTP_BUFF_LEN];
 
+// Current socket source selector
+//SOCKETS_SOURCE ftp_socket = SOCKET_SRC_NONE;
+
 //**************************************************************************
 // Portable functions start
 //**************************************************************************
-int _sock_init(void)
+int _sock_init(int s)
 {
-	int s = -1;
-
 #ifdef LINUX_ENV
+	int s = -1;
     s = socket(AF_INET, SOCK_STREAM, 0);
 #else
     // MCU socket init here
+    Socket_Init(s);// == SOCKET_OK) {
 #endif //#ifdef LINUX_ENV
 
     return s;
@@ -54,22 +54,23 @@ int _sock_connect(int s, const char *addr, unsigned int port)
     // Connect to socket (almost 25 seconds timeout)
     return connect(s, (const struct sockaddr *)&address, len);
 #else
-    // MCU socket init here
 
+    if (Socket_Connect(s) != SOCKET_OK) {
+    	return SOCKET_SRC_NONE;
+    }
+
+    return s;
 #endif //#ifdef LINUX_ENV
-
-    return -1;
 }
 
 
 
-int _sock_read(int s, char *data_out, int data_max)
+int _sock_read(int s, char *data_out, int data_len)
 {
 #ifdef LINUX_ENV
 	return recv(s, data_out, data_max, 0);
 #else
-    // MCU socket init here
-
+	return Socket_Read(s, data_out, data_len);
 #endif //#ifdef LINUX_ENV
 
 	return  0;
@@ -81,11 +82,11 @@ int _sock_write(int s, const char *data_in, int data_len)
 #ifdef LINUX_ENV
 	return send(s, data_in, data_len, 0);
 #else
-    // MCU socket init here
-
+    // MCU socket write here
+	Socket_Write(s, data_in, data_len);
 #endif //#ifdef LINUX_ENV
 
-	return  0;
+	return  data_len;
 }
 //**************************************************************************
 // Portable functions stop
@@ -96,13 +97,13 @@ int _sock_write(int s, const char *data_in, int data_len)
 //**************************************************************************
 // Init CMD Socket and return its descriptor
 //**************************************************************************
-int FTP_sockCMD_init(void)  
+int FTP_initCMD(int s, const char* ftp_addr, int ftp_port)
 {
-	int s = _sock_init();
+	s = _sock_init(s);
 	int result = _sock_connect(s, ftp_addr, ftp_port);
-    if (result == -1) {
+    if (result <= 0) {
         perror("Socket connection Error!");
-        return -1;
+        return 0;
     }
 
     return s;
@@ -113,30 +114,30 @@ int FTP_sockCMD_init(void)
 //**************************************************************************
 void FTP_readServ(int s) 
 {
-    fd_set fdr;
+//    fd_set fdr;
     int rc;    
-    struct timeval timeout;
+//    struct timeval timeout;
 
-    FD_ZERO(&fdr);
-    FD_SET(s, &fdr);    
+//    FD_ZERO(&fdr);
+//    FD_SET(s, &fdr);
     
     // Set server answer timeout (1 sec)
-    timeout.tv_sec = 1;   
-    timeout.tv_usec = 0;  
+//    timeout.tv_sec = 1;
+//    timeout.tv_usec = 0;
     
     do {
         // Get data from stream
-    	_sock_read(s, ftp_buff, FTP_BUFF_LEN);
+    	rc = _sock_read(s, ftp_buff, FTP_BUFF_LEN);
         printf("%s", ftp_buff);        
         // Wait for data with 1-sec timeout
-        rc = select(s + 1, &fdr, NULL, NULL, &timeout);    
+        //rc = select(s + 1, &fdr, NULL, NULL, &timeout);
     } while(rc);     
 }
 
 //**************************************************************************
 // Init DATA Socket and return its descriptor
 //**************************************************************************
-int FTP_sockDATA_init(int s) 
+int FTP_initDAT(int s, const char* ftp_addr, int ftp_port)
 {
     char *tmp_char;
     int a,b;    
@@ -158,11 +159,11 @@ int FTP_sockDATA_init(int s)
     sscanf(tmp_char, "%d,%d,%d,%d,%d,%d",&c,&d,&e,&f,&a,&b);
     
     port = a * 256 + b;
-    ds = _sock_init();
+    ds = _sock_init(s);
     result = _sock_connect(ds, ftp_addr, port);
-    if (result == -1) {
+    if (result <= 0) {
         perror("Data socket connection Error!");
-        return -1;
+        return 0;
     }
     return ds;
 }
@@ -170,7 +171,7 @@ int FTP_sockDATA_init(int s)
 //**************************************************************************
 // Login / passw on a server
 //**************************************************************************
-int FTP_login(int s) 
+int FTP_login(int s, const char* ftp_login, const char* ftp_pass)
 {
     sprintf(ftp_buff,"USER %s\r\n", ftp_login);
     _sock_write(s, ftp_buff, strlen(ftp_buff));
@@ -220,7 +221,7 @@ int FTP_getfile(int s, int ds, const char *file, char *data_out, int max_len)
     sscanf(tmp_size,"%d", &file_size);
     printf("fileseize=%i\r\n", file_size);
 
-    // REad file data
+    // Read file data
     sprintf(ftp_buff, "RETR %s\r\n", file);
     _sock_write(s, ftp_buff, strlen(ftp_buff));
 
@@ -231,7 +232,7 @@ int FTP_getfile(int s, int ds, const char *file, char *data_out, int max_len)
     do {            
             // Read data from 'data socket'
             readed = _sock_read(ds, ftp_buff, sizeof(ftp_buff));
-            // Chack max length
+            // Check max length
             if (max_len < readed) {
                 readed = max_len;
             } 
@@ -251,34 +252,52 @@ int FTP_getfile(int s, int ds, const char *file, char *data_out, int max_len)
 }
 
 //**************************************************************************
+// Read desire file into a memory
+//**************************************************************************
+int FTP_putfile(int s, int ds, const char *file, const char *data_in, int data_len)
+{
+    // Sent filename
+    sprintf(ftp_buff, "STOR %s\r\n", file);
+    _sock_write(s, ftp_buff, strlen(ftp_buff));
+
+    // Read server answer
+    /*readed =*/ _sock_read(s, ftp_buff, sizeof(ftp_buff));
+
+    // Sent file content
+    _sock_write(ds, data_in, data_len);
+
+    return 0; // Ok
+}
+
+
+//**************************************************************************
 // Test FTP connection
 //**************************************************************************
 int FTP_test(void)
-//int main(void)
 {
     int s = 0;
     int ds = 0;
     char output[100];
 
      // Create Command socket
-     s = FTP_sockCMD_init();
-     if (s > 0)	{
+     s = FTP_initCMD(0, FTP_SERVER_IP, FTP_SERVER_PORT);
+     if (s >= 0)	{
          FTP_readServ(s);
 
-         if (FTP_login(s)) {
-             // Create Data socket  
-             ds = FTP_sockDATA_init(s);
-             if (ds > 0) {
-                 FTP_getfile(s, ds, ftp_filename, output, 100);
-		 // Close DATA connection 
-		 close(ds);				 
+         if (FTP_login(s, FTP_SERVER_USERNAME, FTP_SERVER_PASSWORD)) {
+             // Create Data socket
+             ds = FTP_initDAT(s, FTP_SERVER_IP, FTP_SERVER_PORT);
+             if (ds >= 0) {
+                 FTP_getfile(s, ds, FTP_SERVER_FW_FILENAME, output, 100);
+                 FTP_putfile(s, ds, "mylog2.log", "test content", 12);
+                 // Close DATA connection
+                 close(ds);
              }
          }
 
         // Close CMD connection 
         close(s);  
-    }
-    else {
+    } else {
      printf("Err s=%i\r\n", s);
 
     }
