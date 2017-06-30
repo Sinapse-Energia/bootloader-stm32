@@ -6,7 +6,7 @@
 #endif
 
  // Francis definition.
-//#define LOG_WIFI  1
+#define LOG_WIFI  1
 
  // GPRS init
 #define SIZE_APN 						60

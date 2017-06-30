@@ -25,7 +25,7 @@ uint8_t Boot_StartApplication(void)
     // which contains the address of stack pointer
     // If it is 0xFFFFFFFF then the application section is empty
     if (*app_check_address_ptr == 0xFFFFFFFF) {
-    	//if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT NOT EXISTS APPLICATION FW!\r\n", 34,100); //Francis, for logging
+    	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT NOT EXISTS APPLICATION FW!\r\n", 34,100); //Francis, for logging
         return 0;
     }
 
@@ -42,7 +42,7 @@ uint8_t Boot_StartApplication(void)
     __set_MSP(appStack);
 
     // Start the application
-    //if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Jumping to application program!\r\n", 36,100); //Francis, for logging
+    if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Jumping to application program!\r\n", 36,100); //Francis, for logging
     appEntry();
 
     return 1; // OK (but in real app should never reach this point)
@@ -100,7 +100,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     SOCKETS_SOURCE ssource;
 
     // Init sources
-    //if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Init Sockets)\r\n", 21,100); //Francis, for logging
+    if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Init Sockets)\r\n", 21,100); //Francis, for logging
     Socket_Init(SOCKET_SRC_WIFI);
 
     Socket_Init(SOCKET_SRC_GPRS);
@@ -125,17 +125,17 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
 
 	if (Socket_Connect(SOCKET_SRC_GPRS) == SOCKET_OK) {
-		//if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Connect GPRS)\r\n", 20,100); //Francis, for logging
+		if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Connect GPRS)\r\n", 20,100); //Francis, for logging
     	ssource = SOCKET_SRC_GPRS;
     } else {
     	//No connections!
-    	//if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Connect WIFI)\r\n", 20,100); //Francis, for logging
+    	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Connect WIFI)\r\n", 20,100); //Francis, for logging
     	return BOOT_ERR_CONNECTION; //Err
     }
 
 
     // Clear buffer flash first
-	//if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Erase Flash_Bank_Copy)\r\n", 29,100); //Francis, for logging
+	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Erase Flash_Bank_Copy)\r\n", 29,100); //Francis, for logging
     FlashNVM_EraseBank(FLASH_BANK_COPY);
 
     // Get data
@@ -156,10 +156,10 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     }
     if (total_len < 10) {
     	//No file on server!
-    	//if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT ERROR No file on server)\r\n", 32,100); //Francis, for logging
+    	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT ERROR No file on server)\r\n", 32,100); //Francis, for logging
     	return BOOT_ERR_CONNECTION; //Err
     }
-    //if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT All data from server is downloaded)\r\n", 42,100); //Francis, for logging
+    if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT All data from server is downloaded)\r\n", 42,100); //Francis, for logging
     // Stop HTTP session
     Socket_Close(ssource);
 
@@ -180,11 +180,11 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     }
     if (i == len) {
     	//no data length found
-    	//if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT ERROR No length FW valid)\r\n", 32,100); //Francis, for logging
+    	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT ERROR No length FW valid)\r\n", 32,100); //Francis, for logging
     	return BOOT_ERR_NODATA; //Err
     }
 
-    //if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT length from firmware is get)\r\n", 36,100); //Francis, for logging
+    if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT length from firmware is get)\r\n", 36,100); //Francis, for logging
 
 	// Find firmware start position
     fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
@@ -201,11 +201,11 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     }
     if (i == len) {
     	//no file found
-    	//if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT ERROR start position FW)\r\n", 32,100); //Francis, for logging
+    	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT ERROR start position FW)\r\n", 32,100); //Francis, for logging
     	return BOOT_ERR_NODATA; //Err
     }
 
-    //if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT start position in new firmware is get)\r\n", 46,100); //Francis, for logging
+    if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT start position in new firmware is get)\r\n", 46,100); //Francis, for logging
     // Count firmware CRC (last 4 byte of the firmware will be - CRC32 checksum)
     crc32_Clear();
 	len = 0;
@@ -226,11 +226,11 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     // And check it
     if (memcmp(boot_buff, &crc32, 4) != 0) {
     	//Firmware CRC error!
-    	//if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT CRC not valid)\r\n", 22,100); //Francis, for logging
+    	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT CRC not valid)\r\n", 22,100); //Francis, for logging
     	return BOOT_ERR_CRC; //Err
     }
 
-    //if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT CRC is valid)\r\n", 21,100); //Francis, for logging
+    if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT CRC is valid)\r\n", 21,100); //Francis, for logging
 
 
     // Check is NEW firmware update available
@@ -241,11 +241,11 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     if (i != 0xFFFF)
     if (i >= len) {
     	//"No new firmware available!");
-    	//if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT No New FW)\r\n", 18,100); //Francis, for logging
+    	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT No New FW)\r\n", 18,100); //Francis, for logging
     	return BOOT_OK;
     }
 
-    //if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT version new FW is higher strict than actual FW)\r\n", 55,100); //Francis, for logging
+    if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT version new FW is higher strict than actual FW)\r\n", 55,100); //Francis, for logging
     // Update firmware (copy buffer to Application flash memory)
     FlashNVM_EraseBank(FLASH_BANK_APPLICATION);
     app_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION);
@@ -255,7 +255,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     	FlashNVM_Write(app_addr + i, (uint8_t*)boot_buff, BOOT_BUFFER_SIZE);
     }
     // Compare memories again?
-    //if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT updated new FW in Flash_Bank_Application)\r\n", 49,100); //Francis, for logging
+    if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT updated new FW in Flash_Bank_Application)\r\n", 49,100); //Francis, for logging
     return BOOT_OK;
 }
 
