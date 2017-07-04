@@ -46,7 +46,6 @@ extern void _Error_Handler(char *, int);
 /**
   * Initializes the Global MSP.
   */
-
 void HAL_MspInit(void)
 {
   /* USER CODE BEGIN MspInit 0 */
@@ -76,14 +75,6 @@ void HAL_MspInit(void)
   /* USER CODE END MspInit 1 */
 }
 
-///////***************************************************************************************////////////////////
-/*
- *
- *  Dependent-code for application. This function reads from EEPROM CMC and do some actuations in bootloader mode
- *
- */
-
-
 void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 {
 
@@ -91,12 +82,12 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
   if(hi2c->Instance==I2C1)
   {
   /* USER CODE BEGIN I2C1_MspInit 0 */
-	  __HAL_RCC_I2C1_CLK_ENABLE();
-  /* USER CODE END I2C1_MspInit 0 */
 
-    /**I2C1 GPIO Configuration
+  /* USER CODE END I2C1_MspInit 0 */
+  
+    /**I2C1 GPIO Configuration    
     PB6     ------> I2C1_SCL
-    PB7     ------> I2C1_SDA
+    PB7     ------> I2C1_SDA 
     */
     GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
@@ -124,10 +115,10 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
   /* USER CODE END I2C1_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_I2C1_CLK_DISABLE();
-
-    /**I2C1 GPIO Configuration
+  
+    /**I2C1 GPIO Configuration    
     PB6     ------> I2C1_SCL
-    PB7     ------> I2C1_SDA
+    PB7     ------> I2C1_SDA 
     */
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_6|GPIO_PIN_7);
 
@@ -137,6 +128,7 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
   }
 
 }
+
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
 {
 
@@ -281,8 +273,6 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
   }
 
 }
-
-
 
 /* USER CODE BEGIN 1 */
 
