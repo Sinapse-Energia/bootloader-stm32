@@ -10,10 +10,14 @@
 // Program version memory map prototype
 const uint8_t __attribute__((section(".myvars"))) VERSION_NUMBER[6] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
 UART_HandleTypeDef huart6;
+IWDG_HandleTypeDef hiwdg;
 
 // Private function prototypes
 void SystemClock_Config(void);
 
+#ifdef CMC_APPLICATION_DEPENDENT
+I2C_HandleTypeDef hi2c1;
+#endif
 
 int main(void)
 {
@@ -28,16 +32,25 @@ int main(void)
 	SystemClock_Config();
 
 
+
+
+#ifdef CMC_APPLICATION_DEPENDENT
+	/////// Reading over external eeprom application_dependent variables
+	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Reading application dependent variables)\r\n", 48,100); //Francis, for logging
+	keepingStatus_applicationDepending();
+#endif
+
+
 	if (LOG_WIFI==1)
-		{
+	{
 		
 		HAL_UART_Transmit(&huart6, "(BOOT Init)\r\n", 15,100); //Francis, for logging
-		}
+	}
 
 	
 	// Start to check firmware
 	while (Boot_PerformFirmwareUpdate() != BOOT_OK) {
-		if(++attempt > 5) break;
+		if(++attempt > NUMBER_RETRIES) break;
 		HAL_Delay(5000);
 		if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT New retry over FW update)\r\n", 33,100); //Francis, for logging
 	}
@@ -112,6 +125,142 @@ void SystemClock_Config(void)
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
+
+#ifdef CMC_APPLICATION_DEPENDENT
+
+///////***************************************************************************************////////////////////
+/*
+ *
+ *  Dependent-code for application. This function reads from EEPROM CMC and do some actuations in bootloader mode
+ *
+ */
+
+void MX_I2C1_Init(void)
+{
+/*
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.ClockSpeed = 100000;
+  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLED;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLED;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLED;
+  HAL_I2C_Init(&hi2c1);
+  */
+
+	hi2c1.Instance = I2C1;
+	hi2c1.Init.ClockSpeed = 400000;
+	  //hi2c1.Init.ClockSpeed = 100000;
+	  //hi2c1.Init.ClockSpeed = 30000;
+	  hi2c1.Init.DutyCycle = I2C_DUTYCYCLE_2;
+	  hi2c1.Init.OwnAddress1 = 0;
+	  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+	  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLED;
+	  hi2c1.Init.OwnAddress2 = 0;
+	  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLED;
+	  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLED;
+	  HAL_I2C_Init(&hi2c1);
+
+
+}
+uint8_t I2C_GetNBytes_AT24C512(I2C_HandleTypeDef *hi2c,  uint32_t timeout,uint8_t highByteAddress, uint8_t lowByteAddress, uint8_t *cadenaRecibida, uint16_t numeroBytes)
+{
+
+    uint8_t comunicacionCorrecta=0;
+    uint8_t arrayTransmitido[2];
+	HAL_StatusTypeDef peripheralStatusTX, peripheralStatusRX;
+	arrayTransmitido[0]=highByteAddress;
+	arrayTransmitido[1]=lowByteAddress;
+
+
+	peripheralStatusTX = HAL_I2C_Master_Transmit(hi2c, I2C__ADDRESS__WRITING__AT24C512 , arrayTransmitido,2, timeout); // Dummy writing for getting some read value.
+
+	 if (peripheralStatusTX==HAL_OK)
+	 	 {
+		 	 peripheralStatusRX = HAL_I2C_Master_Receive(hi2c, I2C__ADDRESS__READING__AT24C512 , cadenaRecibida,numeroBytes, timeout);
+		 	 //HAL_Delay(50);
+		  	 if (peripheralStatusRX==HAL_OK)
+		 	 {
+		 		 comunicacionCorrecta=1;
+		 	 }
+
+	 	 }
+
+	 	 return comunicacionCorrecta;
+
+
+
+}
+
+
+void relayStatus(I2C_HandleTypeDef *hi2c1,uint8_t *relayGeneralStatus,uint8_t *relay1Status,
+			uint8_t *relay2Status, uint8_t *relay3Status){
+
+		uint16_t address = START_EEPROM_OWN_CMC_PARAMETERS;
+
+		I2C_GetNBytes_AT24C512(hi2c1,1000,(address+35)/256,(address+35)%256,relayGeneralStatus,1);
+		if (*relayGeneralStatus==0xFF) *relayGeneralStatus=0; //+35
+
+		I2C_GetNBytes_AT24C512(hi2c1,1000,(address+36)/256,(address+36)%256,relay1Status,1);
+		if (*relay1Status==0xFF) *relay1Status=0;    			//+36
+
+		I2C_GetNBytes_AT24C512(hi2c1,1000,(address+58)/256,(address+58)%256,relay2Status,1);
+		if (*relay2Status==0xFF) *relay2Status=0; //+35
+
+		I2C_GetNBytes_AT24C512(hi2c1,1000,(address+59)/256,(address+59)%256,relay3Status,1);
+		if (*relay3Status==0xFF) *relay3Status=0;    			//+36
+			 //address+=1;
+
+
+
+	}
+
+
+void keepingStatus_applicationDepending(void )
+{
+
+	  I2C_HandleTypeDef hi2c1;
+	  uint8_t relayGeneralStatus, relay1Status, relay2Status, relay3Status;
+	  GPIO_InitTypeDef GPIO_InitStruct;
+
+	  /* GPIO Ports Clock Enable */
+
+	  	__GPIOE_CLK_ENABLE();
+
+
+
+	   GPIO_InitStruct.Pin = CIRC_RELE2_Pin|CIRC_RELE3_Pin|CIRC_RELEGENERAL_Pin|CIRC_RELE4_Pin
+	                            |CIRC_RELE5_Pin|CIRC_RELE1_Pin;
+	   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	   GPIO_InitStruct.Pull = GPIO_PULLUP;
+	   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	   HAL_GPIO_Init(CIRC_RELEGENERAL_GPIO_Port, &GPIO_InitStruct);
+
+
+	  MX_I2C1_Init();
+	  relayStatus(&hi2c1,&relayGeneralStatus,&relay1Status,&relay2Status, &relay3Status);
+
+	  if (relayGeneralStatus==1) HAL_GPIO_WritePin(CIRC_RELEGENERAL_GPIO_Port,CIRC_RELEGENERAL_Pin,GPIO_PIN_SET);
+	  else if (relayGeneralStatus ==0) HAL_GPIO_WritePin(CIRC_RELEGENERAL_GPIO_Port,CIRC_RELEGENERAL_Pin,GPIO_PIN_RESET);
+
+	  if (relay1Status==1) HAL_GPIO_WritePin(CIRC_RELE1_GPIO_Port,CIRC_RELE1_Pin,GPIO_PIN_SET);
+	  else if (relay1Status ==0) HAL_GPIO_WritePin(CIRC_RELE1_GPIO_Port,CIRC_RELE1_Pin,GPIO_PIN_RESET);
+
+	  if (relay2Status==1) HAL_GPIO_WritePin(CIRC_RELE2_GPIO_Port,CIRC_RELE2_Pin,GPIO_PIN_SET);
+	  else if (relay2Status ==0) HAL_GPIO_WritePin(CIRC_RELE2_GPIO_Port,CIRC_RELE2_Pin,GPIO_PIN_RESET);
+
+	  if (relay3Status==1) HAL_GPIO_WritePin(CIRC_RELE3_GPIO_Port,CIRC_RELE3_Pin,GPIO_PIN_SET);
+	  else if (relay3Status ==0)HAL_GPIO_WritePin(CIRC_RELE3_GPIO_Port,CIRC_RELE3_Pin,GPIO_PIN_RESET);
+
+
+
+}
+
+///////***************************************************************************************///////////////////
+#endif
+
 
 
 /* USER CODE END 4 */

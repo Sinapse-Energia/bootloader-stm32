@@ -9,7 +9,7 @@ UART_HandleTypeDef huart6;
 uint16_t elapsed10seconds=0; 				/// At beginning this is 0
 uint8_t LOG_ACTIVATED=1;				 	/// Enable to 1 if you want to show log through logUART
 uint8_t LOG_GPRS=0;  						/// For showing only GPRS information
-uint8_t WDT_ENABLED=0; //1					/// Enable for activate independent watch dog timer
+uint8_t WDT_ENABLED=1; //1					/// Enable for activate independent watch dog timer
 uint8_t timeoutGPRS=0; 						/// At beginning this is 0
 uint32_t timeout=1000;				 		/// Timeout between AT command sending is 1000 milliseconds.
 uint8_t rebootSystem=0;						/// At beginning this is 0

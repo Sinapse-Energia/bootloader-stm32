@@ -1,6 +1,8 @@
 #include "Bootloader.h"
 
 
+extern uint8_t WDT_ENABLED;
+extern IWDG_HandleTypeDef hiwdg;
 extern UART_HandleTypeDef huart6;
 // R/W buffer
 char boot_buff[BOOT_BUFFER_SIZE];
@@ -123,6 +125,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
 */
 
+    if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
 
 	if (Socket_Connect(SOCKET_SRC_GPRS) == SOCKET_OK) {
 		if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Connect GPRS)\r\n", 20,100); //Francis, for logging
@@ -134,9 +137,13 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     }
 
 
+	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+
     // Clear buffer flash first
 	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Erase Flash_Bank_Copy)\r\n", 29,100); //Francis, for logging
     FlashNVM_EraseBank(FLASH_BANK_COPY);
+
+    if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
 
     // Get data
     sprintf(boot_buff, "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_FW_FILENAME, HTTP_SERVER_IP);
@@ -146,8 +153,10 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     Socket_ClearTimeout(ssource);
     total_len = 0;
     while (!Socket_GetTimeout(ssource)) {
+
         len = Socket_Read(ssource, boot_buff, BOOT_BUFFER_SIZE);
         if (len) {
+        	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
         	FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, len);
         	total_len += len;
         	fl_addr += len;
@@ -164,12 +173,13 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     Socket_Close(ssource);
 
     // NVM flash operation
-
+	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
 	// Find firmware length
     fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
 	len = total_len - 24;
     for (i = 0; i < len; i++)
     {
+      	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
     	FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 24);
     	boot_buff[15] = '\0';
     	if (strstr(boot_buff, "Content-Length:")) {
@@ -188,9 +198,12 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
 	// Find firmware start position
     fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
+	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+
     len = total_len - 4;
     for (i = 0; i < len; i++)
     {
+    	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
     	FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 4);
     	boot_buff[4] = '\0';
     	p = strstr(boot_buff, "\r\n\r\n");
@@ -209,6 +222,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     // Count firmware CRC (last 4 byte of the firmware will be - CRC32 checksum)
     crc32_Clear();
 	len = 0;
+	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
     for (i = 0; i < fw_len; i++)
     {
     	FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 1);
@@ -232,7 +246,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
     if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT CRC is valid)\r\n", 21,100); //Francis, for logging
 
-
+	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
     // Check is NEW firmware update available
     FlashNVM_Read(fl_addr + APP_VER_ADDR_LOW, (uint8_t*)&len, 2);
     FlashNVM_Read(FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION) + APP_VER_ADDR_LOW, (uint8_t*)&i, 2);
@@ -249,6 +263,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     // Update firmware (copy buffer to Application flash memory)
     FlashNVM_EraseBank(FLASH_BANK_APPLICATION);
     app_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION);
+	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
     for (i = 0; i < fw_len; i += 128)
     {
     	FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, BOOT_BUFFER_SIZE);
