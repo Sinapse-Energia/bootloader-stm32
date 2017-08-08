@@ -131,12 +131,12 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
 
 
-    	if ((Socket_Connect(SOCKET_SRC_GPRS) == SOCKET_OK) && Boot_CheckConnection(SOCKET_SRC_GPRS)) {
-        	ssource = SOCKET_SRC_GPRS;
-        } else {
-        	//No connections!
-        	return BOOT_ERR_CONNECTION; //Err
-        }
+    //	if ((Socket_Connect(SOCKET_SRC_GPRS) == SOCKET_OK) && Boot_CheckConnection(SOCKET_SRC_GPRS)) {
+     //   	ssource = SOCKET_SRC_GPRS;
+      //  } else {
+       // 	//No connections!
+       // 	return BOOT_ERR_CONNECTION; //Err
+        //}
 
 
 
