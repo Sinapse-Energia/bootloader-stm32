@@ -3,11 +3,11 @@
 // Private variables
 IWDG_HandleTypeDef hiwdg;
 TIM_HandleTypeDef  htim7;
-UART_HandleTypeDef huart3;
+UART_HandleTypeDef huartDummy;
 UART_HandleTypeDef huart6;
 
 uint16_t elapsed10seconds=0; 				/// At beginning this is 0
-uint8_t LOG_ACTIVATED=1;				 	/// Enable to 1 if you want to show log through logUART
+uint8_t LOG_ACTIVATED=0;				 	/// Enable to 1 if you want to show log through logUART
 uint8_t LOG_GPRS=0;  						/// For showing only GPRS information
 uint8_t WDT_ENABLED=1; //1					/// Enable for activate independent watch dog timer
 uint8_t timeoutGPRS=0; 						/// At beginning this is 0
@@ -31,22 +31,13 @@ uint16_t GPRSBufferReceivedBytes;     		/// Number of received data from GPRS af
 
 //Wifi Rx variables need to be declared at the beginning
 static uint8_t WiFibuffer[SIZE_WIFI_BUFFER];/// received buffer with data from Wifi
-static uint8_t WiFidataBufferIRQ;  			/// Last received byte from Wifi
 uint16_t WiFiBufferReceivedBytes;     		/// Number of received data from Wifi
 
 uint16_t UART_elapsed_sec = 0; 				/// At beginning this is 0
 uint8_t UART_timeout = 0;
 
 /* IWDG init function */
-static void MX_IWDG_Init(void)
-{
-    hiwdg.Instance = IWDG;
-    hiwdg.Init.Prescaler = IWDG_PRESCALER_256;
-    hiwdg.Init.Reload = 4095;
-    if (HAL_IWDG_Init(&hiwdg) != HAL_OK) {
-        _Error_Handler(__FILE__, __LINE__);
-    }
-}
+
 
 /* TIM7 init function */
 static void MX_TIM7_Init(void)
@@ -63,76 +54,92 @@ static void MX_TIM7_Init(void)
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    //sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-    //sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-    //if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
-    //{
-    //  _Error_Handler(__FILE__, __LINE__);
-   // }
+
  }
 
-/* USART3 init function */
-static void MX_USART3_UART_Init(void)
+
+
+/* IWDG init function */
+static void MX_IWDG_Init(void)
 {
-    huart3.Instance = USART3;
-    //huart3.Init.BaudRate = 115200;
-    huart3.Init.BaudRate = 19200;
-    huart3.Init.WordLength = UART_WORDLENGTH_8B;
-    huart3.Init.StopBits = UART_STOPBITS_1;
-    huart3.Init.Parity = UART_PARITY_NONE;
-    huart3.Init.Mode = UART_MODE_TX_RX;
-    huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-    if (HAL_UART_Init(&huart3) != HAL_OK) {
-        _Error_Handler(__FILE__, __LINE__);
-    }
+
+  hiwdg.Instance = IWDG;
+  hiwdg.Init.Prescaler = IWDG_PRESCALER_256;
+  hiwdg.Init.Window = 4095;
+  hiwdg.Init.Reload = 4095;
+  if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
 }
+
+
 
 /* USART6 init function */
 static void MX_USART6_UART_Init(void)
 {
-    huart6.Instance = USART6;
-    huart6.Init.BaudRate = 115200;
-    huart6.Init.WordLength = UART_WORDLENGTH_8B;
-    huart6.Init.StopBits = UART_STOPBITS_1;
-    huart6.Init.Parity = UART_PARITY_NONE;
-    huart6.Init.Mode = UART_MODE_TX_RX;
-    huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart6.Init.OverSampling = UART_OVERSAMPLING_16;
 
-    if (HAL_UART_Init(&huart6) != HAL_OK) {
-        _Error_Handler(__FILE__, __LINE__);
-    }
+  huart6.Instance = USART6;
+  huart6.Init.BaudRate = 115200;
+  huart6.Init.WordLength = UART_WORDLENGTH_7B;
+  huart6.Init.StopBits = UART_STOPBITS_1;
+  huart6.Init.Parity = UART_PARITY_NONE;
+  huart6.Init.Mode = UART_MODE_TX_RX;
+  huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart6.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart6.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart6.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart6) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
 }
 
-// Configure pins
+/** Configure pins as
+        * Analog
+        * Input
+        * Output
+        * EVENT_OUT
+        * EXTI
+*/
 static void MX_GPIO_Init(void)
 {
-    GPIO_InitTypeDef GPIO_InitStruct;
+	   GPIO_InitTypeDef GPIO_InitStruct;
 
-    /* GPIO Ports Clock Enable */
-    __HAL_RCC_GPIOH_CLK_ENABLE();
-    __HAL_RCC_GPIOB_CLK_ENABLE();
-    __HAL_RCC_GPIOC_CLK_ENABLE();
-    __HAL_RCC_GPIOA_CLK_ENABLE();
 
-    /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOB, PWRKEY_Pin|EMERG_Pin, GPIO_PIN_RESET);
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOF_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
-    /*Configure GPIO pins : PWRKEY_Pin EMERG_Pin */
-    GPIO_InitStruct.Pin = PWRKEY_Pin|EMERG_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-    /*Configure GPIO pin : STATUSPINM95_Pin */
-    GPIO_InitStruct.Pin = STATUSPINM95_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(STATUSPINM95_GPIO_Port, &GPIO_InitStruct);
+      /*Configure GPIO pin Output Level */
+      HAL_GPIO_WritePin(GPIOB, PWRKEY_Pin|EMERG_Pin, GPIO_PIN_RESET);
+
+      /*Configure GPIO pins : PWRKEY_Pin EMERG_Pin */
+      GPIO_InitStruct.Pin = PWRKEY_Pin|EMERG_Pin;
+      GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+      GPIO_InitStruct.Pull = GPIO_NOPULL;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+      HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+      /*Configure GPIO pin : STATUSPINM95_Pin */
+      GPIO_InitStruct.Pin = STATUSPINM95_Pin;
+      GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+      GPIO_InitStruct.Pull = GPIO_NOPULL;
+      HAL_GPIO_Init(STATUSPINM95_GPIO_Port, &GPIO_InitStruct);
+
+
+
+
+
 }
 
+/* USER CODE BEGIN 4 */
+
+/* USER CODE END 4 */
 
 /**
   * @brief  main UART Receive  ISR function
@@ -142,18 +149,12 @@ static void MX_GPIO_Init(void)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef * huart)
 {
 	// GPRS
-	if (huart->Instance == huart3.Instance) {
+	if (huart->Instance == huart6.Instance) {
 		GPRSbuffer[GPRSBufferReceivedBytes] = dataByteBufferIRQ;
 		GPRSBufferReceivedBytes = (GPRSBufferReceivedBytes + 1) % SIZE_GPRS_BUFFER;
 		HAL_UART_Receive_IT(huart, &dataByteBufferIRQ, 1);
 	}
 
-	// Wifi
-	if (huart->Instance == huart6.Instance) {
-		WiFibuffer[WiFiBufferReceivedBytes] = WiFidataBufferIRQ;
-		WiFiBufferReceivedBytes = (WiFiBufferReceivedBytes + 1) % SIZE_WIFI_BUFFER;
-		HAL_UART_Receive_IT(huart, &WiFidataBufferIRQ, 1);
-	}
 }
 
 /**
@@ -196,8 +197,8 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 
 	if (s_in == SOCKET_SRC_GPRS) {
 
-		MX_USART3_UART_Init();
-		HAL_UART_Receive_IT(&huart3, (uint8_t*) &dataByteBufferIRQ, 1);
+		MX_USART6_UART_Init();
+		HAL_UART_Receive_IT(&huart6, (uint8_t*) &dataByteBufferIRQ, 1);
 
 	    HAL_Delay(30);
 
@@ -207,10 +208,6 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 
 	    memcpy(SERVER_NTP, const_SERVER_NTP, sizeof(const_SERVER_NTP));
 
-
-	} else {
-		MX_USART6_UART_Init();
-		HAL_UART_Receive_IT(&huart6, (uint8_t*) &WiFidataBufferIRQ, 1);
 
 	}
 
@@ -244,8 +241,8 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
            		LOG_GPRS,
            		WDT_ENABLED,
            		&hiwdg,
-           		&huart3,
            		&huart6,
+           		&huartDummy,
            		&timeoutGPRS,
            		timeout,
            		&rebootSystem,
@@ -263,7 +260,7 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
            		idSIM,
            		&openFastConnection,
            		setTransparentConnection,
-           		USART3_IRQn,
+				USART3_6_IRQn,
          		GPRSbuffer,
          		SIZE_GPRS_BUFFER,
            		&dataByteBufferIRQ,
@@ -393,9 +390,7 @@ int Socket_Read(SOCKETS_SOURCE s_in, char *buff_out, int buff_len)
 void Socket_Clear(SOCKETS_SOURCE s_in)
 {
 	if (s_in == SOCKET_SRC_GPRS) {
-		cleanningReceptionBuffer(USART3_IRQn, GPRSbuffer, SIZE_GPRS_BUFFER, &GPRSBufferReceivedBytes);
-	} else {
-		cleanningReceptionBuffer(USART6_IRQn, WiFibuffer, SIZE_WIFI_BUFFER, &WiFiBufferReceivedBytes);
+		cleanningReceptionBuffer(USART3_6_IRQn, GPRSbuffer, SIZE_GPRS_BUFFER, &GPRSBufferReceivedBytes);
 	}
 
 }
@@ -430,12 +425,7 @@ SOCKET_STATUS Socket_Write(SOCKETS_SOURCE s_in, const char *data_in, int data_le
 {
 	if (s_in == SOCKET_SRC_GPRS) {
 	    // GPRS
-		if (HAL_UART_Transmit(&huart3, (uint8_t*)data_in, data_len, 1000) != HAL_OK) return SOCKET_ERR_NO_CONNECTION;
-	} else {
-	    // Wifi transparent mode
-		//if (HAL_UART_Transmit(&huart6, (uint8_t*)data_in, data_len, 1000) != HAL_OK) return SOCKET_ERR_NO_CONNECTION;
-		// WiFi command mode
-		wifi_WriteData(huart6, (uint8_t*)data_in, data_len);
+		if (HAL_UART_Transmit(&huart6, (uint8_t*)data_in, data_len, 1000) != HAL_OK) return SOCKET_ERR_NO_CONNECTION;
 	}
 	return SOCKET_OK;
 }

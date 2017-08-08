@@ -11,7 +11,7 @@ HAL_StatusTypeDef FlashNVM_EraseBank(FLASH_BANK fl_bank)
 	HAL_StatusTypeDef status;
 	FLASH_EraseInitTypeDef EraseInitStruct;
 	uint32_t SectorError = 0;
-	uint8_t sector_start, sectors_n;
+	uint8_t page_start, pages_n;
 
 
 	// Check bank to Erase
@@ -20,56 +20,53 @@ HAL_StatusTypeDef FlashNVM_EraseBank(FLASH_BANK fl_bank)
 	}
 
 	HAL_FLASH_Unlock();
-	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR |
-	                           FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR );
 
 	if (fl_bank == FLASH_BANK_APPLICATION) {
-		sector_start = FLASH_BANKA_START_SECTOR;
-		sectors_n = FLASH_BANKA_SECTORS;
+		page_start = FLASH_BANKA_START_PAGE;
+		pages_n = FLASH_BANKA_PAGES;
 	} else {
-		sector_start = FLASH_BANKC_START_SECTOR;
-		sectors_n = FLASH_BANKC_SECTORS;
+		page_start = FLASH_BANKC_START_PAGE;
+		pages_n = FLASH_BANKC_PAGES;
 	}
 
-	EraseInitStruct.Sector = sector_start;
-	EraseInitStruct.TypeErase = TYPEERASE_SECTORS;
-	EraseInitStruct.VoltageRange = FLASH_VOLTAGE_RANGE_3;
-	EraseInitStruct.NbSectors = sectors_n;
+
+	EraseInitStruct.PageAddress=page_start;
+	EraseInitStruct.NbPages=pages_n;
+	EraseInitStruct.TypeErase = FLASH_TYPEERASE_PAGES;
+
 
 	status = HAL_BUSY;
 	while (status == HAL_BUSY) {
-		status = HAL_FLASHEx_Erase(&EraseInitStruct, &SectorError);
+			status = HAL_FLASHEx_Erase(&EraseInitStruct, &SectorError);
 	}
 	HAL_FLASH_Lock();
 
 	return status;
+
 }
 
 
-/**
-  * @brief  Read a binary array from FLASH
-  * @param  address: FLASH relative address to read
-  * @param  data_out: output data array pointer
-  * @param  size: array length
-  * @retval operation status
-  */
+
+
 HAL_StatusTypeDef FlashNVM_Read(uint32_t start_address, uint8_t* data_out, uint32_t size)
 {
     uint32_t sizeCounter = 0;
 
+
 	// Check input data
-    if (!IS_FLASH_ADDRESS(start_address)) {
+   // if (!IS_FLASH_ADDRESS(start_address)) {
         // It's not Flash's address
-    	return HAL_ERROR;
-	}
+    //	return HAL_ERROR;
+	//}
 
 	while (sizeCounter < size) {
-	    *data_out = (*(__IO uint32_t*)start_address);
+	    *data_out = (*(__IO uint8_t*)start_address);
 	    data_out++;
 	    start_address++;
 	    sizeCounter++;
 	}
-    return 1;
+    return HAL_OK;
 }
 
 
@@ -82,22 +79,28 @@ HAL_StatusTypeDef FlashNVM_Write(uint32_t start_address, const uint8_t* data_in,
 {
 	HAL_StatusTypeDef status = HAL_ERROR;
 	uint32_t i;
+	uint16_t *integerPointer;
+	integerPointer = (uint16_t *)data_in;
 
 	// Check input data
-    if (!IS_FLASH_ADDRESS(start_address)) {
+    //if (!IS_FLASH_ADDRESS(start_address)) {
         // It's not Flash's address
-    	return HAL_ERROR;
-	}
+    //	return HAL_ERROR;
+	//}
 
 	HAL_FLASH_Unlock();
-	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR |
-	                           FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+	//__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR |
+	//                           FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+
+	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_PGERR | FLASH_FLAG_WRPERR );
+
 
 	// Write data
-    for (i = 0; i < size; i++) {
+    for (i = 0; i < size/2; i+=1) {
     	status = HAL_BUSY;
     	while (status == HAL_BUSY) {
-    		status = HAL_FLASH_Program(TYPEPROGRAM_BYTE, start_address + i, data_in[i]);
+    		status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, start_address + 2*i, *integerPointer);
+    		integerPointer++;
     	}
     	if ( status != HAL_OK) {
     		break;
@@ -107,7 +110,9 @@ HAL_StatusTypeDef FlashNVM_Write(uint32_t start_address, const uint8_t* data_in,
 	HAL_FLASH_Lock();
 
 	return status;
-}  
+}
+
+
 
 
 /**
@@ -123,26 +128,9 @@ uint32_t FlashNVM_GetSectorSize(uint8_t start_sector, uint8_t last_sector)
 
 	for (sect = start_sector; sect <= last_sector; sect++)
 	{
-#ifndef STM32F4
+
 		size += 4 * 1024; //4 Kbytes For STM32F0xx devices
-#else
-		switch (sect) {
-			case FLASH_SECTOR_0:
-			case FLASH_SECTOR_1:
-			case FLASH_SECTOR_2:
-			case FLASH_SECTOR_3:
-				size += 16 * 1024; // 16 Kbytes
-				break;
 
-			case FLASH_SECTOR_4:
-				size += 64 * 1024; // 64 Kbytes
-				break;
-
-			default:
-				size += 128 * 1024; // 128 Kbytes
-				break;
-		}
-#endif
 	}
 	return size;
 }
@@ -181,15 +169,29 @@ uint32_t FlashNVM_GetBankSize(FLASH_BANK fl_bank)
 uint32_t FlashNVM_GetBankStartAddress(FLASH_BANK fl_bank)
 {
 	if (fl_bank == FLASH_BANK_BOOTLOADER) {
-		return FLASH_BASE + FlashNVM_GetSectorSize(FLASH_SECTOR_0, FLASH_BANKB_START_SECTOR) - FlashNVM_GetSectorSize(FLASH_BANKB_START_SECTOR, FLASH_BANKB_START_SECTOR);
+		return FLASH_BASE + FlashNVM_GetSectorSize(0, FLASH_BANKB_START_SECTOR) - FlashNVM_GetSectorSize(FLASH_BANKB_START_SECTOR, FLASH_BANKB_START_SECTOR);
 	}
 
 	if (fl_bank == FLASH_BANK_APPLICATION) {
-		return FLASH_BASE + FlashNVM_GetSectorSize(FLASH_SECTOR_0, FLASH_BANKA_START_SECTOR) - FlashNVM_GetSectorSize(FLASH_BANKA_START_SECTOR, FLASH_BANKA_START_SECTOR);
+		return FLASH_BASE + FlashNVM_GetSectorSize(0, FLASH_BANKA_START_SECTOR) - FlashNVM_GetSectorSize(FLASH_BANKA_START_SECTOR, FLASH_BANKA_START_SECTOR);
 	}
 
 	if (fl_bank == FLASH_BANK_COPY) {
-		return FLASH_BASE + FlashNVM_GetSectorSize(FLASH_SECTOR_0, FLASH_BANKC_START_SECTOR) - FlashNVM_GetSectorSize(FLASH_BANKC_START_SECTOR, FLASH_BANKC_START_SECTOR);
+		return FLASH_BASE + FlashNVM_GetSectorSize(0, FLASH_BANKC_START_SECTOR) - FlashNVM_GetSectorSize(FLASH_BANKC_START_SECTOR, FLASH_BANKC_START_SECTOR);
 	}
 	return 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

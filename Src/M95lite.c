@@ -1,5 +1,5 @@
 
-#include "stm32f4xx_hal.h"
+#include "stm32f0xx_hal.h"
 #include "string.h"
 #include "stdint.h"
 #include "stdlib.h"
@@ -411,7 +411,7 @@ M95Status M95_Connect(
 	unsigned char messageTX[100];
 	char answerQNTP[9];
 	char calendarUTCNTP[30];
-	uint8_t WIFICommunication_Enabled=1-LOG_ACTIVATED;
+
 	uint8_t i = 0;
 	uint8_t j = 0;
 	uint8_t k = 0;

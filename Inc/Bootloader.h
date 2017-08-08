@@ -4,7 +4,7 @@
 // --- INCLUDES ---
 #include <Crc32.h>
 #include <Socket_bank.h>
-#include "stm32f4xx_hal.h"
+#include "stm32f0xx_hal.h"
 #include "Flash_NVM.h"
 #include "Definitions.h"
 #include "Flash_NVM.h"
@@ -15,6 +15,7 @@
 #define BOOT_BUFFER_SIZE                    128
 // MCU NVM Flash Memory addresses
 #define BOOT_APPLICATION_ADDR				FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION)
+#define FW_START_ADDR                       BOOT_APPLICATION_ADDR
 
 // Firmware available answers
 typedef enum

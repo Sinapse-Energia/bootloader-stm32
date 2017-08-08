@@ -1,15 +1,12 @@
 /**
   ******************************************************************************
-  * File Name          : main.h
-  * Description        : This file contains the common defines of the application
+  * @file    system_stm32f0xx.h
+  * @author  MCD Application Team
+  * @brief   CMSIS Cortex-M0 Device System Source File for STM32F0xx devices.  
   ******************************************************************************
-  ** This notice applies to any and all portions of this file
-  * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether 
-  * inserted by the user or by software development tools
-  * are owned by their respective copyright owners.
+  * @attention
   *
-  * COPYRIGHT(c) 2017 STMicroelectronics
+  * <h2><center>&copy; COPYRIGHT(c) 2016 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -35,44 +32,90 @@
   *
   ******************************************************************************
   */
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H
-#define __MAIN_H
-  /* Includes ------------------------------------------------------------------*/
 
-/* USER CODE BEGIN Includes */
+/** @addtogroup CMSIS
+  * @{
+  */
 
-/* USER CODE END Includes */
+/** @addtogroup stm32f0xx_system
+  * @{
+  */  
+  
+/**
+  * @brief Define to prevent recursive inclusion
+  */
+#ifndef __SYSTEM_STM32F0XX_H
+#define __SYSTEM_STM32F0XX_H
 
-/* Private define ------------------------------------------------------------*/
+#ifdef __cplusplus
+ extern "C" {
+#endif 
 
-#define USART6_TX_Pin GPIO_PIN_4
-#define USART6_TX_GPIO_Port GPIOA
-#define USART6_RX_Pin GPIO_PIN_5
-#define USART6_RX_GPIO_Port GPIOA
-
-#define PWRKEY_Pin GPIO_PIN_15
-#define PWRKEY_GPIO_Port GPIOB
-#define EMERG_Pin GPIO_PIN_14
-#define EMERG_GPIO_Port GPIOB
-#define STATUSPINM95_Pin GPIO_PIN_8
-#define STATUSPINM95_GPIO_Port GPIOA
-
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
-
-void _Error_Handler(char *, int);
-
-#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
+/** @addtogroup STM32F0xx_System_Includes
+  * @{
+  */
 
 /**
   * @}
-  */ 
+  */
+
+
+/** @addtogroup STM32F0xx_System_Exported_types
+  * @{
+  */
+  /* This variable is updated in three ways:
+      1) by calling CMSIS function SystemCoreClockUpdate()
+      3) by calling HAL API function HAL_RCC_GetHCLKFreq()
+      3) by calling HAL API function HAL_RCC_ClockConfig()
+         Note: If you use this function to configure the system clock; then there
+               is no need to call the 2 first functions listed above, since SystemCoreClock
+               variable is updated automatically.
+  */
+extern uint32_t SystemCoreClock;          /*!< System Clock Frequency (Core Clock) */
+extern const uint8_t AHBPrescTable[16];   /*!< AHB prescalers table values */
+extern const uint8_t APBPrescTable[8];    /*!< APB prescalers table values */
 
 /**
   * @}
-*/ 
+  */
 
-#endif /* __MAIN_H */
+/** @addtogroup STM32F0xx_System_Exported_Constants
+  * @{
+  */
+
+/**
+  * @}
+  */
+
+/** @addtogroup STM32F0xx_System_Exported_Macros
+  * @{
+  */
+
+/**
+  * @}
+  */
+
+/** @addtogroup STM32F0xx_System_Exported_Functions
+  * @{
+  */
+  
+extern void SystemInit(void);
+extern void SystemCoreClockUpdate(void);
+/**
+  * @}
+  */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /*__SYSTEM_STM32F0XX_H */
+
+/**
+  * @}
+  */
+  
+/**
+  * @}
+  */  
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

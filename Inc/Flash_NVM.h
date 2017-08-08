@@ -1,7 +1,7 @@
 #ifndef __FLASH__NVM_H
 #define __FLASH__NVM_H
 
-#include "stm32f4xx_hal.h"
+#include "stm32f0xx_hal.h"
 #include "Definitions.h"
 
 

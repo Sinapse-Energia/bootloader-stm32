@@ -1,0 +1,48 @@
+Configuration	bootloader_STM32F030CC
+STM32CubeMX 	4.21.0
+Date	08/08/2017
+MCU	STM32F030CCTx
+
+
+
+PERIPHERALS	MODES	FUNCTIONS	PINS
+RCC	Crystal/Ceramic Resonator	RCC_OSC_IN	PF0-OSC_IN
+RCC	Crystal/Ceramic Resonator	RCC_OSC_OUT	PF1-OSC_OUT
+USART6	Asynchronous	USART6_RX	PA5
+USART6	Asynchronous	USART6_TX	PA4
+
+
+
+Pin Nb	PINs	FUNCTIONs	LABELs
+5	PF0-OSC_IN	RCC_OSC_IN	
+6	PF1-OSC_OUT	RCC_OSC_OUT	
+14	PA4	USART6_TX	USART6_TX
+15	PA5	USART6_RX	USART6_RX
+
+
+
+SOFTWARE PROJECT
+
+Project Settings : 
+Project Name : bootloader_STM32F030CC
+Project Folder : C:\Users\Francis\git\STMCube projects\bootloader_STM32F030CC\bootloader_STM32F030CC
+Toolchain / IDE : TrueSTUDIO
+Firmware Package Name and Version : STM32Cube FW_F0 V1.8.0
+
+
+Code Generation Settings : 
+STM32Cube Firmware Library Package : Copy only the necessary library files
+Generate peripheral initialization as a pair of '.c/.h' files per peripheral : No
+Backup previously generated files when re-generating : No
+Delete previously generated files when not re-generated : Yes
+Set all free pins as analog (to optimize the power consumption) : No
+
+
+Toolchains Settings : 
+Compiler Optimizations : Balanced Size/Speed
+
+
+
+
+
+
