@@ -9,7 +9,7 @@ UART_HandleTypeDef huart6;
 uint16_t elapsed10seconds=0; 				/// At beginning this is 0
 uint8_t LOG_ACTIVATED=0;				 	/// Enable to 1 if you want to show log through logUART
 uint8_t LOG_GPRS=0;  						/// For showing only GPRS information
-uint8_t WDT_ENABLED=1; //1					/// Enable for activate independent watch dog timer
+uint8_t WDT_ENABLED=0; //1					/// Enable for activate independent watch dog timer
 uint8_t timeoutGPRS=0; 						/// At beginning this is 0
 uint32_t timeout=1000;				 		/// Timeout between AT command sending is 1000 milliseconds.
 uint8_t rebootSystem=0;						/// At beginning this is 0
@@ -348,36 +348,8 @@ int Socket_Read(SOCKETS_SOURCE s_in, char *buff_out, int buff_len)
 		}
 
 
-	} else {
-
-	    // Wifi
-		if (WiFiBufferReceivedBytes) {
-		    // Disable interrupts
-			//HAL_NVIC_DisableIRQ (USART6_IRQn);
-		    //__disable_irq();
-
-			// Clear Rx buffer or shift data left
-			if (buff_len > WiFiBufferReceivedBytes) {
-				buff_len = WiFiBufferReceivedBytes;
-				memcpy(buff_out, WiFibuffer, buff_len);
-				WiFiBufferReceivedBytes = 0;
-			} else {
-
-				memcpy(buff_out, WiFibuffer, buff_len);
-				// Shift data buffer
-				for (p = 0, counter = buff_len; counter < WiFiBufferReceivedBytes; counter++, p++) {
-					WiFibuffer[p] = WiFibuffer[counter];
-				}
-				WiFiBufferReceivedBytes -= buff_len;
-			}
-
-		    // Enable interrupts back
-			//	HAL_NVIC_EnableIRQ(USART6_IRQn);
-		    //__enable_irq();
-
-			return buff_len;
-		}
 	}
+
 
 	return 0;
 }

@@ -22,7 +22,8 @@
 #define SIZE_WIFI_BUFFER 				256
 #define TIMING_TIMEOUT_GPRS 			20
 //#define const_APN 						"\"im2m.matooma.com\",\"movistar\",\"movistar\"\r\0"
-#define const_APN 						"\"m2m.tele2.com\",\"tele2\",\"tele2\"\r\0"
+#define const_APN 			 "\"matooma.m2m\",\"\",\"\"\r\0"
+//#define const_APN 						"\"m2m.tele2.com\",\"tele2\",\"tele2\"\r\0"
 #define const_SERVER_NTP 				"\"0.europe.pool.ntp.org\"\r\0"
 //#define const_MAIN_SERVER				"\"m2m.eclipse.org\",1883\r\0"
 //#define const_MAIN_SERVER 				"\"178.94.164.124\",80\r\0"
@@ -55,29 +56,12 @@
 //#define HTTP_SERVER_FW_FILENAME			"led_p1_8000.bin"
 //#define HTTP_SERVER_FW_FILENAME		"myfile.bin"
  //#define HTTP_SERVER_FW_FILENAME		"CMC.bin"
-#define HTTP_SERVER_FW_FILENAME		"CMC_SOTO_001_999912.bin"
+#define HTTP_SERVER_FW_FILENAME		"dummyM2M.bin"
 
 
 
 
- // Bootloader
- #define FLASH_BANKB_START_PAGE		0   // page 0
- #define FLASH_BANKB_PAGES			16
- // Applicatio
- #define FLASH_BANKA_START_PAGE		16 //page 16
- #define FLASH_BANKA_PAGES			56
- // Application copy
- #define FLASH_BANKC_START_PAGE		72 //page 72
- #define FLASH_BANKC_PAGES			56
- // Bootloader
-#define FLASH_BANKB_START_SECTOR		0  // sector 0
- #define FLASH_BANKB_SECTORS			8
- // Application
- #define FLASH_BANKA_START_SECTOR		8 //  sector 8
- #define FLASH_BANKA_SECTORS			28
- // Application copy
- #define FLASH_BANKC_START_SECTOR		36 // sector 36
- #define FLASH_BANKC_SECTORS			28
+
 
 
 

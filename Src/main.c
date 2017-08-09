@@ -75,6 +75,11 @@ void SystemClock_Config(void);
 int main(void)
 {
  	uint8_t attempt = 0;
+ 	uint8_t buffer[100];
+ 	uint8_t buffer2[100];
+ 	buffer[0]='F';
+ 	buffer[1]='3';
+ 	buffer[2]='A';
 
 	// Reset of all peripherals, Initializes the Flash interface and the Systick.
 	HAL_Init();
@@ -84,7 +89,13 @@ int main(void)
 	// Configure the system clock
 	SystemClock_Config();
 
-
+    // Testing
+	//FlashNVM_EraseBank(FLASH_BANK_COPY);
+	//FlashNVM_Write(FLASH_BANKC_START_PAGE, buffer, 1);
+	//FlashNVM_Write(FLASH_BANKC_START_PAGE+1, buffer+1, 1);
+	//FlashNVM_Write(FLASH_BANKC_START_PAGE+2, buffer+2, 1);
+	//FlashNVM_EraseBank(FLASH_BANK_COPY);
+	//FlashNVM_Write(FLASH_BANKC_START_PAGE, buffer, 3);
 
 
 //#ifdef CMC_APPLICATION_DEPENDENT

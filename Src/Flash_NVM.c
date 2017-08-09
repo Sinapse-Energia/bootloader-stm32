@@ -11,7 +11,7 @@ HAL_StatusTypeDef FlashNVM_EraseBank(FLASH_BANK fl_bank)
 	HAL_StatusTypeDef status;
 	FLASH_EraseInitTypeDef EraseInitStruct;
 	uint32_t SectorError = 0;
-	uint8_t page_start, pages_n;
+	uint32_t page_start, pages_n;
 
 
 	// Check bank to Erase
@@ -80,7 +80,13 @@ HAL_StatusTypeDef FlashNVM_Write(uint32_t start_address, const uint8_t* data_in,
 	HAL_StatusTypeDef status = HAL_ERROR;
 	uint32_t i;
 	uint16_t *integerPointer;
+	uint16_t value=0;
+	uint16_t integerFF=0xffff;
+
+
+
 	integerPointer = (uint16_t *)data_in;
+	value = data_in[size-1];
 
 	// Check input data
     //if (!IS_FLASH_ADDRESS(start_address)) {
@@ -96,7 +102,7 @@ HAL_StatusTypeDef FlashNVM_Write(uint32_t start_address, const uint8_t* data_in,
 
 
 	// Write data
-    for (i = 0; i < size/2; i+=1) {
+    for (i = 0; i <size/2; i+=1) {
     	status = HAL_BUSY;
     	while (status == HAL_BUSY) {
     		status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, start_address + 2*i, *integerPointer);
@@ -106,12 +112,36 @@ HAL_StatusTypeDef FlashNVM_Write(uint32_t start_address, const uint8_t* data_in,
     		break;
     	}
     }
+/*
+    if (size%2!=0) //impar, queda un byte, se rellenara el siguiente con FF
+    {
+    	integerFF = (integerFF&0xFF00);
+    	value=(uint8_t *)integerPointer;
+    	integerFF = ((integerFF)+ ((0x00FF)&(value)));
+    	status = HAL_BUSY;
+    	while (status == HAL_BUSY) {
+    	    		status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, start_address + 2*i, integerFF);
+
+    	}
+
+    }
+    */
+
+    if (size%2)
+    {
+    	status = HAL_BUSY;
+    	 while (status == HAL_BUSY)
+    	 {
+    	    	    		status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, start_address + 2*i, &value);
+    	 }
+
+
+    }
 
 	HAL_FLASH_Lock();
 
 	return status;
 }
-
 
 
 
