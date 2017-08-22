@@ -31,8 +31,35 @@ void remapMemToSRAM( void )
     __enable_irq();
 }
 
+/*
+ In Main Application you need to Remap SRAM
+void main(void)
+{
+	remapMemToSRAM();
+	...
+}
+*/
 uint8_t Boot_StartApplication(void)
 {
+	// At the time of the App code execution, the firmware below should already be loaded
+	typedef void (*pFunction)(void);
+	pFunction Jump_To_Application;
+	uint32_t  jumpAddress;
+
+	__disable_irq();
+
+	//  Get the application entry point
+	jumpAddress         = *(__IO uint32_t *)(BOOT_APPLICATION_ADDR + 4);
+	// Init jump function
+	Jump_To_Application = (pFunction)jumpAddress;
+	// Set the application stack pointer
+	__set_MSP(*(__IO uint32_t *)BOOT_APPLICATION_ADDR);
+
+	// Start the application
+	Jump_To_Application();
+
+
+/* STM32F4
     typedef void (*pFunction)(void);
     pFunction appEntry;
     uint32_t appStack;
@@ -66,7 +93,7 @@ uint8_t Boot_StartApplication(void)
     // Start the application
 
     appEntry();
-
+*/
     return 1; // OK (but in real app should never reach this point)
 }
 
@@ -120,6 +147,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     uint32_t fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
     uint32_t app_addr;
     unsigned int fw_len;
+    uint8_t  remain;
     SOCKETS_SOURCE ssource;
 
     // Init sources
@@ -165,17 +193,36 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     // Read answer
     Socket_ClearTimeout(ssource);
     total_len = 0;
+    remain = 0;
     while (!Socket_GetTimeout(ssource)) {
 
-        len = Socket_Read(ssource, boot_buff, BOOT_BUFFER_SIZE);
+        len = Socket_Read(ssource, &boot_buff[remain], BOOT_BUFFER_SIZE - remain) + remain;
+        // Check two byte boundary
+        if (len & 0x01) {
+        	remain = 1;
+        	len -=1;
+        } else {
+        	remain = 0;
+        }
+
         if (len) {
         	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
         	FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, len);
         	total_len += len;
         	fl_addr += len;
         	Socket_ClearTimeout(ssource);
+        	// Shift remain on a first position
+        	if (remain) {
+        		boot_buff[0] = boot_buff[len];
+        	}
         }
     }
+    // Write remain (if exist)
+    if (remain) {
+    	FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, 2);
+    	total_len +=2;
+    }
+
     if (total_len < 10) {
     	//No file on server!
 

@@ -77,6 +77,52 @@ HAL_StatusTypeDef FlashNVM_Read(uint32_t start_address, uint8_t* data_out, uint3
   */
 HAL_StatusTypeDef FlashNVM_Write(uint32_t start_address, const uint8_t* data_in, uint32_t size)
 {
+	HAL_StatusTypeDef status;
+	uint16_t *integerPointer;
+	uint32_t i;
+
+	// Check input data
+//    if (!IS_FLASH_ADDRESS(start_address)) {
+        // It's not Flash's address
+//    	return HAL_ERROR;
+//	}
+
+
+	HAL_FLASH_Unlock();
+	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_BSY | FLASH_FLAG_WRPERR | FLASH_FLAG_PGERR);
+
+	integerPointer = (uint16_t *)data_in;
+	// Convert size to 16b words
+	if (size & 0x01) {
+		size++;
+	}
+	size /= 2;
+
+	// Write data
+    for (i = 0; i < size; i++) {
+    	status = HAL_BUSY;
+    	while (status == HAL_BUSY) {
+			status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, start_address + 2 * i, *integerPointer);
+    		integerPointer++;
+    	}
+    	if ( status != HAL_OK) {
+    		break;
+    	}
+    }
+
+	HAL_FLASH_Lock();
+
+	return status;
+}
+
+
+/**
+  * @brief  write data array to PREVIOSLY ERISED FLASH memory
+  * @param  fl_bank: flash area (application or its copy bank)
+  * @retval true if OK,  otherwise return false
+  */
+HAL_StatusTypeDef FlashNVM_Write_old(uint32_t start_address, const uint8_t* data_in, uint32_t size)
+{
 	HAL_StatusTypeDef status = HAL_ERROR;
 	uint32_t i;
 	uint16_t *integerPointer;
