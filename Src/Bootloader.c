@@ -31,6 +31,18 @@ uint8_t Boot_StartApplication(void)
         return 0;
     }
 
+    if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Jumping to application program!\r\n", 36,100); //Francis, for logging
+
+    __disable_irq();
+    SysTick->CTRL = 0;
+    SysTick->LOAD = 0;
+    SysTick->VAL = 0;
+
+    __set_PRIMASK(1);
+
+    HAL_RCC_DeInit();
+    HAL_DeInit();
+
     // Get the application stack pointer (First entry in the application vector table)
     appStack = (uint32_t) *((__IO uint32_t*)BOOT_APPLICATION_ADDR);
 
@@ -44,7 +56,6 @@ uint8_t Boot_StartApplication(void)
     __set_MSP(appStack);
 
     // Start the application
-    if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Jumping to application program!\r\n", 36,100); //Francis, for logging
     appEntry();
 
     return 1; // OK (but in real app should never reach this point)
