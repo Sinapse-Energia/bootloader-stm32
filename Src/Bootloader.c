@@ -73,7 +73,7 @@ uint8_t Boot_CheckConnection(SOCKETS_SOURCE ssource)
     uint32_t len, len_left;
 
     // Check connection available
-    sprintf(boot_buff, "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_IP);
+    sprintf(boot_buff, "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_IP);
     Socket_Clear(ssource);
     Socket_Write(ssource, boot_buff, strlen(boot_buff));
     // Read answer
