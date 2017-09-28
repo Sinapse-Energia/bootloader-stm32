@@ -122,7 +122,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     // Check connection available first
     // and select source
     // WiFi first
-/*
+
     if (Boot_CheckConnection(SOCKET_SRC_WIFI)) {
     	ssource = SOCKET_SRC_WIFI;
     } else {
@@ -134,10 +134,10 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
         }
     }
 
-*/
+
 
     if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
-
+/*
 	if (Socket_Connect(SOCKET_SRC_GPRS) == SOCKET_OK) {
 		if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Connect GPRS)\r\n", 20,100); //Francis, for logging
     	ssource = SOCKET_SRC_GPRS;
@@ -146,7 +146,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Connect WIFI)\r\n", 20,100); //Francis, for logging
     	return BOOT_ERR_CONNECTION; //Err
     }
-
+*/
 
 	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
 

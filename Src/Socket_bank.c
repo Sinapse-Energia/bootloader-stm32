@@ -7,7 +7,7 @@ UART_HandleTypeDef huart3;
 UART_HandleTypeDef huart6;
 
 uint16_t elapsed10seconds=0; 				/// At beginning this is 0
-uint8_t LOG_ACTIVATED=1;				 	/// Enable to 1 if you want to show log through logUART
+uint8_t LOG_ACTIVATED=0;				 	/// Enable to 1 if you want to show log through logUART
 uint8_t LOG_GPRS=0;  						/// For showing only GPRS information
 uint8_t WDT_ENABLED=1; //1					/// Enable for activate independent watch dog timer
 uint8_t timeoutGPRS=0; 						/// At beginning this is 0
@@ -211,8 +211,8 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 	} else {
 		MX_USART6_UART_Init();
 
-		// Connect to AP
-		HAL_Delay(5000); // 5 sec to connect to AP
+		// Give module some time to start up
+		HAL_Delay(5000);
 
 		// Go to command mode
 		uint8_t ansBuf[64];
@@ -221,24 +221,40 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 		if (HAL_UART_Transmit(&huart6, (uint8_t*)"a", 1, 1000) != HAL_OK) return 0;
 		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
 
+		// Remove commands garbage
 		HAL_UART_Transmit(&huart6, (uint8_t*)"AT\n", 3, 1000);
 		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
 
 		// Pass host and port using AT commands to the WIFI module
 		char buf[256];
-		int blen = sprintf(buf, "AT+NETP=TCP,CLIENT,%i,%s\r", HTTP_SERVER_PORT, HTTP_SERVER_IP);
+		int blen = sprintf(buf, "AT+NETP=TCP,CLIENT,%i,%s\n", HTTP_SERVER_PORT, HTTP_SERVER_IP);
 		if (HAL_UART_Transmit(&huart6, (uint8_t*)&buf[0], blen, 1000) != HAL_OK) return 0;
 		HAL_UART_Receive(&huart6, ansBuf, 64, 2000);
 
 		// Reboot module
-		if (HAL_UART_Transmit(&huart6, (uint8_t*)"AT+Z\r", 5, 1000) != HAL_OK) return 0;
+		if (HAL_UART_Transmit(&huart6, (uint8_t*)"AT+Z\n", 5, 1000) != HAL_OK) return 0;
 		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
 
-		// Return to transparent mode
-		if (HAL_UART_Transmit(&huart6, (uint8_t*)"AT+ENTM\r", 8, 1000) != HAL_OK) return 0;
-		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
+		// After reboot disconnect and connect again, usually not needed
+//		if (HAL_UART_Transmit(&huart6, (uint8_t*)"+++", 3, 1000) != HAL_OK) return 0;
+//		HAL_UART_Receive(&huart6, ansBuf, 1, 2000);
+//		if (HAL_UART_Transmit(&huart6, (uint8_t*)"a", 1, 1000) != HAL_OK) return 0;
+//		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
+//
+//		HAL_UART_Transmit(&huart6, (uint8_t*)"AT\n", 3, 1000);
+//		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
+//
+//		if (HAL_UART_Transmit(&huart6, (uint8_t*)"AT+TCPDIS=off\n", 14, 1000) != HAL_OK) return 0;
+//		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
+//
+//		if (HAL_UART_Transmit(&huart6, (uint8_t*)"AT+TCPDIS=on\n", 13, 1000) != HAL_OK) return 0;
+//		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
+//
+//		// Return to transparent mode
+//		if (HAL_UART_Transmit(&huart6, (uint8_t*)"AT+ENTM\n", 8, 1000) != HAL_OK) return 0;
+//		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
 
-		HAL_Delay(30000); // 30 seconds to reboot the module and establish connection
+		HAL_Delay(15000); // Increase this if using slow connection
 
 		HAL_UART_Receive_IT(&huart6, (uint8_t*) &WiFidataBufferIRQ, 1);
 
@@ -462,10 +478,13 @@ SOCKET_STATUS Socket_Write(SOCKETS_SOURCE s_in, const char *data_in, int data_le
 	    // GPRS
 		if (HAL_UART_Transmit(&huart3, (uint8_t*)data_in, data_len, 1000) != HAL_OK) return SOCKET_ERR_NO_CONNECTION;
 	} else {
+#ifdef TRANSPARENT_WLAN
 	    // Wifi transparent mode
-		//if (HAL_UART_Transmit(&huart6, (uint8_t*)data_in, data_len, 1000) != HAL_OK) return SOCKET_ERR_NO_CONNECTION;
+		if (HAL_UART_Transmit(&huart6, (uint8_t*)data_in, data_len, 1000) != HAL_OK) return SOCKET_ERR_NO_CONNECTION;
+#else
 		// WiFi command mode
 		wifi_WriteData(huart6, (uint8_t*)data_in, data_len);
+#endif
 	}
 	return SOCKET_OK;
 }

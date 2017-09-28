@@ -11,7 +11,7 @@
 
  // Francis definition.
 #define CMC_APPLICATION_DEPENDENT
-#define LOG_WIFI  1
+#define LOG_WIFI  0
 #define NUMBER_RETRIES 2
  /// Dependent Application
 #define START_EEPROM_OWN_CMC_PARAMETERS 	0x10
@@ -116,6 +116,9 @@
 #define APP_VER_ADDR_DD				0x0192
 #define APP_VER_ADDR_MM				0x0193
 #define APP_VER_ADDR_YY				0x0194
+
+// WIFI ETH Mode
+#define TRANSPARENT_WLAN
 
 #ifdef __cplusplus
 }
