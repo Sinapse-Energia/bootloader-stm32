@@ -6,6 +6,7 @@ extern IWDG_HandleTypeDef hiwdg;
 extern UART_HandleTypeDef huart6;
 // R/W buffer
 char boot_buff[BOOT_BUFFER_SIZE];
+char debugArray[500];
 
 /**
   * @brief  Close bootloader and start Application
@@ -39,6 +40,34 @@ void main(void)
 	...
 }
 */
+
+typedef void (*pFunction)(void);
+
+uint8_t Boot_StartApplication(void)
+{
+    uint32_t startAddress, applicationStack;
+    //register uint32_t __regMSP asm("msp");
+    pFunction applicationEntry;
+
+    //The address where the application is written
+    startAddress     = BOOT_APPLICATION_ADDR;
+
+    //Retrieve values
+    applicationStack = (uint32_t)  *(volatile unsigned int *) (startAddress);
+    applicationEntry = (pFunction) *(volatile unsigned int *) (startAddress + 4);
+
+    /*Set a valid stack pointer for the application */
+    //__regMSP = applicationStack;
+    //register uint32_t __regMSP asm("msp") = applicationStack;
+    __set_MSP(*(__IO uint32_t *)BOOT_APPLICATION_ADDR);
+
+    /*Start the application */
+    applicationEntry();
+
+    return 1; // OK (but in real app should never reach this point)
+}
+
+/*
 uint8_t Boot_StartApplication(void)
 {
 	// At the time of the App code execution, the firmware below should already be loaded
@@ -92,10 +121,10 @@ uint8_t Boot_StartApplication(void)
 
     // Start the application
 
-    appEntry();
-*/
+ //   appEntry();
+
     return 1; // OK (but in real app should never reach this point)
-}
+}*/
 
 
 
@@ -265,6 +294,11 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     {
     	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
     	FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 4);
+    	debugArray[i]=boot_buff[0]; // debug
+    	//debugArray[4*i]=boot_buff[0]; // debug
+    	//debugArray[4*i+1]=boot_buff[1]; // debug
+    	//debugArray[4*i+2]=boot_buff[2]; // debug
+    	//debugArray[4*i+3]=boot_buff[3]; // debug
     	boot_buff[4] = '\0';
     	p = strstr(boot_buff, "\r\n\r\n");
     	if (p) {
@@ -306,18 +340,18 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
 
 
-	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+	 //if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
     // Check is NEW firmware update available
-    FlashNVM_Read(fl_addr + APP_VER_ADDR_LOW, (uint8_t*)&len, 2);
-    FlashNVM_Read(FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION) + APP_VER_ADDR_LOW, (uint8_t*)&i, 2);
-    i   &= 0xFFFF;
-    len &= 0xFFFF;
-    if (i != 0xFFFF)
-    if (i >= len) {
+    //FlashNVM_Read(fl_addr + APP_VER_ADDR_LOW, (uint8_t*)&len, 2);
+    //FlashNVM_Read(FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION) + APP_VER_ADDR_LOW, (uint8_t*)&i, 2);
+    //i   &= 0xFFFF;
+    //len &= 0xFFFF;
+    //if (i != 0xFFFF)
+    //if (i >= len) {
     	//"No new firmware available!");
 
-    	return BOOT_OK;
-    }
+    //	return BOOT_OK;
+    //}
 
 
     // Update firmware (copy buffer to Application flash memory)

@@ -56,7 +56,7 @@
 //#define HTTP_SERVER_FW_FILENAME			"led_p1_8000.bin"
 //#define HTTP_SERVER_FW_FILENAME		"myfile.bin"
  //#define HTTP_SERVER_FW_FILENAME		"CMC.bin"
-#define HTTP_SERVER_FW_FILENAME		"dummyM2M.bin"
+#define HTTP_SERVER_FW_FILENAME		"TORROT1_700004.bin"
 
 
 
