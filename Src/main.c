@@ -38,7 +38,7 @@ int main(void)
 //#ifdef CMC_APPLICATION_DEPENDENT
 	/////// Reading over external eeprom application_dependent variables
 	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Reading application dependent variables)\r\n", 48,100); //Francis, for logging
-	keepingStatus_applicationDepending();
+	//keepingStatus_applicationDepending();
 //#endif
 
 
