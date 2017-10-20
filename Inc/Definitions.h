@@ -79,7 +79,7 @@
 //#define HTTP_SERVER_FW_FILENAME			"led_p1_8000.bin"
 //#define HTTP_SERVER_FW_FILENAME		"myfile.bin"
  //#define HTTP_SERVER_FW_FILENAME		"CMC.bin"
-#define HTTP_SERVER_FW_FILENAME		"CMC_SOTO_001_999912.bin"
+#define HTTP_SERVER_FW_FILENAME		"SIMON1_100159.bin"
 
 
  // Define Bank Sectors (11 sectors total - for STM32F4xx devices)
