@@ -257,18 +257,18 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
     if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT CRC is valid)\r\n", 21,100); //Francis, for logging
 
-	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+//	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
     // Check is NEW firmware update available
-    FlashNVM_Read(fl_addr + APP_VER_ADDR_LOW, (uint8_t*)&len, 2);
-    FlashNVM_Read(FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION) + APP_VER_ADDR_LOW, (uint8_t*)&i, 2);
-    i   &= 0xFFFF;
-    len &= 0xFFFF;
-    if (i != 0xFFFF)
-    if (i >= len) {
+ //   FlashNVM_Read(fl_addr + APP_VER_ADDR_LOW, (uint8_t*)&len, 2);
+ //   FlashNVM_Read(FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION) + APP_VER_ADDR_LOW, (uint8_t*)&i, 2);
+ //   i   &= 0xFFFF;
+ //   len &= 0xFFFF;
+ //   if (i != 0xFFFF)
+ //   if (i >= len) {
     	//"No new firmware available!");
-    	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT No New FW)\r\n", 18,100); //Francis, for logging
-    	return BOOT_OK;
-    }
+  //  	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT No New FW)\r\n", 18,100); //Francis, for logging
+   // 	return BOOT_OK;
+    //}
 
     if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT version new FW is higher strict than actual FW)\r\n", 55,100); //Francis, for logging
     // Update firmware (copy buffer to Application flash memory)
