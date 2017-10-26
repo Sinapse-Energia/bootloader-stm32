@@ -12,7 +12,7 @@
  // Francis definition.
 #define CMC_APPLICATION_DEPENDENT
 #define LOG_WIFI  0
-#define NUMBER_RETRIES 2
+#define NUMBER_RETRIES 1
  /// Dependent Application
 #define START_EEPROM_OWN_CMC_PARAMETERS 	0x10
  /// direcciones dispositivos I2C
