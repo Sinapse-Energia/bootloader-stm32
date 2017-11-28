@@ -123,9 +123,7 @@ uint32_t FlashNVM_GetSectorSize(uint8_t start_sector, uint8_t last_sector)
 
 	for (sect = start_sector; sect <= last_sector; sect++)
 	{
-#ifndef STM32F4
-		size += 4 * 1024; //4 Kbytes For STM32F0xx devices
-#else
+/// Check this for STM32F2xx family
 		switch (sect) {
 			case FLASH_SECTOR_0:
 			case FLASH_SECTOR_1:
@@ -142,7 +140,7 @@ uint32_t FlashNVM_GetSectorSize(uint8_t start_sector, uint8_t last_sector)
 				size += 128 * 1024; // 128 Kbytes
 				break;
 		}
-#endif
+/// End check this for STM32F2xx family. OK, it is same distribution as F4 family. First 4 sectors, 16KB, 4 -> 64, and 5 to 11 -> 128
 	}
 	return size;
 }
