@@ -92,6 +92,14 @@
 #define STATUSPINM95_Pin status_3G_Pin
 #define STATUSPINM95_GPIO_Port status_3G_GPIO_Port
 
+
+#define blueON HAL_GPIO_WritePin(blueRGB_GPIO_Port, blueRGB_Pin,GPIO_PIN_RESET)
+#define blueOFF HAL_GPIO_WritePin(blueRGB_GPIO_Port, blueRGB_Pin,GPIO_PIN_SET)
+#define redON HAL_GPIO_WritePin(redRGB_GPIO_Port, redRGB_Pin,GPIO_PIN_RESET)
+#define redOFF HAL_GPIO_WritePin(redRGB_GPIO_Port, redRGB_Pin,GPIO_PIN_SET)
+#define greenON HAL_GPIO_WritePin(greenRGB_GPIO_Port, greenRGB_Pin,GPIO_PIN_RESET)
+#define greenOFF HAL_GPIO_WritePin(greenRGB_GPIO_Port, greenRGB_Pin,GPIO_PIN_SET)
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
