@@ -3,7 +3,6 @@
 
 // --- INCLUDES ---
 #include <string.h>
-#include <Wifi232.h>
 #include "stm32f2xx_hal.h"
 #include "Definitions.h"
 #include "M95lite.h"
@@ -22,7 +21,7 @@ typedef enum
 {
 	SOCKET_SRC_NONE = 0,
 	SOCKET_SRC_GPRS,
-	SOCKET_SRC_WIFI
+
 } SOCKETS_SOURCE;
 
 
