@@ -251,7 +251,7 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 		MX_USART6_UART_Init();
 		HAL_UART_Receive_IT(&huart6, (uint8_t*) &dataByteBufferIRQ, 1);
 
-	    HAL_Delay(30);
+	    //HAL_Delay(30);
 
 	    memcpy(APN, const_APN, sizeof(const_APN));
 	    memcpy(IPPORT, const_MAIN_SERVER, sizeof(const_MAIN_SERVER));

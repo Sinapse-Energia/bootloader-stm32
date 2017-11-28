@@ -879,7 +879,8 @@ USB_OTG_HostChannelTypeDef;
 /** 
   * @brief Peripheral_memory_map
   */
-#define FLASH_BASE            0x08000000U /*!< FLASH(up to 1 MB) base address in the alias region                         */
+//#define FLASH_BASE            0x08000000U /*!< FLASH(up to 1 MB) base address in the alias region                         */
+#define FLASH_BASE            0x08008000U /*!< FLASH(up to 1 MB) base address in the alias region                         */
 #define SRAM1_BASE            0x20000000U /*!< SRAM1(112 KB) base address in the alias region                             */
 #define SRAM2_BASE            0x2001C000U /*!< SRAM2(16 KB) base address in the alias region                              */
 #define PERIPH_BASE           0x40000000U /*!< Peripheral base address in the alias region                                */
