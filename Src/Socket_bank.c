@@ -4,6 +4,7 @@
 IWDG_HandleTypeDef hiwdg;
 TIM_HandleTypeDef  htim7;
 UART_HandleTypeDef huart6;
+UART_HandleTypeDef huartDummy;
 
 uint16_t elapsed10seconds=0; 				/// At beginning this is 0
 uint8_t LOG_ACTIVATED=0;				 	/// Enable to 1 if you want to show log through logUART

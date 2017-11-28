@@ -10,6 +10,7 @@
 // Program version memory map prototype
 const uint8_t __attribute__((section(".myvars"))) VERSION_NUMBER[6] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
 UART_HandleTypeDef huart6;
+DMA_HandleTypeDef hdma_usart6_rx;
 IWDG_HandleTypeDef hiwdg;
 
 

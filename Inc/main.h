@@ -47,6 +47,16 @@
 /* Private define ------------------------------------------------------------*/
 
 
+#define mIac_Pin GPIO_PIN_0
+#define mIac_GPIO_Port GPIOC
+#define mVac_Pin GPIO_PIN_1
+#define mVac_GPIO_Port GPIOA
+#define PWM_sim_Pin GPIO_PIN_12
+#define PWM_sim_GPIO_Port GPIOB
+
+#define PWM_Pin GPIO_PIN_9
+#define PWM_GPIO_Port GPIOC
+
 #define blueRGB_Pin GPIO_PIN_13
 #define blueRGB_GPIO_Port GPIOC
 #define redRGB_Pin GPIO_PIN_14
