@@ -9,12 +9,14 @@
 
 // Program version memory map prototype
 const uint8_t __attribute__((section(".myvars"))) VERSION_NUMBER[6] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_usart6_rx;
 IWDG_HandleTypeDef hiwdg;
 
-
+int bydma=0;
 // Private function prototypes
+
 void SystemClock_Config(void);
 
 //#ifdef CMC_APPLICATION_DEPENDENT
@@ -26,14 +28,31 @@ int main(void)
  	uint8_t attempt = 0;
 
 	// Reset of all peripherals, Initializes the Flash interface and the Systick.
-	HAL_Init();
+
+	int	x = 1;
+		int y = 2;
+		x = x +1;
+		x = x +1;
+		x = x +1;
+		x = x +1;
+		x = x +1;
+		x = x +1;
+		x = x +1;
+		x = x +1;
+		x = x +1;
+		y = y + x;
+		y = y + x;
+		y = y + x;
+		y = y + x;
 
 
-
+		HAL_Init();
 	// Configure the system clock
-	SystemClock_Config();
 
+	//SystemClock_Config();
 
+	 HAL_Delay(30);
+	/* Initialize all configured peripherals */
 
 	// Start to check firmware
 	while (Boot_PerformFirmwareUpdate() != BOOT_OK) {
@@ -63,6 +82,8 @@ int main(void)
 /** System Clock Configuration
 */
 
+
+
 void SystemClock_Config(void)
 {
 
@@ -70,8 +91,7 @@ void SystemClock_Config(void)
 	 RCC_OscInitTypeDef RCC_OscInitStruct;
 	  RCC_ClkInitTypeDef RCC_ClkInitStruct;
 
-	    /**Initializes the CPU, AHB and APB busses clocks
-	    */
+
 	  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
 	  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
 	  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
@@ -81,8 +101,7 @@ void SystemClock_Config(void)
 	    _Error_Handler(__FILE__, __LINE__);
 	  }
 
-	    /**Initializes the CPU, AHB and APB busses clocks
-	    */
+
 	  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
 	                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
 	  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
@@ -95,18 +114,15 @@ void SystemClock_Config(void)
 	    _Error_Handler(__FILE__, __LINE__);
 	  }
 
-	    /**Configure the Systick interrupt time
-	    */
+
 	  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
 
-	    /**Configure the Systick
-	    */
+
 	  HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
-	  /* SysTick_IRQn interrupt configuration */
+
 	  HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
-
 
 
 

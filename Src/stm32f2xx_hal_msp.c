@@ -38,6 +38,9 @@
   */
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f2xx_hal.h"
+#include "stm32f2xx_it.h"   // for the BYxxx
+
+extern int bydma;  // flag to use or not DMA
 
 extern DMA_HandleTypeDef hdma_usart6_rx;
 
@@ -136,22 +139,22 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
 
 }
 
+/// Review Francis PWM hardware
+/*
 void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
 {
 
   if(htim_pwm->Instance==TIM3)
   {
-  /* USER CODE BEGIN TIM3_MspInit 0 */
 
-  /* USER CODE END TIM3_MspInit 0 */
-    /* Peripheral clock enable */
+
+
+    // Peripheral clock enable
     __HAL_RCC_TIM3_CLK_ENABLE();
-  /* USER CODE BEGIN TIM3_MspInit 1 */
-
-  /* USER CODE END TIM3_MspInit 1 */
-  }
+    }
 
 }
+*/
 
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
 {
@@ -173,49 +176,6 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
 
 }
 
-void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
-{
-
-  GPIO_InitTypeDef GPIO_InitStruct;
-  if(htim->Instance==TIM3)
-  {
-  /* USER CODE BEGIN TIM3_MspPostInit 0 */
-
-  /* USER CODE END TIM3_MspPostInit 0 */
-  
-    /**TIM3 GPIO Configuration    
-    PC9     ------> TIM3_CH4 
-    */
-    GPIO_InitStruct.Pin = PWM_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
-    HAL_GPIO_Init(PWM_GPIO_Port, &GPIO_InitStruct);
-
-  /* USER CODE BEGIN TIM3_MspPostInit 1 */
-
-  /* USER CODE END TIM3_MspPostInit 1 */
-  }
-
-}
-
-void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* htim_pwm)
-{
-
-  if(htim_pwm->Instance==TIM3)
-  {
-  /* USER CODE BEGIN TIM3_MspDeInit 0 */
-
-  /* USER CODE END TIM3_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_TIM3_CLK_DISABLE();
-  /* USER CODE BEGIN TIM3_MspDeInit 1 */
-
-  /* USER CODE END TIM3_MspDeInit 1 */
-  }
-
-}
 
 void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* htim_base)
 {
@@ -286,25 +246,27 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-    /* USART6 DMA Init */
-    /* USART6_RX Init */
-    hdma_usart6_rx.Instance = DMA2_Stream1;
-    hdma_usart6_rx.Init.Channel = DMA_CHANNEL_5;
-    hdma_usart6_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    hdma_usart6_rx.Init.PeriphInc = DMA_PINC_DISABLE;
-    hdma_usart6_rx.Init.MemInc = DMA_MINC_ENABLE;
-    hdma_usart6_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-    hdma_usart6_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-    hdma_usart6_rx.Init.Mode = DMA_CIRCULAR;
-    hdma_usart6_rx.Init.Priority = DMA_PRIORITY_VERY_HIGH;
-    hdma_usart6_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    if (HAL_DMA_Init(&hdma_usart6_rx) != HAL_OK)
-    {
-      _Error_Handler(__FILE__, __LINE__);
+
+    if (bydma) {
+    		/* USART6 DMA Init */
+    		/* USART6_RX Init */
+    		hdma_usart6_rx.Instance = DMA2_Stream1;
+    		hdma_usart6_rx.Init.Channel = DMA_CHANNEL_5;
+    		hdma_usart6_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    		hdma_usart6_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    		hdma_usart6_rx.Init.MemInc = DMA_MINC_ENABLE;
+    		hdma_usart6_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    		hdma_usart6_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    		hdma_usart6_rx.Init.Mode = DMA_CIRCULAR;
+    		hdma_usart6_rx.Init.Priority = DMA_PRIORITY_VERY_HIGH;
+    		hdma_usart6_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    		if (HAL_DMA_Init(&hdma_usart6_rx) != HAL_OK)
+    		{
+    			_Error_Handler(__FILE__, __LINE__);
+    		}
+
+    		__HAL_LINKDMA(huart,hdmarx,hdma_usart6_rx);
     }
-
-    __HAL_LINKDMA(huart,hdmarx,hdma_usart6_rx);
-
     /* USART6 interrupt Init */
     HAL_NVIC_SetPriority(USART6_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(USART6_IRQn);
@@ -352,13 +314,21 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     */
     HAL_GPIO_DeInit(GPIOC, to3G_Pin|from3G_Pin);
 
-    /* USART6 DMA DeInit */
-    HAL_DMA_DeInit(huart->hdmarx);
+    if (bydma) { // #ifdef BYDMA
+    	/* USART6 DMA DeInit */
+    	HAL_DMA_DeInit(huart->hdmarx);
 
-    /* USART6 interrupt DeInit */
-    HAL_NVIC_DisableIRQ(USART6_IRQn);
-  /* USER CODE BEGIN USART6_MspDeInit 1 */
-
+    	/* USART6 interrupt DeInit */
+    	HAL_NVIC_DisableIRQ(USART6_IRQn);
+    	/* USER CODE BEGIN USART6_MspDeInit 1 */
+    }
+    else { // BYIRQ
+    	/**
+    	    * Uncomment the line below to disable the "USART6_IRQn" interrupt
+    	    * Be aware, disabling shared interrupt may affect other IPs
+    	    */
+    	    /* HAL_NVIC_DisableIRQ(USART6_IRQn); */
+    }
   /* USER CODE END USART6_MspDeInit 1 */
   }
 
