@@ -1,7 +1,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include <Socket_bank.h>
 #include "main.h"
-#include "stm32f4xx_hal.h"
+#include "stm32f2xx_hal.h"
 #include "M95lite.h"
 #include "Definitions.h"
 #include "Flash_NVM.h"

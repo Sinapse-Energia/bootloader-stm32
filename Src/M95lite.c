@@ -1,5 +1,5 @@
 
-#include "stm32f4xx_hal.h"
+#include "stm32f2xx_hal.h"
 #include "string.h"
 #include "stdint.h"
 #include "stdlib.h"

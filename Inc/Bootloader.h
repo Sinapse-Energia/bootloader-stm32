@@ -4,7 +4,7 @@
 // --- INCLUDES ---
 #include <Crc32.h>
 #include <Socket_bank.h>
-#include "stm32f4xx_hal.h"
+#include "stm32f2xx_hal.h"
 #include "Flash_NVM.h"
 #include "Definitions.h"
 #include "Flash_NVM.h"
