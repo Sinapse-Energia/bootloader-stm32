@@ -46,12 +46,41 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define PWRKEY_Pin GPIO_PIN_1
-#define PWRKEY_GPIO_Port GPIOB
-#define EMERG_Pin GPIO_PIN_15
-#define EMERG_GPIO_Port GPIOB
-#define STATUSPINM95_Pin GPIO_PIN_8
-#define STATUSPINM95_GPIO_Port GPIOA
+
+#define blueRGB_Pin GPIO_PIN_13
+#define blueRGB_GPIO_Port GPIOC
+#define redRGB_Pin GPIO_PIN_14
+#define redRGB_GPIO_Port GPIOC
+#define greenRGB_Pin GPIO_PIN_15
+#define greenRGB_GPIO_Port GPIOC
+#define status_3G_Pin GPIO_PIN_1
+#define status_3G_GPIO_Port GPIOC
+#define netlight_3G_Pin GPIO_PIN_2
+#define netlight_3G_GPIO_Port GPIOC
+#define toGNSS_Pin GPIO_PIN_2
+#define toGNSS_GPIO_Port GPIOA
+#define fromGNSS_Pin GPIO_PIN_3
+#define fromGNSS_GPIO_Port GPIOA
+#define to3G_Pin GPIO_PIN_6
+#define to3G_GPIO_Port GPIOC
+#define from3G_Pin GPIO_PIN_7
+#define from3G_GPIO_Port GPIOC
+#define txDBG_3G_Pin GPIO_PIN_8
+#define txDBG_3G_GPIO_Port GPIOA
+#define emerg_3G_Pin GPIO_PIN_11
+#define emerg_3G_GPIO_Port GPIOA
+#define pwrKey_3G_Pin GPIO_PIN_12
+#define pwrKey_3G_GPIO_Port GPIOA
+#define rxDBG_3G_Pin GPIO_PIN_15
+#define rxDBG_3G_GPIO_Port GPIOA
+
+
+#define PWRKEY_Pin pwrKey_3G_Pin
+#define PWRKEY_GPIO_Port pwrKey_3G_GPIO_Port
+#define EMERG_Pin emerg_3G_Pin
+#define EMERG_GPIO_Port emerg_3G_GPIO_Port
+#define STATUSPINM95_Pin status_3G_Pin
+#define STATUSPINM95_GPIO_Port status_3G_GPIO_Port
 
 /* USER CODE BEGIN Private defines */
 
