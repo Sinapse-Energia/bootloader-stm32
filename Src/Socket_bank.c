@@ -245,7 +245,9 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 	// Initialize all configured peripherals
 	MX_GPIO_Init();
 	// MX_IWDG_Init();
-
+	 redOFF;
+	 blueOFF;
+	 greenOFF;
 	if (s_in == SOCKET_SRC_GPRS) {
 
 		MX_USART6_UART_Init();

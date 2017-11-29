@@ -5,6 +5,7 @@ extern uint8_t WDT_ENABLED;
 extern IWDG_HandleTypeDef hiwdg;
 extern UART_HandleTypeDef huart6;
 // R/W buffer
+extern void orangeRGB(uint8_t on);
 char boot_buff[BOOT_BUFFER_SIZE];
 
 /**
@@ -106,7 +107,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
 
     Socket_Init(SOCKET_SRC_GPRS);
-
+    //orangeRGB(1);
 
 
 
@@ -134,6 +135,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     Socket_Clear(ssource);
     Socket_Write(ssource, boot_buff, strlen(boot_buff));
     // Read answer
+    //orangeRGB(0);
     Socket_ClearTimeout(ssource);
     total_len = 0;
     while (!Socket_GetTimeout(ssource)) {
@@ -158,11 +160,13 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
     // NVM flash operation
 	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+	 //orangeRGB(1);
 	// Find firmware length
     fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
 	len = total_len - 24;
     for (i = 0; i < len; i++)
     {
+
       	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
     	FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 24);
     	boot_buff[15] = '\0';
@@ -181,12 +185,14 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
 
 	// Find firmware start position
+    //orangeRGB(0);
     fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
 	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
 
     len = total_len - 4;
     for (i = 0; i < len; i++)
     {
+
     	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
     	FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 4);
     	boot_buff[4] = '\0';
@@ -204,6 +210,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
 
     // Count firmware CRC (last 4 byte of the firmware will be - CRC32 checksum)
+   // orangeRGB(1);
     crc32_Clear();
 	len = 0;
 	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
@@ -244,9 +251,10 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     }
 #endif
 
-
+    //orangeRGB(0);
     // Update firmware (copy buffer to Application flash memory)
     FlashNVM_EraseBank(FLASH_BANK_APPLICATION);
+    //orangeRGB(1);
     app_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION);
 	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
     for (i = 0; i < fw_len; i += 128)
@@ -256,6 +264,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     }
     // Compare memories again?
 
+    //orangeRGB(0);
     return BOOT_OK;
 }
 
