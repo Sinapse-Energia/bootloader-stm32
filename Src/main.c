@@ -13,6 +13,7 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_usart6_rx;
 IWDG_HandleTypeDef hiwdg;
+extern TIM_HandleTypeDef  htim7;
 
 int bydma=0;
 // Private function prototypes
@@ -48,6 +49,12 @@ int main(void)
 	}
 
 	// Start Application
+
+	/// De init peripherals before entering in app client.
+	HAL_TIM_Base_Stop_IT(&htim7);
+	HAL_TIM_Base_MspDeInit(&htim7);
+	HAL_UART_MspDeInit(&huart6);
+
 	Boot_StartApplication();
 
 	// Infinite program loop
