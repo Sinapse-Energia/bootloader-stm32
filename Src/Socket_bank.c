@@ -47,7 +47,7 @@ static void MX_IWDG_Init(void)
 /* TIM7 init function */
 static void MX_TIM7_Init(void)
 {
-    //TIM_MasterConfigTypeDef sMasterConfig;
+    TIM_MasterConfigTypeDef sMasterConfig;
 
     htim7.Instance = TIM7;
     htim7.Init.Prescaler= (SystemCoreClock/1000)-1;  /// Este timer se pone a 1KHz
@@ -59,12 +59,12 @@ static void MX_TIM7_Init(void)
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    //sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-    //sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-    //if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
-    //{
-    //  _Error_Handler(__FILE__, __LINE__);
-   // }
+    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+    if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+    {
+      _Error_Handler(__FILE__, __LINE__);
+    }
  }
 
 

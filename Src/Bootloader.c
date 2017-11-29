@@ -130,6 +130,47 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
     if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
 
+#define M2CORTEX
+#ifdef M2CORTEX
+    	uint8_t remain;
+    // Get data
+       sprintf(boot_buff, "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_FW_FILENAME, HTTP_SERVER_IP);
+       Socket_Clear(ssource);
+       Socket_Write(ssource, boot_buff, strlen(boot_buff));
+       // Read answer
+       Socket_ClearTimeout(ssource);
+       total_len = 0;
+       remain = 0;
+       while (!Socket_GetTimeout(ssource)) {
+
+           len = Socket_Read(ssource, &boot_buff[remain], BOOT_BUFFER_SIZE - remain) + remain;
+           // Check two byte boundary
+           if (len & 0x01) {
+           	remain = 1;
+           	len -=1;
+           } else {
+           	remain = 0;
+           }
+
+           if (len) {
+           	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+           	FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, len);
+           	total_len += len;
+           	fl_addr += len;
+           	Socket_ClearTimeout(ssource);
+           	// Shift remain on a first position
+           	if (remain) {
+           		boot_buff[0] = boot_buff[len];
+           	}
+           }
+       }
+       // Write remain (if exist)
+       if (remain) {
+       	FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, 2);
+       	total_len +=2;
+       }
+#else
+
     // Get data
     sprintf(boot_buff, "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_FW_FILENAME, HTTP_SERVER_IP);
     Socket_Clear(ssource);
@@ -149,6 +190,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
         	Socket_ClearTimeout(ssource);
         }
     }
+#endif
     if (total_len < 10) {
     	//No file on server!
 

@@ -33,7 +33,7 @@
 
 
  // Wait for HTTP server answer (sec)
-#define TIMING_TIMEOUT_UART 			5
+#define TIMING_TIMEOUT_UART 			15
 // HTTP connection
 //#define HTTP_SERVER_IP 					"178.94.164.124"
 //#define HTTP_SERVER_IP 					"89.248.100.11"
