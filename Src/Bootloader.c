@@ -107,7 +107,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
 
     Socket_Init(SOCKET_SRC_GPRS);
-    //orangeRGB(1);
+    orangeRGB(1);
 
 
 
@@ -115,11 +115,13 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
 	if (Socket_Connect(SOCKET_SRC_GPRS) == SOCKET_OK) {
 
+
     	ssource = SOCKET_SRC_GPRS;
     } else
     	return BOOT_ERR_CONNECTION; //Err
 
 
+	orangeRGB(0);
 
 
 	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
@@ -127,7 +129,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     // Clear buffer flash first
 
     FlashNVM_EraseBank(FLASH_BANK_COPY);
-
+    orangeRGB(1);
     if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
 
 #define M2CORTEX
@@ -199,6 +201,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
     // Stop HTTP session
     Socket_Close(ssource);
+    orangeRGB(0);
 
     // NVM flash operation
 	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
@@ -230,7 +233,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     //orangeRGB(0);
     fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
 	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
-
+	 orangeRGB(1);
     len = total_len - 4;
     for (i = 0; i < len; i++)
     {
@@ -255,6 +258,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
    // orangeRGB(1);
     crc32_Clear();
 	len = 0;
+	orangeRGB(0);
 	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
     for (i = 0; i < fw_len; i++)
     {
@@ -295,7 +299,9 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
     //orangeRGB(0);
     // Update firmware (copy buffer to Application flash memory)
+    orangeRGB(1);
     FlashNVM_EraseBank(FLASH_BANK_APPLICATION);
+
     //orangeRGB(1);
     app_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION);
 	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
@@ -306,7 +312,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     }
     // Compare memories again?
 
-    //orangeRGB(0);
+    orangeRGB(0);
     return BOOT_OK;
 }
 
