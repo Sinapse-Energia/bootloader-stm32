@@ -5,7 +5,7 @@
 #include "M95lite.h"
 #include "Definitions.h"
 #include "Flash_NVM.h"
-#include "bootloader.h"
+#include "Bootloader.h"
 
 // Program version memory map prototype
 const uint8_t __attribute__((section(".myvars"))) VERSION_NUMBER[6] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};

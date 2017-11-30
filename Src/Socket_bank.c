@@ -52,8 +52,8 @@ static void MX_TIM7_Init(void)
     htim7.Instance = TIM7;
     htim7.Init.Prescaler= (SystemCoreClock/1000)-1;  /// Este timer se pone a 1KHz
     htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
-    //htim7.Init.Period = 10000; /// La interrupción se hará cada 10000/1000 -> 10 segundos
-    htim7.Init.Period = 1000; /// La interrupción se hará cada 10000/1000 -> 1 segundos
+    //htim7.Init.Period = 10000; /// La interrupciï¿½n se harï¿½ cada 10000/1000 -> 10 segundos
+    htim7.Init.Period = 1000; /// La interrupciï¿½n se harï¿½ cada 10000/1000 -> 1 segundos
 
     if (HAL_TIM_Base_Init(&htim7) != HAL_OK) {
         _Error_Handler(__FILE__, __LINE__);
@@ -292,6 +292,7 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
 
 	if (s_in == SOCKET_SRC_GPRS) {
 
+/** Original M95 Library
 		stat = M95_Connect(
            		0,
            		0,
@@ -322,7 +323,24 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
            		&dataByteBufferIRQ,
            		&GPRSBufferReceivedBytes
            		);
-		if (stat != M95_OK) return SOCKET_ERR_NO_CONNECTION;
+
+       if (stat != M95_OK) return SOCKET_ERR_NO_CONNECTION;
+           		**/
+
+		/** New M95 Library **/
+		// Default broker parameters
+
+		// ATENTION: This values should be got from shared memory
+		char	*h = IPPORT;
+		unsigned int p = HTTP_SERVER_PORT;
+		int	s = 0; //Security = 0 = TCP
+
+		char	*apn = APN;
+
+
+		stat = transport_open(h, p, s, apn);
+
+		if (stat <= 0) return SOCKET_ERR_NO_CONNECTION;
 
 	}
 

@@ -8,7 +8,10 @@ extern "C" {
 
 
 #include "stm32f2xx_hal.h"
+
+
 #include "stdint.h"
+
 
 
 struct sCalendar {
@@ -46,6 +49,57 @@ typedef enum {
 
 GPRSStatus statusGPRS;
 
+
+//int transport_sendPacketBuffer(int sock, unsigned char* buf, int buflen);
+//int transport_getdata(unsigned char* buf, int count);
+//int transport_getdatanb(void sck, unsigned char buf, int count);
+//int transport_open(const char* host, int port);
+//int transport_close(int sock);
+
+
+/// ***********************************************************************************///
+/// uint8_t Connect_TCP()      ------------------> TESTED OK <----------------------
+/// DESCRIPTION:
+/// If in main.h there is one '#define COMMUNICATION_M95'. This function manages the connection to
+/// remote TCP server using GPRS M95 from quectel in a transparent mode with data indicated in Definitions.h for const_SERVER_NTP, const_APN, const_MAIN_SERVER
+/// Always DNS names must be indicated. It returns 1 if connection with server is accomplished or 0 if not.
+
+
+//uint8_t Connect_TCP (void);
+int transport_open(const char* host, int port, int security, char *apn);
+
+
+int transport_reopen_short(const char* host, int port, int security);
+int transport_reopen_full(const char* host, int port, int security, char *apn);
+
+
+/// ***********************************************************************************///
+/// uint8_t Disconnect_TCP(). -------->NOT TESTED YET<----------------------
+/// DESCRIPTION:
+/// If in main.h there is one '#define COMMUNICATION_M95'. This function manages the disconnection to
+/// remote TCP server using GPRS M95 from quectel. It returns 1 if connection with server is accomplish or 0 if not.
+//uint8_t Disconnect_TCP (void);
+int transport_close(int sock);
+
+/// ***********************************************************************************///
+/// uint8_t Send_TCP(unsigned char *buffer, uint16_t lengthBuffer). -------->TESTED OK<----------------------
+/// DESCRIPTION:
+/// If in main.h there is one '#define COMMUNICATION_M95'. This function manages the sending data to one remote server using GPRS M95 from quectel
+/// It returns 1 if data was sent successfully or 0 if not. It is needed to indicate length of array in 'lengthBuffer'
+
+//uint8_t Send_TCP(unsigned char * buffer, uint16_t lengthBuffer);
+int transport_sendPacketBuffer(int sock, unsigned char* buf, int buflen);
+
+/// ***********************************************************************************///
+/// int32_t Receive_TCP(unsigned char *buffer). -------->TESTED OK<----------------------
+/// DESCRIPTION:
+/// If in main.h there is one '#define COMMUNICATION_M95'. This function manages the data receiving from one remote server using GPRS M95 from quectel.
+/// It returns some value >0 if data was received successfully. If the returned value is bigger than 0 , it indicates the quantity of received bytes that are saved in 'buffer'.
+/// If returned value is equal to 0, no data was received. If value is -1, there was overflow in data reception. (it is needed to do bigger the buffer of reception or send data from remote server slower).
+
+//int32_t Receive_TCP(unsigned char *buffer);  // take care with speed of incoming data and size of buffer
+int transport_getdata(unsigned char* buf, int count);
+int transport_getdatanb(void *sck, unsigned char *buf, int count);
 
 
 // ************************************************************* //
@@ -148,13 +202,14 @@ uint8_t receiveString(
 		uint8_t lengthMessageSubst,
 		uint32_t timeout,
 		uint8_t retries,
-		uint8_t clearingBuffer,
+		uint8_t clearingBuffer);
+		/**
 		IRQn_Type IRQn,
 		uint8_t *receivedBuffer,
 		uint16_t sizeMAXReceivedBuffer,
 		uint8_t *dataByteBufferIRQ,
 		uint16_t *numberBytesReceived);
-
+		**/
 //***************************************************************************** //
 //M95Status M95_CloseConnection(
 //		uint8_t LOG_ACTIVATED,
@@ -309,17 +364,87 @@ M95Status M95_Connect(
 		uint8_t *calendar,
 		uint8_t *idSIM,
 		uint8_t *openFastConnection,
-		uint8_t setTransparentConnection,
-		IRQn_Type IRQn,
-		uint8_t *receivedBuffer,
-		uint16_t sizeMAXReceivedBuffer,
-		uint8_t *dataByteBufferIRQ,
-		uint16_t *numberBytesReceived
+		uint8_t setTransparentConnection
+//		IRQn_Type IRQn,
+//		uint8_t *receivedBuffer,
+//		uint16_t sizeMAXReceivedBuffer,
+//		uint8_t *dataByteBufferIRQ,
+//		uint16_t *numberBytesReceived
 		);
 
 
 
+M95Status ConnectPlus(
+		uint8_t WDT_ENABLED,
+		IWDG_HandleTypeDef *hiwdg,
+		UART_HandleTypeDef *phuart,
+		uint8_t *timeoutGPRS,
+		uint32_t timeout,
+		uint8_t *rebootSystem,
+		GPIO_TypeDef* ctrlEmerg_PORT, uint16_t ctrlEmerg_PIN,
+		GPIO_TypeDef* ctrlPwrkey_PORT, uint16_t ctrlPwrkey_PIN,
+		GPIO_TypeDef* m95Status_PORT, uint16_t m95Status_PIN,
+		uint8_t nTimesMaximumFail_GPRS,
+		uint8_t retriesGPRS,
+		uint8_t existDNS,
+		uint8_t offsetLocalHour,
+		uint8_t *apn,
+		uint8_t *HOST,
+		int		port,
+		uint8_t *SERVER_NTP,
+		uint8_t setTransparentConnection,
+		int	security
+		);
 
+
+M95Status ShortReconnect(
+				uint8_t WDT_ENABLED,
+				IWDG_HandleTypeDef *hiwdg,
+				UART_HandleTypeDef *phuart,
+				uint8_t *timeoutGPRS,
+				uint8_t existDNS,
+				uint8_t *HOST,
+				int port,
+				int security
+				);
+
+
+
+
+M95Status DisconnectPlus(
+		uint8_t WDT_ENABLED,
+		IWDG_HandleTypeDef *hiwdg,
+		UART_HandleTypeDef *phuart,
+		uint8_t *timeoutGPRS,
+		uint32_t timeout,
+		uint8_t *rebootSystem
+		);
+
+
+
+M95Status Modem_Init();
+extern	int	modem_init;
+
+//***************************************************************************** //
+// void cleanningRecepctionBuffer (IRQn_Type IRQn,
+//		uint8_t *buffer,
+//		uin16_t sizeBuffer,
+//		uint16_t *numberBytesReceived )
+// Input parameters:
+//  ---> IRQn_Type IRQn: It is used to enable, disable one IRQ line.
+//  ---> uint16_t sizeBuffer: It is used to indicate the size of buffer to initialize.
+// Output parameters:
+// Modified parameters:
+//  ---> uint8_t *buffer: It is the buffer to initialize
+// ----> uint16_t *numberBytesReceived: This variable indicates quantity of bytes available in buffer
+// Type of routine: GENERIC (non dependent of device)
+// DESCRIPTION:
+// This function clears one received buffer. Clears also quantity of received bytes.
+void cleanningReceptionBuffer(
+		IRQn_Type IRQn,
+		uint8_t *buffer,
+		uint16_t sizeBuffer,
+		uint16_t *numberBytesReceived );
 #ifdef __cplusplus /* If this is a C++ compiler, use C linkage */
 }
 #endif

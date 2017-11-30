@@ -29,7 +29,10 @@
 //#define const_MAIN_SERVER				"\"m2m.eclipse.org\",1883\r\0"
 //#define const_MAIN_SERVER 				"\"178.94.164.124\",80\r\0"
  //#define const_MAIN_SERVER 				"\"89.248.100.11\",80\r\0"
- #define const_MAIN_SERVER 				"\"sinapseenergia.com\",80\r\0"
+
+ //#define const_MAIN_SERVER 				"\"sinapseenergia.com\",80\r\0"
+#define const_MAIN_SERVER 				"\"sinapseenergia.com\"\r\0"
+
 
 
  // Wait for HTTP server answer (sec)
