@@ -148,7 +148,7 @@ int	SetIMEI(const char *txt){
 
 
 int		ValidateReg(const char *reply){
-	/**
+
 	int	n;
 	int stat;
 	char	cmd[10];
@@ -164,8 +164,7 @@ int		ValidateReg(const char *reply){
 	}
 	else
 		return 0;
-	**/
-	return 1;
+
 }
 
 
