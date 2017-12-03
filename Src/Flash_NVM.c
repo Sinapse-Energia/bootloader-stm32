@@ -45,6 +45,39 @@ HAL_StatusTypeDef FlashNVM_EraseBank(FLASH_BANK fl_bank)
 	return status;
 }
 
+/**
+  * @brief  erase Application or its copy FLASH
+  * @param  fl_bank: flash area (application or its copy bank)
+  * @retval true if OK,  otherwise return false
+  */
+HAL_StatusTypeDef FlashNVM_EraseSector(uint8_t sector)
+{
+	HAL_StatusTypeDef status;
+	FLASH_EraseInitTypeDef EraseInitStruct;
+	uint32_t SectorError = 0;
+	uint8_t sector_start, sectors_n;
+
+
+
+	HAL_FLASH_Unlock();
+	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_EOP | FLASH_FLAG_OPERR | FLASH_FLAG_WRPERR |
+	                           FLASH_FLAG_PGAERR | FLASH_FLAG_PGPERR | FLASH_FLAG_PGSERR);
+
+
+	EraseInitStruct.Sector = sector;
+	EraseInitStruct.TypeErase = TYPEERASE_SECTORS;
+	EraseInitStruct.VoltageRange = FLASH_VOLTAGE_RANGE_3;
+	EraseInitStruct.NbSectors = 1;
+
+	status = HAL_BUSY;
+	while (status == HAL_BUSY) {
+		status = HAL_FLASHEx_Erase(&EraseInitStruct, &SectorError);
+	}
+	HAL_FLASH_Lock();
+
+	return status;
+}
+
 
 /**
   * @brief  Read a binary array from FLASH
@@ -190,4 +223,54 @@ uint32_t FlashNVM_GetBankStartAddress(FLASH_BANK fl_bank)
 		return FLASH_BASE + FlashNVM_GetSectorSize(FLASH_SECTOR_0, FLASH_BANKC_START_SECTOR) - FlashNVM_GetSectorSize(FLASH_BANKC_START_SECTOR, FLASH_BANKC_START_SECTOR);
 	}
 	return 0;
+}
+
+
+int MIC_Flash_Memory_Read(const uint8_t *data_out, uint32_t size)
+{
+	HAL_StatusTypeDef status = HAL_ERROR;
+	uint32_t sizeReceived=0;
+
+	status=FlashNVM_Read(ORIGIN_SECTOR+4, data_out, size); // start to read all data.
+	status=FlashNVM_Read(ORIGIN_SECTOR+4, data_out, size); // start to read all data.
+
+	if (status==HAL_ERROR) return -1; // if fails, it returns -1;
+
+	status=FlashNVM_Read(ORIGIN_SECTOR, &sizeReceived, 4); // received quantity of saved bytes.
+
+	if (status==HAL_ERROR) return -1; // if fails, it returns -1;
+
+	if ((status==HAL_OK)&&(sizeReceived==size)) return sizeReceived; // if all goes fine, it returns size of data.
+
+
+}
+
+int MIC_Flash_Memory_Write(const uint8_t *data_in, uint32_t size)
+{
+
+
+	HAL_StatusTypeDef status = HAL_ERROR;
+	uint32_t sizeReceived=0;
+
+
+	//status=  FlashNVM_EraseSector(FLASH_SECTOR_0);// it erased 16kb at beginning of 0x8000000
+	status=  FlashNVM_EraseSector(FLASH_SECTOR_11);// it is erased last flash sector TO CHANGE. A lot of bytes 128kb
+
+	if (status==HAL_ERROR) return -1; // if fails, it returns -1;
+
+	status=FlashNVM_Write(ORIGIN_SECTOR+4, data_in, size); // data are written with +4 offset from starting. First 4 bytes are used to write size of data
+																// and watching if there are data or not.
+	if (status==HAL_ERROR) return -1; // if fails, it returns -1;
+
+	status=FlashNVM_Write(ORIGIN_SECTOR, &size, 4); // quantity of data are saved at first 4 bytes.
+
+	if (status==HAL_ERROR) return -1; // if fails, it returns -1;
+
+	status=FlashNVM_Read(ORIGIN_SECTOR, &sizeReceived, 4); // quantity of data are read again to verify it wrote good.
+
+	if (status==HAL_ERROR) return -1; // if fails, it returns -1;
+
+	if (status==HAL_OK) return sizeReceived; // if all goes fine, it returns size of data.
+
+
 }

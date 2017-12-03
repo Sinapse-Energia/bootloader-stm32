@@ -1,10 +1,12 @@
 #include <Socket_bank.h>
+#include "sharing_memory.h"
 
 // Private variables
 IWDG_HandleTypeDef hiwdg;
 TIM_HandleTypeDef  htim7;
 UART_HandleTypeDef huart6;
 UART_HandleTypeDef huartDummy;
+extern _SHARING_VARIABLE CLIENT_VARIABLE;
 
 uint16_t elapsed10seconds=0; 				/// At beginning this is 0
 uint8_t LOG_ACTIVATED=0;				 	/// Enable to 1 if you want to show log through logUART
@@ -34,7 +36,7 @@ uint16_t UART_elapsed_sec = 0; 				/// At beginning this is 0
 uint8_t UART_timeout = 0;
 
 /* IWDG init function */
-static void MX_IWDG_Init(void)
+ static void MX_IWDG_Init(void)
 {
     hiwdg.Instance = IWDG;
     hiwdg.Init.Prescaler = IWDG_PRESCALER_256;
@@ -86,7 +88,7 @@ static void MX_USART6_UART_Init(void)
 }
 
 // Configure pins
-static void MX_GPIO_Init(void)
+ static void MX_GPIO_Init(void)
 {
 
 	  GPIO_InitTypeDef GPIO_InitStruct;
@@ -255,9 +257,17 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 
 	    HAL_Delay(30);
 
-	    memcpy(APN, const_APN, sizeof(const_APN));
-	    memcpy(IPPORT, const_MAIN_SERVER, sizeof(const_MAIN_SERVER));
+	    //memcpy(APN, const_APN, sizeof(const_APN));
+	    //memcpy(IPPORT, const_MAIN_SERVER, sizeof(const_MAIN_SERVER));
 
+	    //memcpy(APN,CLIENT_VARIABLE.APN,sizeof(CLIENT_VARIABLE.APN));
+
+	    //memcpy(IPPORT, CLIENT_VARIABLE.UPDATE_FW_SERVER, sizeof(CLIENT_VARIABLE.UPDATE_FW_SERVER));
+	    strcpy(IPPORT,"\"");
+	    strcat(IPPORT,CLIENT_VARIABLE.UPDFW_HOST);
+	    strcat(IPPORT,"\",");
+	    strcat(IPPORT,CLIENT_VARIABLE.UPDFW_PORT);
+	    strcat(IPPORT,"\r\0");
 
 	    memcpy(SERVER_NTP, const_SERVER_NTP, sizeof(const_SERVER_NTP));
 
@@ -309,7 +319,7 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
            		retriesGPRS,
            		existDNS,
            		offsetLocalHour,
-           		APN,
+				CLIENT_VARIABLE.APN,
            		IPPORT,
            		SERVER_NTP,
            		calendar,
@@ -322,6 +332,44 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
            		&dataByteBufferIRQ,
            		&GPRSBufferReceivedBytes
            		);
+
+		if (stat != M95_OK)
+		{
+			stat = M95_Connect(
+			           		0,
+			           		0,
+			           		WDT_ENABLED,
+			           		&hiwdg,
+			           		&huart6,
+			           		&huartDummy,
+			           		&timeoutGPRS,
+			           		timeout,
+			           		&rebootSystem,
+			         		EMERG_GPIO_Port, EMERG_Pin,
+			         		PWRKEY_GPIO_Port, PWRKEY_Pin,
+			         		STATUSPINM95_GPIO_Port, STATUSPINM95_Pin,
+			           		nTimesMaximumFail_GPRS,
+			           		retriesGPRS,
+			           		existDNS,
+			           		offsetLocalHour,
+							CLIENT_VARIABLE.LAPN,
+			           		IPPORT,
+			           		SERVER_NTP,
+			           		calendar,
+			           		idSIM,
+			           		&openFastConnection,
+			           		setTransparentConnection,
+			           		USART6_IRQn,
+			         		GPRSbuffer,
+			         		SIZE_GPRS_BUFFER,
+			           		&dataByteBufferIRQ,
+			           		&GPRSBufferReceivedBytes
+			           		);
+
+
+			}
+
+
 		if (stat != M95_OK) return SOCKET_ERR_NO_CONNECTION;
 
 	}

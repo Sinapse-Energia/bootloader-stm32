@@ -1,11 +1,12 @@
 /* Includes ------------------------------------------------------------------*/
-#include <Socket_bank.h>
+#include "Socket_bank.h"
 #include "main.h"
 #include "stm32f2xx_hal.h"
 #include "M95lite.h"
 #include "Definitions.h"
 #include "Flash_NVM.h"
 #include "bootloader.h"
+#include "sharing_memory.h"
 
 // Program version memory map prototype
 const uint8_t __attribute__((section(".myvars"))) VERSION_NUMBER[6] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
@@ -13,9 +14,15 @@ UART_HandleTypeDef huart2;
 UART_HandleTypeDef huart6;
 DMA_HandleTypeDef hdma_usart6_rx;
 IWDG_HandleTypeDef hiwdg;
+TIM_HandleTypeDef htim3;
+
+TIM_OC_InitTypeDef sConfig;
+
 extern TIM_HandleTypeDef  htim7;
 
 int bydma=0;
+#define STORESIZE 512
+#define PERIOD_PWM 1082
 // Private function prototypes
 
 void SystemClock_Config(void);
@@ -24,23 +31,328 @@ void SystemClock_Config(void);
 
 //#endif
 
+
+
+_SHARING_VARIABLE CLIENT_VARIABLE;
+// void relayActivation(
+//		GPIO_TypeDef* gpio_PORT,
+//		uint16_t gpio_PIN
+// 		)
+// Input parameters:
+// ----> uint16_t gpio_PIN: Is the position in the port in STM32Fxx where relay is connected
+// Output parameters: NONE
+// Modified parameters:
+// ----> GPIO_TypeDef* gpio_PORT: It is the handler to port in STM32Fxx microcontroller where relay is connected
+// Type of routine: GENERIC (non dependent of device)
+// Dependencies: NOTE
+// Description:
+// This function is used to activate one relay connected to gpio_PIN unto gpio_PORT of stm32fxx microcontroller.
+// NOTE: For using this function, the GPIO must be initialized
+// Example: relayActivation(GPIOX2_GPIO_Port,GPIOX2_Pin);
+void relayActivation(GPIO_TypeDef* gpio_PORT, uint16_t gpio_PIN)
+{
+	/* Check the parameters */
+	 assert_param(IS_GPIO_ALL_INSTANCE(gpio_PORT));
+	 assert_param(IS_GPIO_PIN(gpio_PIN));
+
+	HAL_GPIO_WritePin(gpio_PORT, gpio_PIN, GPIO_PIN_SET);
+
+
+}
+
+// void relayDeactivation(
+//		GPIO_TypeDef* gpio_PORT,
+//		uint16_t gpio_PIN
+// 		)
+// Input parameters:
+// ----> uint16_t gpio_PIN: Is the position in the port in STM32Fxx where relay is connected
+// Output parameters: NONE
+// Modified parameters:
+// ----> GPIO_TypeDef* gpio_PORT: It is the handler to port in STM32Fxx microcontroller where relay is connected
+// Type of routine: GENERIC (non dependent of device)
+// Dependencies: NOTE
+// Description:
+// This function is used to deactivate one relay connected to gpio_PIN unto gpio_PORT of stm32fxx microcontroller.
+// NOTE: For using this function, the GPIO must be initialized
+// Example: relayDeactivation(GPIOX2_GPIO_Port,GPIOX2_Pin);
+void relayDeactivation(GPIO_TypeDef* gpio_PORT, uint16_t gpio_PIN)
+{
+	/* Check the parameters */
+	assert_param(IS_GPIO_ALL_INSTANCE(gpio_PORT));
+	assert_param(IS_GPIO_PIN(gpio_PIN));
+
+	HAL_GPIO_WritePin(gpio_PORT, gpio_PIN, GPIO_PIN_RESET);
+
+}
+
+
+
+////////////////////
+/////////////////////  PWM
+
+/* TIM3 init function */
+
+static void MX_TIM3_Init(void)
+{
+/*
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+
+  htim3.Instance = TIM3;
+  htim3.Init.Prescaler = 0;
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = PERIOD_PWM;
+  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_PWM_Init(&htim3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sConfig.OCMode = TIM_OCMODE_PWM1;
+  sConfig.Pulse = 0;
+  sConfig.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfig.OCFastMode = TIM_OCFAST_DISABLE;
+  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfig, TIM_CHANNEL_3) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  HAL_TIM_MspPostInit(&htim3);
+*/
+}
+
+
+void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
+{
+/*
+  if(htim_pwm->Instance==TIM3)
+  {
+
+    __HAL_RCC_TIM3_CLK_ENABLE();
+
+  }
+*/
+}
+
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
+{
+/*
+  GPIO_InitTypeDef GPIO_InitStruct;
+  if(htim->Instance==TIM3)
+  {
+
+
+
+    GPIO_InitStruct.Pin = GPIO_PIN_8;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF2_TIM3;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+
+  }
+*/
+}
+
+void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* htim_pwm)
+{
+/*
+  if(htim_pwm->Instance==TIM3)
+  {
+
+    __HAL_RCC_TIM3_CLK_DISABLE();
+
+  }
+*/
+}
+
+
+
+void initializePWM(void)
+{
+
+	//MX_TIM3_Init();
+
+}
+
+
+
+
+
+/// Function that does one regulation over 1-10V output. If regulation is one value from 0 to 100,
+/// Output is (regulation/10) Volts.
+int dimming(int regulation)
+{
+
+	/// Francis TO REVIEW HW PWM for STM32F215RE
+/*
+
+	float temp=0.0;
+	if (regulation>100) return -1;
+
+
+
+
+		temp= (PERIOD_PWM/100.0)*(100-(regulation*0.9));   /// 100 - () because PWM inverts., regulation*0.9 to adapt scale.
+		sConfig.Pulse = (uint32_t)temp;
+		  if (HAL_TIM_PWM_ConfigChannel(&htim3, &sConfig, TIM_CHANNEL_3) != HAL_OK)
+		  {
+
+		   Error_Handler();
+		   return -1;
+		  }
+
+
+
+		  if (HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3) != HAL_OK)
+		  {
+
+		   Error_Handler();
+		   return -1;
+		  }
+
+		  return 1;
+*/
+}
+
 int main(void)
 {
  	uint8_t attempt = 0;
 
+ 	char	store[STORESIZE];
+ 	char    storeToSave[STORESIZE];
+
+ 	memset(storeToSave,'\0',STORESIZE);
 	// Reset of all peripherals, Initializes the Flash interface and the Systick.
 
 
-		HAL_Init();
+	HAL_Init();
 	// Configure the system clock
 
 	SystemClock_Config();
 
-	 HAL_Delay(30);
+	//MX_GPIO_Init();
+
+	 //redOFF;
+	 //blueOFF;
+	 //greenOFF;
+
+	HAL_Delay(30);
+
+	/// Setting default values if some field is not filled.
+
+	//strcpy(CLIENT_VARIABLE.APN,"\"orangeworld\",\"orange\",\"orange\"\r\0");
+	strcpy(CLIENT_VARIABLE.APN,"\"matooma.m2m\",\"\",\"\"\r\0");
+	strcpy(CLIENT_VARIABLE.LAPN,"\"orangeworld\",\"orange\",\"orange\"\r\0");
+	strcpy(CLIENT_VARIABLE.ID,"999999\0");
+	strcpy(CLIENT_VARIABLE.GPIO,"10000000\0");
+	strcpy(CLIENT_VARIABLE.PWM,"100\0");
+	strcpy(CLIENT_VARIABLE.UPDFW,"1");
+	strcpy(CLIENT_VARIABLE.UPDFW_COUNT,"1");
+	strcpy(CLIENT_VARIABLE.UPDFW_HOST,"sinapseenergia.com\0");
+	strcpy(CLIENT_VARIABLE.UPDFW_NAME,"appClient.bin\0");
+	strcpy(CLIENT_VARIABLE.UPDFW_PORT,"80\0");
+	strcpy(CLIENT_VARIABLE.UPDFW_ROUTE,"PruebaBL\/\0");
+
+	MIC_Flash_Memory_Read((const uint8_t *) store, sizeof(store));
+
+	char strCounter[3];
+	uint8_t updateFW=0;
+	char *pointer = strstr(store,";UPDFW_COUNT=");
+	uint8_t counter=1;
+	uint8_t flashCorruption=0;
+	uint8_t reWriteFlash=0;
 
 
+	if ((pointer!=0)&(pointer>store))
+	{
+		//memcpy(storeToSave,store,pointer-store);
+		strncpy(storeToSave,store,pointer-store+13); //Problem
+		RecoverData((char *) store,&CLIENT_VARIABLE);
+		if (atoi(CLIENT_VARIABLE.UPDFW_PORT)==0) strncpy(CLIENT_VARIABLE.UPDFW_PORT,"80\0",3);
+		counter=atoi(CLIENT_VARIABLE.UPDFW_COUNT);
+
+	}
+	else
+	{
+		flashCorruption=1; /// corrpution in flash
+	}
+
+
+
+
+
+
+
+	if ((counter>=0)&(counter<10)&(flashCorruption==0)) /// allowed range
+	{
+
+		if (counter>=2)
+		{
+			counter--;
+			reWriteFlash=1;
+			if (counter==1)
+			{
+				updateFW=1;
+
+			}
+
+		}
+		else
+		{
+
+			if (counter==1)
+			{
+				updateFW=1; // if counter = 1 is needed to update firmware
+			}
+
+
+		}
+
+	}
+	else
+	{
+		flashCorruption=1;
+		updateFW=1; // if counter is outside allowed range.
+	}
+
+	if ((flashCorruption==0)&(reWriteFlash==1))
+	{
+		itoa(counter,strCounter,10);
+		strcat(storeToSave,strCounter);
+		strcat(storeToSave,";");
+
+		MIC_Flash_Memory_Write((const uint8_t *) storeToSave, sizeof(storeToSave));
+
+
+	}
+
+
+
+
+	if ((updateFW==0)&(atoi(CLIENT_VARIABLE.UPDFW)==0))
+	{
+		Boot_StartApplication();
+
+	}
+
+
+	/// Execute bootloader.
 
 	/* Initialize all configured peripherals */
+    //orangeRGB(1);
+
+
+
 
 	// Start to check firmware
 	while (Boot_PerformFirmwareUpdate() != BOOT_OK) {
@@ -182,6 +494,67 @@ void orangeRGB (uint8_t on)
 
 }
 
+////////////////////////////////////////////////////////////////////////////
+//	Function, that takes the data stream from NVM
+//		splits it in elements, and, one by one, writes them into de Context
+//	Formerly was part of Swap-In, but has been factorized-out because
+//		the same functionality is required in Restore
+////////////////////////////////////////////////////////////////////////////
+
+void getField(char *field, char *name, char* value, int32_t length, char *out)
+{
+
+	///////////// Searching data
+	if (strcmp(field,name)==0)
+	{
+
+		//strncpy(out, p, q-p);
+		memcpy(out,value,length);
+		out[length]=0;
+	}
+}
+
+void	RecoverData(char *p,_SHARING_VARIABLE *structure ) {
+	    char temp[128];
+		while (p) {
+			char	name[16];
+			char	value[128];
+
+			char *q = strstr(p, "=");
+			if (q) {
+				strncpy(name, p, q-p);
+				name[q-p] = 0;
+				p = q+1;
+				q = strstr(p, ";");
+				if (q) {
+					strncpy(value, p, q-p);
+					value[q-p] = 0;
+
+
+					getField("APN", name, value, q-p, structure->APN);
+					getField("LAPN", name, value, q-p, structure->LAPN);
+					getField("UPDFW", name, value, q-p, structure->UPDFW);
+					getField("UPDFW_COUNT", name, value, q-p, structure->UPDFW_COUNT);
+					getField("UPDFW_HOST", name, value, q-p, structure->UPDFW_HOST);
+					getField("UPDFW_PORT", name, value, q-p, structure->UPDFW_PORT);
+					getField("UPDFW_NAME", name, value, q-p, structure->UPDFW_NAME);
+					getField("UPDFW_ROUTE", name, value, q-p, structure->UPDFW_ROUTE);
+					getField("ID", name, value, q-p, structure->ID);
+					getField("GPIO", name, value, q-p, structure->GPIO);
+					getField("PWM", name, value, q-p, structure->PWM);
+					p = q+1;
+
+				}
+				else
+					p = 0;
+			}
+			else
+				p = 0;
+		}
+
+}
+
+
 /* USER CODE END 4 */
 
 /**
@@ -228,4 +601,5 @@ void assert_failed(uint8_t* file, uint32_t line)
 */ 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+
 

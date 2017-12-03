@@ -63,6 +63,9 @@
  // Define Bank Sectors (11 sectors total - for STM32F4xx devices)
  // Bootloader
 /// Verified: Definition sector in STM32F2xx is equivalent to STM32F4xx family.
+
+#define ORIGIN_SECTOR    ((uint32_t)0x080E0000) /* last 128k */
+
  #define FLASH_BANKB_START_SECTOR		FLASH_SECTOR_0
  #define FLASH_BANKB_SECTORS			2
  // Application
@@ -70,7 +73,7 @@
  #define FLASH_BANKA_SECTORS			6
  // Application copy
  #define FLASH_BANKC_START_SECTOR		FLASH_SECTOR_8
- #define FLASH_BANKC_SECTORS			4
+ #define FLASH_BANKC_SECTORS			3
 
 
 

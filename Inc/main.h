@@ -99,6 +99,11 @@
 #define redOFF HAL_GPIO_WritePin(redRGB_GPIO_Port, redRGB_Pin,GPIO_PIN_SET)
 #define greenON HAL_GPIO_WritePin(greenRGB_GPIO_Port, greenRGB_Pin,GPIO_PIN_RESET)
 #define greenOFF HAL_GPIO_WritePin(greenRGB_GPIO_Port, greenRGB_Pin,GPIO_PIN_SET)
+
+#define Relay1_Pin GPIO_PIN_13
+#define Relay1_GPIO_Port GPIOB
+#define PWM_Pin GPIO_PIN_9
+#define PWM_GPIO_Port GPIOC
 #define _NOP() do { __asm__ __volatile__ ("nop"); } while (0)
 /* USER CODE BEGIN Private defines */
 

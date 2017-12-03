@@ -1,4 +1,5 @@
 #include "Bootloader.h"
+#include "sharing_memory.h"
 
 
 extern uint8_t WDT_ENABLED;
@@ -6,6 +7,7 @@ extern IWDG_HandleTypeDef hiwdg;
 extern UART_HandleTypeDef huart6;
 // R/W buffer
 extern void orangeRGB(uint8_t on);
+extern _SHARING_VARIABLE CLIENT_VARIABLE;
 char boot_buff[BOOT_BUFFER_SIZE];
 
 /**
@@ -63,7 +65,8 @@ uint8_t Boot_CheckConnection(SOCKETS_SOURCE ssource)
     uint32_t len, len_left;
 
     // Check connection available
-    sprintf(boot_buff, "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_IP);
+    //sprintf(boot_buff, "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_IP);
+    sprintf(boot_buff, "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", CLIENT_VARIABLE.UPDFW_HOST);
     Socket_Clear(ssource);
     Socket_Write(ssource, boot_buff, strlen(boot_buff));
     // Read answer
@@ -109,7 +112,12 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     Socket_Init(SOCKET_SRC_GPRS);
     orangeRGB(1);
 
+    initializePWM();
 
+        if (strcmp(CLIENT_VARIABLE.GPIO,"00000000")==0) relayDeactivation(Relay1_GPIO_Port,Relay1_Pin);
+        else relayActivation(Relay1_GPIO_Port,Relay1_Pin);
+
+        dimming(atoi(CLIENT_VARIABLE.PWM));
 
     if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
 
@@ -136,7 +144,8 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 #ifdef M2CORTEX
     	uint8_t remain;
     // Get data
-       sprintf(boot_buff, "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_FW_FILENAME, HTTP_SERVER_IP);
+       //sprintf(boot_buff, "GET /PruebaBL/%s HTTP/1.1\r\nHost: %s\r\n\r\n", CLIENT_VARIABLE.UPDFW_NAME, HTTP_SERVER_IP);
+       sprintf(boot_buff, "GET /%s%s HTTP/1.1\r\nHost: %s\r\n\r\n", CLIENT_VARIABLE.UPDFW_ROUTE,CLIENT_VARIABLE.UPDFW_NAME, CLIENT_VARIABLE.UPDFW_HOST);
        Socket_Clear(ssource);
        Socket_Write(ssource, boot_buff, strlen(boot_buff));
        // Read answer

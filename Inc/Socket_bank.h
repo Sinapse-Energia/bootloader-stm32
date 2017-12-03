@@ -7,6 +7,8 @@
 #include "Definitions.h"
 #include "M95lite.h"
 
+
+
 // Socket errors
 typedef enum
 {
@@ -34,5 +36,6 @@ int Socket_Read(SOCKETS_SOURCE s_in, char *buff_out, int buff_len);
 void Socket_Clear(SOCKETS_SOURCE s_in);
 void Socket_ClearTimeout(SOCKETS_SOURCE s_in);
 uint8_t Socket_GetTimeout(SOCKETS_SOURCE s_in);
+
 
 #endif // __SOCKET_BANK_H

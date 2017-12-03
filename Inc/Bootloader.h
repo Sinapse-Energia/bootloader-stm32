@@ -16,6 +16,7 @@
 // MCU NVM Flash Memory addresses
 #define BOOT_APPLICATION_ADDR				FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION)
 
+
 // Firmware available answers
 typedef enum
 {

@@ -433,7 +433,7 @@ M95Status M95_Connect(
 
 	memcpy(messageTX, "AT+QICSGP=1,", 12);
 
-	while (APN[i] != '\r')
+	while ((APN[i] != '\r')&(APN[i] != '\0'))
 	{
 		messageTX[12 + i] = APN[i];
 		i++;
