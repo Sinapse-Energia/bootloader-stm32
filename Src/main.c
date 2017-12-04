@@ -45,6 +45,22 @@ int main(void)
 
 	 HAL_Delay(30);
 
+	// RAE: Init Modem M95
+	 uint32_t ta, tb;
+	 	if (1) {
+	 		int rc;
+	 		int n = 0;
+	 		ta = HAL_GetTick();
+	 		// pretrace ("INFO Init modem on start\n", n);
+	 		do {
+	 			rc = Modem_Init();
+	 			n++;
+	 		} while (rc != M95_OK);
+	 		tb = HAL_GetTick();
+	 		modem_init = 1;
+
+	 	}
+
 
 
 	/* Initialize all configured peripherals */
