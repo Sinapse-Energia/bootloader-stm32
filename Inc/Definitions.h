@@ -9,6 +9,9 @@
 // *************************************************************************************** //
 // *************************************************************************************** //
 
+ // RAE definitions
+#define COMMUNICATION_M95
+
  // Francis definition.
 #define CMC_APPLICATION_DEPENDENT
 #define LOG_WIFI  1

@@ -4,6 +4,7 @@
 #include "stm32f2xx_hal.h"
 #include "M95lite.h"
 #include "Definitions.h"
+#include "circular.h"
 #include "Flash_NVM.h"
 #include "Bootloader.h"
 
@@ -16,6 +17,9 @@ IWDG_HandleTypeDef hiwdg;
 extern TIM_HandleTypeDef  htim7;
 
 int bydma=0;
+st_CB *DataBuffer;
+int modem_init = 0;
+
 // Private function prototypes
 
 void SystemClock_Config(void);
@@ -35,6 +39,9 @@ int main(void)
 	// Configure the system clock
 
 	SystemClock_Config();
+
+	//RAE: Init databuffer for M95 Modifications
+	DataBuffer	= CircularBuffer (256, NULL);
 
 	 HAL_Delay(30);
 

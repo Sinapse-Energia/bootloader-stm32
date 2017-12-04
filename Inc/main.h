@@ -46,6 +46,7 @@
 
 /* Private define ------------------------------------------------------------*/
 
+//#define COMMUNICATION_M95
 
 #define mIac_Pin GPIO_PIN_0
 #define mIac_GPIO_Port GPIOC
