@@ -94,7 +94,7 @@ void relayDeactivation(GPIO_TypeDef* gpio_PORT, uint16_t gpio_PIN)
 
 static void MX_TIM3_Init(void)
 {
-/*
+
   TIM_MasterConfigTypeDef sMasterConfig;
 
 
@@ -126,25 +126,25 @@ static void MX_TIM3_Init(void)
   }
 
   HAL_TIM_MspPostInit(&htim3);
-*/
+
 }
 
 
 void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef* htim_pwm)
 {
-/*
+
   if(htim_pwm->Instance==TIM3)
   {
 
     __HAL_RCC_TIM3_CLK_ENABLE();
 
   }
-*/
+
 }
 
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
 {
-/*
+
   GPIO_InitTypeDef GPIO_InitStruct;
   if(htim->Instance==TIM3)
   {
@@ -160,19 +160,19 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
 
 
   }
-*/
+
 }
 
 void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* htim_pwm)
 {
-/*
+
   if(htim_pwm->Instance==TIM3)
   {
 
     __HAL_RCC_TIM3_CLK_DISABLE();
 
   }
-*/
+
 }
 
 
@@ -180,7 +180,7 @@ void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* htim_pwm)
 void initializePWM(void)
 {
 
-	//MX_TIM3_Init();
+	MX_TIM3_Init();
 
 }
 
@@ -194,7 +194,7 @@ int dimming(int regulation)
 {
 
 	/// Francis TO REVIEW HW PWM for STM32F215RE
-/*
+
 
 	float temp=0.0;
 	if (regulation>100) return -1;
@@ -221,7 +221,7 @@ int dimming(int regulation)
 		  }
 
 		  return 1;
-*/
+
 }
 
 int main(void)
@@ -246,16 +246,16 @@ int main(void)
 	 //blueOFF;
 	 //greenOFF;
 
-	HAL_Delay(30);
+	//HAL_Delay(30);
 
 	/// Setting default values if some field is not filled.
 
 	//strcpy(CLIENT_VARIABLE.APN,"\"orangeworld\",\"orange\",\"orange\"\r\0");
-	strcpy(CLIENT_VARIABLE.APN,"\"matooma.m2m\",\"\",\"\"\r\0");
-	strcpy(CLIENT_VARIABLE.LAPN,"\"orangeworld\",\"orange\",\"orange\"\r\0");
+	strcpy(CLIENT_VARIABLE.LAPN,"\"matooma.m2m\",\"\",\"\"\r\0");
+	strcpy(CLIENT_VARIABLE.APN,"\"orangeworld\",\"orange\",\"orange\"\r\0");
 	strcpy(CLIENT_VARIABLE.ID,"999999\0");
 	strcpy(CLIENT_VARIABLE.GPIO,"10000000\0");
-	strcpy(CLIENT_VARIABLE.PWM,"100\0");
+	strcpy(CLIENT_VARIABLE.PWM,"50\0");
 	strcpy(CLIENT_VARIABLE.UPDFW,"1");
 	strcpy(CLIENT_VARIABLE.UPDFW_COUNT,"1");
 	strcpy(CLIENT_VARIABLE.UPDFW_HOST,"sinapseenergia.com\0");
