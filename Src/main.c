@@ -368,7 +368,8 @@ int main(void)
 
 	// Start to check firmware
 	while (Boot_PerformFirmwareUpdate() != BOOT_OK) {
-		if(++attempt > NUMBER_RETRIES) break;
+		attempt+=1;
+		if(attempt >= NUMBER_RETRIES) break;
 		HAL_Delay(5000);
 	}
 
@@ -391,7 +392,10 @@ int main(void)
 		// Socket_Write(SOCKET_SRC_WIFI, "HI app! ", 8);
 		// attempt = Socket_Read(SOCKET_SRC_WIFI, tmp, 100);
 		// Start to blink Err LED?
-		HAL_Delay(1000);
+		redON;
+		HAL_Delay(500);
+		redOFF;
+		HAL_Delay(500);
 	}
 }
 

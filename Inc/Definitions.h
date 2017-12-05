@@ -15,7 +15,7 @@
  // Francis definition.
 #define CMC_APPLICATION_DEPENDENT
 #define LOG_WIFI  1
-#define NUMBER_RETRIES 2
+#define NUMBER_RETRIES 1
 
 
  // GPRS init
