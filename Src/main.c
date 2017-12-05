@@ -16,6 +16,7 @@ DMA_HandleTypeDef hdma_usart6_rx;
 IWDG_HandleTypeDef hiwdg;
 extern TIM_HandleTypeDef  htim7;
 
+int application_layer_connection=0;
 int bydma=0;
 st_CB *DataBuffer;
 //int modem_init = 0;

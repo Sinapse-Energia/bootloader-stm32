@@ -64,17 +64,17 @@
 //#define HTTP_SERVER_FW_FILENAME			"led_p1_8000.bin"
 //#define HTTP_SERVER_FW_FILENAME		"myfile.bin"
  //#define HTTP_SERVER_FW_FILENAME		"CMC.bin"
-#define HTTP_SERVER_FW_FILENAME		"220022.bin"
+#define HTTP_SERVER_FW_FILENAME		"600009.bin"
 
 
  // Define Bank Sectors (11 sectors total - for STM32F4xx devices)
  // Bootloader
 /// Verified: Definition sector in STM32F2xx is equivalent to STM32F4xx family.
  #define FLASH_BANKB_START_SECTOR		FLASH_SECTOR_0
- #define FLASH_BANKB_SECTORS			2
+ #define FLASH_BANKB_SECTORS			3
  // Application
- #define FLASH_BANKA_START_SECTOR		FLASH_SECTOR_2
- #define FLASH_BANKA_SECTORS			6
+ #define FLASH_BANKA_START_SECTOR		FLASH_SECTOR_3
+ #define FLASH_BANKA_SECTORS			5
  // Application copy
  #define FLASH_BANKC_START_SECTOR		FLASH_SECTOR_8
  #define FLASH_BANKC_SECTORS			4

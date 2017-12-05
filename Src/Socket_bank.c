@@ -34,6 +34,7 @@ uint16_t GPRSBufferReceivedBytes;     		/// Number of received data from GPRS af
 uint16_t UART_elapsed_sec = 0; 				/// At beginning this is 0
 uint8_t UART_timeout = 0;
 
+extern int 		application_layer_connection;
 extern int		bydma;
 extern DMA_HandleTypeDef hdma_usart6_rx;
 int		nirqs = 0;
@@ -204,43 +205,52 @@ static void MX_GPIO_Init(void)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef * huart)
 {
 	// GPRS
-	//if (huart->Instance == huart6.Instance) {
-	//	GPRSbuffer[GPRSBufferReceivedBytes] = dataByteBufferIRQ;
-	//	GPRSBufferReceivedBytes = (GPRSBufferReceivedBytes + 1) % SIZE_GPRS_BUFFER;
-	//	HAL_UART_Receive_IT(huart, &dataByteBufferIRQ, 1);
-	//}
+
+	if (application_layer_connection==1) /// Sva/Seka buffer in application layer
+	{
+			if (huart->Instance == huart6.Instance)
+			{
+				GPRSbuffer[GPRSBufferReceivedBytes] = dataByteBufferIRQ;
+				GPRSBufferReceivedBytes = (GPRSBufferReceivedBytes + 1) % SIZE_GPRS_BUFFER;
+				HAL_UART_Receive_IT(huart, &dataByteBufferIRQ, 1);
+			}
+	}
+
+	else /// Juanra buffer in transport layer
+	{
 
 
-	if (huart->Instance==huart6.Instance)
-	 {
-		  if (! bydma) { // only if not BYDMA
-		  	 nirqs++;
-		  		 allnew += Write(DataBuffer, dataByteBufferIRQ);
-		  		 if (IsFull(DataBuffer)) {
-		  			DataBuffer->overruns++;
-		  		}
-	//	  		{
-	//	  			int nextw = (write_offset + 1) % bufsize;  // next position to be written
-	//	  			Cbuffer[write_offset++] =  dataByteBufferIRQ;
-	//	  			write_offset = nextw;
-	//	  	 	 	allnew += Write(dataByteBufferIRQ);
-		  			balnew++;
-	//	  		}
+			if (huart->Instance==huart6.Instance)
+			 {
+				  if (! bydma) { // only if not BYDMA
+					 nirqs++;
+						 allnew += Write(DataBuffer, dataByteBufferIRQ);
+						 if (IsFull(DataBuffer)) {
+							DataBuffer->overruns++;
+						}
+			//	  		{
+			//	  			int nextw = (write_offset + 1) % bufsize;  // next position to be written
+			//	  			Cbuffer[write_offset++] =  dataByteBufferIRQ;
+			//	  			write_offset = nextw;
+			//	  	 	 	allnew += Write(dataByteBufferIRQ);
+							balnew++;
+			//	  		}
 
-	//			 (huart,&dataByteBufferIRQ,1);
-	//	  	 }
-	//	  	 {
-		  			/**
-				  GPRSBufferReceivedBytes++;
-				  GPRSbuffer[indexGPRSBufferReceived]=dataByteBufferIRQ;
-				  indexGPRSBufferReceived=(indexGPRSBufferReceived+1)%SIZE_GPRS_BUFFER;
-		  		  allold++;
-		  		  balold++;
-		  		  **/
-	//	  	 }
-		  		  HAL_UART_Receive_IT(huart,&dataByteBufferIRQ,1);
-		  }
-	  }
+			//			 (huart,&dataByteBufferIRQ,1);
+			//	  	 }
+			//	  	 {
+							/**
+						  GPRSBufferReceivedBytes++;
+						  GPRSbuffer[indexGPRSBufferReceived]=dataByteBufferIRQ;
+						  indexGPRSBufferReceived=(indexGPRSBufferReceived+1)%SIZE_GPRS_BUFFER;
+						  allold++;
+						  balold++;
+						  **/
+			//	  	 }
+						  HAL_UART_Receive_IT(huart,&dataByteBufferIRQ,1);
+				  }
+			  }/// end Juanra buffer
+	} /// end else
 
 
 }
@@ -287,6 +297,7 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 	 greenOFF;
 	if (s_in == SOCKET_SRC_GPRS) {
 
+		application_layer_connection=0;
 
 		MX_USART6_UART_Init();
 
@@ -428,6 +439,7 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
 
 	}
 
+	application_layer_connection =1; /// We have just connected to application layer.
 	return SOCKET_OK;
 }
 
@@ -461,6 +473,7 @@ SOCKET_STATUS Socket_Close(SOCKETS_SOURCE s_in)
 		if (stat != M95_OK) return SOCKET_ERR_NO_CONNECTION;
 	}
 */
+	application_layer_connection = 0;
 	return SOCKET_OK;
 }
 
