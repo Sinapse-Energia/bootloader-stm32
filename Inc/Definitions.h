@@ -9,6 +9,9 @@
 // *************************************************************************************** //
 // *************************************************************************************** //
 
+ // RAE definitions
+#define COMMUNICATION_M95
+
  // Francis definition.
 #define CMC_APPLICATION_DEPENDENT
 #define LOG_WIFI  1
@@ -24,12 +27,16 @@
 #define TIMING_TIMEOUT_GPRS 			20
 //#define const_APN 						"\"im2m.matooma.com\",\"movistar\",\"movistar\"\r\0"
 //#define const_APN 						"\"m2m.tele2.com\",\"tele2\",\"tele2\"\r\0"
-#define const_APN 						"\"orangeworld\",\"orange\",\"orange\"\r\0"
+#define const_APN 						"\"matooma.m2m\",\"\",\"\"\0"
+//#define const_APN 						"\"orangeworld\",\"orange\",\"orange\"\r\0"
 #define const_SERVER_NTP 				"\"0.europe.pool.ntp.org\"\r\0"
 //#define const_MAIN_SERVER				"\"m2m.eclipse.org\",1883\r\0"
 //#define const_MAIN_SERVER 				"\"178.94.164.124\",80\r\0"
  //#define const_MAIN_SERVER 				"\"89.248.100.11\",80\r\0"
- #define const_MAIN_SERVER 				"\"sinapseenergia.com\",80\r\0"
+
+#define const_MAIN_SERVER 				"\"sinapseenergia.com\",80\r\0"
+//#define const_MAIN_SERVER 				"\"sinapseenergia.com\"\r\0"
+
 
 
  // Wait for HTTP server answer (sec)
@@ -57,7 +64,7 @@
 //#define HTTP_SERVER_FW_FILENAME			"led_p1_8000.bin"
 //#define HTTP_SERVER_FW_FILENAME		"myfile.bin"
  //#define HTTP_SERVER_FW_FILENAME		"CMC.bin"
-#define HTTP_SERVER_FW_FILENAME		"220022.bin"
+#define HTTP_SERVER_FW_FILENAME		"600009.bin"
 
 
  // Define Bank Sectors (11 sectors total - for STM32F4xx devices)

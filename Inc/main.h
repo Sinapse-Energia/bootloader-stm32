@@ -46,6 +46,7 @@
 
 /* Private define ------------------------------------------------------------*/
 
+//#define COMMUNICATION_M95
 
 #define mIac_Pin GPIO_PIN_0
 #define mIac_GPIO_Port GPIOC
@@ -91,6 +92,13 @@
 #define EMERG_GPIO_Port emerg_3G_GPIO_Port
 #define STATUSPINM95_Pin status_3G_Pin
 #define STATUSPINM95_GPIO_Port status_3G_GPIO_Port
+
+#define Emerg_Pin EMERG_Pin
+#define Emerg_GPIO_Port EMERG_GPIO_Port
+#define Pwrkey_Pin PWRKEY_Pin
+#define Pwrkey_GPIO_Port PWRKEY_GPIO_Port
+#define M95Status_Pin STATUSPINM95_Pin
+#define M95Status_GPIO_Port STATUSPINM95_GPIO_Port
 
 
 #define blueON HAL_GPIO_WritePin(blueRGB_GPIO_Port, blueRGB_Pin,GPIO_PIN_RESET)

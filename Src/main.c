@@ -4,9 +4,11 @@
 #include "stm32f2xx_hal.h"
 #include "M95lite.h"
 #include "Definitions.h"
+#include "circular.h"
 #include "Flash_NVM.h"
-#include "bootloader.h"
 #include "sharing_memory.h"
+#include "Bootloader.h"
+
 
 // Program version memory map prototype
 const uint8_t __attribute__((section(".myvars"))) VERSION_NUMBER[6] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
@@ -20,9 +22,15 @@ TIM_OC_InitTypeDef sConfig;
 
 extern TIM_HandleTypeDef  htim7;
 
+int application_layer_connection=0;
 int bydma=0;
+
 #define STORESIZE 512
 #define PERIOD_PWM 1082
+
+st_CB *DataBuffer;
+//int modem_init = 0;
+
 // Private function prototypes
 
 void SystemClock_Config(void);
@@ -232,9 +240,12 @@ int main(void)
  	char    storeToSave[STORESIZE];
 
  	memset(storeToSave,'\0',STORESIZE);
+	
+	// RAE: Init DataBuffer for new M95 Method
+	DataBuffer	= CircularBuffer (256, NULL);
+
+
 	// Reset of all peripherals, Initializes the Flash interface and the Systick.
-
-
 	HAL_Init();
 	// Configure the system clock
 
@@ -345,6 +356,7 @@ int main(void)
 
 	}
 
+	//HAL_Delay(30); #RAE Commenting during the integration
 
 	/// Execute bootloader.
 
@@ -383,7 +395,17 @@ int main(void)
 	}
 }
 
+void MX_DMA_Init(void)
+{
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
 
+  /* DMA interrupt init */
+  /* DMA2_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
+
+}
 
 /** System Clock Configuration
 */
