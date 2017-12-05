@@ -18,7 +18,7 @@ extern TIM_HandleTypeDef  htim7;
 
 int bydma=0;
 st_CB *DataBuffer;
-int modem_init = 0;
+//int modem_init = 0;
 
 // Private function prototypes
 
@@ -44,23 +44,6 @@ int main(void)
 	DataBuffer	= CircularBuffer (256, NULL);
 
 	 HAL_Delay(30);
-
-	// RAE: Init Modem M95
-	 uint32_t ta, tb;
-	 	if (1) {
-	 		int rc;
-	 		int n = 0;
-	 		ta = HAL_GetTick();
-	 		// pretrace ("INFO Init modem on start\n", n);
-	 		do {
-	 			rc = Modem_Init();
-	 			n++;
-	 		} while (rc != M95_OK);
-	 		tb = HAL_GetTick();
-	 		modem_init = 1;
-
-	 	}
-
 
 
 	/* Initialize all configured peripherals */
@@ -94,7 +77,17 @@ int main(void)
 	}
 }
 
+void MX_DMA_Init(void)
+{
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
 
+  /* DMA interrupt init */
+  /* DMA2_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
+
+}
 
 /** System Clock Configuration
 */
