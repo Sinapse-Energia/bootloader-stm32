@@ -484,7 +484,7 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
 		int	s = 0; //Security = 0 = TCP
 
 		char	*apn = CLIENT_VARIABLE.APN;
-		char	*lapn = CLIENT_VARIABLE.APN;
+		char	*lapn = CLIENT_VARIABLE.LAPN;
 
 
 		int stat1 = transport_open(h, p, s, apn);
