@@ -262,17 +262,17 @@ int main(void)
 	/// Setting default values if some field is not filled.
 
 	//strcpy(CLIENT_VARIABLE.APN,"\"orangeworld\",\"orange\",\"orange\"\r\0");
-	strcpy(CLIENT_VARIABLE.LAPN,"\"matooma.m2m\",\"\",\"\"\r\0");
-	strcpy(CLIENT_VARIABLE.APN,"\"orangeworld\",\"orange\",\"orange\"\r\0");
-	strcpy(CLIENT_VARIABLE.ID,"999999\0");
-	strcpy(CLIENT_VARIABLE.GPIO,"10000000\0");
-	strcpy(CLIENT_VARIABLE.PWM,"50\0");
-	strcpy(CLIENT_VARIABLE.UPDFW,"1");
-	strcpy(CLIENT_VARIABLE.UPDFW_COUNT,"1");
-	strcpy(CLIENT_VARIABLE.UPDFW_HOST,"sinapseenergia.com\0");
-	strcpy(CLIENT_VARIABLE.UPDFW_NAME,"appClient.bin\0");
-	strcpy(CLIENT_VARIABLE.UPDFW_PORT,"80\0");
-	strcpy(CLIENT_VARIABLE.UPDFW_ROUTE,"PruebaBL\/\0");
+	strcpy(CLIENT_VARIABLE.LAPN,const_APN);
+	strcpy(CLIENT_VARIABLE.APN,const_APN);
+	strcpy(CLIENT_VARIABLE.ID,const_ID_DEVICE);
+	strcpy(CLIENT_VARIABLE.GPIO,const_GPIO);
+	strcpy(CLIENT_VARIABLE.PWM,const_PWM);
+	strcpy(CLIENT_VARIABLE.UPDFW,const_UPDFW);
+	strcpy(CLIENT_VARIABLE.UPDFW_COUNT,const_UPDFW_COUNT);
+	strcpy(CLIENT_VARIABLE.UPDFW_HOST,HTTP_SERVER_IP);
+	strcpy(CLIENT_VARIABLE.UPDFW_NAME,HTTP_SERVER_FW_FILENAME);
+	strcpy(CLIENT_VARIABLE.UPDFW_PORT,const_string_PORT);
+	strcpy(CLIENT_VARIABLE.UPDFW_ROUTE,const_ROUTE_FW_FILENAME);
 
 	MIC_Flash_Memory_Read((const uint8_t *) store, sizeof(store));
 

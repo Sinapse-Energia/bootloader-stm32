@@ -27,7 +27,8 @@
 #define TIMING_TIMEOUT_GPRS 			20
 //#define const_APN 						"\"im2m.matooma.com\",\"movistar\",\"movistar\"\r\0"
 //#define const_APN 						"\"m2m.tele2.com\",\"tele2\",\"tele2\"\r\0"
-#define const_APN 						"\"matooma.m2m\",\"\",\"\"\0"
+//#define const_APN 						"\"matooma.m2m\",\"\",\"\"\0"
+#define const_APN 						"\"lte.m2m\",\"\",\"\"\0"
 //#define const_APN 						"\"orangeworld\",\"orange\",\"orange\"\r\0"
 #define const_SERVER_NTP 				"\"0.europe.pool.ntp.org\"\r\0"
 //#define const_MAIN_SERVER				"\"m2m.eclipse.org\",1883\r\0"
@@ -42,29 +43,23 @@
  // Wait for HTTP server answer (sec)
 #define TIMING_TIMEOUT_UART 			15
 // HTTP connection
-//#define HTTP_SERVER_IP 					"178.94.164.124"
-//#define HTTP_SERVER_IP 					"89.248.100.11"
-#define HTTP_SERVER_IP 					"sinapseenergia.com"
-/*
-#define HTTP_SERVER_IP_03				178
-#define HTTP_SERVER_IP_02				94
-#define HTTP_SERVER_IP_01				164
-#define HTTP_SERVER_IP_00				124
- */
+
+#define HTTP_SERVER_IP 					"sinapseenergia.com\0"
+
 #define HTTP_SERVER_IP_03				89//178
 #define HTTP_SERVER_IP_02				248//94
 #define HTTP_SERVER_IP_01				100//164
 #define HTTP_SERVER_IP_00				11//124
 
 #define HTTP_SERVER_PORT				80
-//#define HTTP_SERVER_FW_FILENAME		"firmware_crc.bin"
-//#define HTTP_SERVER_FW_FILENAME		"wifi_080617.bin"
-//#define HTTP_SERVER_FW_FILENAME		"hello.bin"
-//#define HTTP_SERVER_FW_FILENAME		"hello_8000.bin"
-//#define HTTP_SERVER_FW_FILENAME			"led_p1_8000.bin"
-//#define HTTP_SERVER_FW_FILENAME		"myfile.bin"
- //#define HTTP_SERVER_FW_FILENAME		"CMC.bin"
-#define HTTP_SERVER_FW_FILENAME		"600009.bin"
+#define const_string_PORT				"80\0"
+#define const_ID_DEVICE					"600012\0"
+#define const_GPIO					"10000000\0"
+#define const_PWM					"100\0"
+#define HTTP_SERVER_FW_FILENAME		"600012.bin\0"
+#define const_ROUTE_FW_FILENAME     ""
+#define const_UPDFW_COUNT			"1\0"
+#define const_UPDFW					"1\0"
 
 
  // Define Bank Sectors (11 sectors total - for STM32F4xx devices)

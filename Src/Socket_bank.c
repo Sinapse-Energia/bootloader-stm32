@@ -479,16 +479,21 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
 
 		// ATENTION: This values should be got from shared memory
 		//char	*h = IPPORT;
-		char	*h = HTTP_SERVER_IP;
-		unsigned int p = HTTP_SERVER_PORT;
+		char	*h = CLIENT_VARIABLE.UPDFW_HOST;
+		unsigned int p = atoi(CLIENT_VARIABLE.UPDFW_PORT);
 		int	s = 0; //Security = 0 = TCP
 
-		char	*apn = APN;
+		char	*apn = CLIENT_VARIABLE.APN;
+		char	*lapn = CLIENT_VARIABLE.APN;
 
 
 		int stat1 = transport_open(h, p, s, apn);
 
-		if (stat1 <= 0) return SOCKET_ERR_NO_CONNECTION;
+		if (stat1 <= 0) // I retry with LAPN
+		{
+			int stat2 = transport_open(h, p, s, lapn);
+			if (stat2<=0) return SOCKET_ERR_NO_CONNECTION;
+		}
 
 	}
 
