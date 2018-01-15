@@ -9,7 +9,7 @@ UART_HandleTypeDef huart6;
 uint16_t elapsed10seconds=0; 				/// At beginning this is 0
 uint8_t LOG_ACTIVATED=0;				 	/// Enable to 1 if you want to show log through logUART
 uint8_t LOG_GPRS=0;  						/// For showing only GPRS information
-uint8_t WDT_ENABLED=1; //1					/// Enable for activate independent watch dog timer
+uint8_t WDT_ENABLED=0; //1					/// Enable for activate independent watch dog timer
 uint8_t timeoutGPRS=0; 						/// At beginning this is 0
 uint32_t timeout=1000;				 		/// Timeout between AT command sending is 1000 milliseconds.
 uint8_t rebootSystem=0;						/// At beginning this is 0
@@ -56,8 +56,8 @@ static void MX_TIM7_Init(void)
     htim7.Instance = TIM7;
     htim7.Init.Prescaler= (SystemCoreClock/1000)-1;  /// Este timer se pone a 1KHz
     htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
-    //htim7.Init.Period = 10000; /// La interrupción se hará cada 10000/1000 -> 10 segundos
-    htim7.Init.Period = 1000; /// La interrupción se hará cada 10000/1000 -> 1 segundos
+    //htim7.Init.Period = 10000; /// La interrupciï¿½n se harï¿½ cada 10000/1000 -> 10 segundos
+    htim7.Init.Period = 1000; /// La interrupciï¿½n se harï¿½ cada 10000/1000 -> 1 segundos
 
     if (HAL_TIM_Base_Init(&htim7) != HAL_OK) {
         _Error_Handler(__FILE__, __LINE__);
