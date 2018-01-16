@@ -54,6 +54,18 @@ static uint8_t binBuf[UART_LINE_MAX_LEN];
 static volatile size_t binPos = 0;
 static volatile size_t binNeed = 0;
 
+void MX_DMA_Init(void)
+{
+  /* DMA controller clock enable */
+  __HAL_RCC_DMA2_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA2_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
+
+}
+
 /* IWDG init function */
 static void MX_IWDG_Init(void)
 {
@@ -456,6 +468,8 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 
 	} else {
 		char buf[256];
+
+		MX_DMA_Init();
 
 		// Give module some time to start up
 		HAL_Delay(5000);
