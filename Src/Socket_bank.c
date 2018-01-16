@@ -306,12 +306,12 @@ static bool wlanSwitchToAT(void)
 	{
 		// Send +++ sequence and get response
 		ansBuf[0] = '\0';
-		if (!Socket_Write(SOCKET_SRC_WIFI, "+++", 3)) return 0;
+		if (Socket_Write(SOCKET_SRC_WIFI, "+++", 3) != SOCKET_OK) return 0;
 		HAL_UART_Receive(&huart6, ansBuf, 1, 2000);
 		if (ansBuf[0] == 'a')
 		{
 			wlanRecvStartAT();
-			if (!Socket_Write(SOCKET_SRC_WIFI, "a", 1)) return 0;
+			if (Socket_Write(SOCKET_SRC_WIFI, "a", 1) != SOCKET_OK) return 0;
 			if (wlanRecvWaitLines(1, 1000) &&
 					(strcmp(lineBuf[0], "+ok") == 0)) break;
 		}
@@ -346,12 +346,12 @@ static bool wlanSwitchToAT57600(void)
 	{
 		// Send +++ sequence and get response
 		ansBuf[0] = '\0';
-		if (!Socket_Write(SOCKET_SRC_WIFI, "+++", 3)) return 0;
+		if (Socket_Write(SOCKET_SRC_WIFI, "+++", 3) != SOCKET_OK) return 0;
 		HAL_UART_Receive(&huart6, ansBuf, 1, 2000);
 		if (ansBuf[0] == 'a')
 		{
 			wlanRecvStartAT();
-			if (!Socket_Write(SOCKET_SRC_WIFI, "a", 1)) return 0;
+			if (Socket_Write(SOCKET_SRC_WIFI, "a", 1) != SOCKET_OK) return 0;
 			if (wlanRecvWaitLines(1, 1000) &&
 					(strcmp(lineBuf[0], "+ok") == 0)) break;
 		}
@@ -369,8 +369,8 @@ static bool wlanSwitchToAT57600(void)
 static bool wlanRequestAT(const char* req, const char* resp, uint32_t timeout)
 {
 	wlanRecvStartAT();
-	if (!Socket_Write(SOCKET_SRC_WIFI, req, strlen(req))) return false;
-	if (!Socket_Write(SOCKET_SRC_WIFI, "\n", 1)) return false;
+	if (Socket_Write(SOCKET_SRC_WIFI, req, strlen(req)) != SOCKET_OK) return false;
+	if (Socket_Write(SOCKET_SRC_WIFI, "\n", 1) != SOCKET_OK) return false;
 	if (!wlanRecvWaitLines(2, timeout)) return false;
 	if (strcmp(lineBuf[0], req) != 0) return false;
 	if (resp != NULL && strcmp(lineBuf[1], resp) != 0) return false;
