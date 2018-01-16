@@ -52,6 +52,10 @@
 #define EMERG_GPIO_Port GPIOB
 #define STATUSPINM95_Pin GPIO_PIN_8
 #define STATUSPINM95_GPIO_Port GPIOA
+#define WIFI_RX_Pin GPIO_PIN_6
+#define WIFI_RX_GPIO_Port GPIOC
+#define WIFI_TX_Pin GPIO_PIN_7
+#define WIFI_TX_GPIO_Port GPIOC
 
 /* USER CODE BEGIN Private defines */
 

@@ -42,6 +42,8 @@
 extern void _Error_Handler(char *, int);
 /* USER CODE BEGIN 0 */
 
+DMA_HandleTypeDef hdma_usart6_rx;
+
 /* USER CODE END 0 */
 /**
   * Initializes the Global MSP.
@@ -212,23 +214,39 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
   /* USER CODE BEGIN USART6_MspInit 0 */
 
   /* USER CODE END USART6_MspInit 0 */
-    /* Peripheral clock enable */
+    /* USART6 clock enable */
     __HAL_RCC_USART6_CLK_ENABLE();
   
     /**USART6 GPIO Configuration    
     PC6     ------> USART6_TX
     PC7     ------> USART6_RX 
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
+    GPIO_InitStruct.Pin = WIFI_RX_Pin|WIFI_TX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_PULLUP;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-    /* USART6 interrupt Init */
-    HAL_NVIC_SetPriority(USART6_IRQn, 0, 0);
-    HAL_NVIC_EnableIRQ(USART6_IRQn);
+    /* USART6 DMA Init */
+    /* USART6_RX Init */
+    hdma_usart6_rx.Instance = DMA2_Stream1;
+    hdma_usart6_rx.Init.Channel = DMA_CHANNEL_5;
+    hdma_usart6_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma_usart6_rx.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_usart6_rx.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_usart6_rx.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma_usart6_rx.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_usart6_rx.Init.Mode = DMA_CIRCULAR;
+    hdma_usart6_rx.Init.Priority = DMA_PRIORITY_LOW;
+    hdma_usart6_rx.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&hdma_usart6_rx) != HAL_OK)
+    {
+      _Error_Handler(__FILE__, __LINE__);
+    }
+
+    __HAL_LINKDMA(huart,hdmarx,hdma_usart6_rx);
+
   /* USER CODE BEGIN USART6_MspInit 1 */
 
   /* USER CODE END USART6_MspInit 1 */
@@ -261,23 +279,23 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
   }
   else if(huart->Instance==USART6)
   {
-  /* USER CODE BEGIN USART6_MspDeInit 0 */
+	  /* USER CODE BEGIN USART6_MspDeInit 0 */
 
-  /* USER CODE END USART6_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_USART6_CLK_DISABLE();
-  
-    /**USART6 GPIO Configuration    
-    PC6     ------> USART6_TX
-    PC7     ------> USART6_RX 
-    */
-    HAL_GPIO_DeInit(GPIOC, GPIO_PIN_6|GPIO_PIN_7);
+	  /* USER CODE END USART6_MspDeInit 0 */
+	    /* Peripheral clock disable */
+	    __HAL_RCC_USART6_CLK_DISABLE();
 
-    /* USART6 interrupt DeInit */
-    HAL_NVIC_DisableIRQ(USART6_IRQn);
-  /* USER CODE BEGIN USART6_MspDeInit 1 */
+	    /**USART6 GPIO Configuration
+	    PC6     ------> USART6_TX
+	    PC7     ------> USART6_RX
+	    */
+	    HAL_GPIO_DeInit(GPIOC, WIFI_RX_Pin|WIFI_TX_Pin);
 
-  /* USER CODE END USART6_MspDeInit 1 */
+	    /* USART6 DMA DeInit */
+	    HAL_DMA_DeInit(huart->hdmarx);
+	  /* USER CODE BEGIN USART6_MspDeInit 1 */
+
+	  /* USER CODE END USART6_MspDeInit 1 */
   }
 
 }

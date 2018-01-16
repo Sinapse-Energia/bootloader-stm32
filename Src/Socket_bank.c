@@ -37,6 +37,23 @@ uint16_t WiFiBufferReceivedBytes;     		/// Number of received data from Wifi
 uint16_t UART_elapsed_sec = 0; 				/// At beginning this is 0
 uint8_t UART_timeout = 0;
 
+// Buffer for Uart receive DMA HAL function
+static uint8_t wlanRecvDMABuf[SIZE_WIFI_BUFFER];
+static volatile size_t wlanRecvReadPos = 0;
+static volatile bool wlanDMAenabled = false;
+
+// Indicates that UART is in text lines mode
+static volatile bool lineMode = false;
+
+#define UART_LINES_MAX_CNT	3
+#define UART_LINE_MAX_LEN	64
+static char lineBuf[UART_LINES_MAX_CNT][UART_LINE_MAX_LEN];
+static volatile size_t linePos = 0;
+static volatile size_t linesCnt = 0;
+static uint8_t binBuf[UART_LINE_MAX_LEN];
+static volatile size_t binPos = 0;
+static volatile size_t binNeed = 0;
+
 /* IWDG init function */
 static void MX_IWDG_Init(void)
 {
@@ -181,6 +198,235 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   	}
 }
 
+static void wlanRecvStartAT(void)
+{
+	wlanDMAenabled = false;
+	HAL_UART_DMAStop(&huart6);
+
+	binNeed = 0;
+	lineMode = true;
+
+	linePos = 0;
+	linesCnt = 0;
+	wlanRecvReadPos = 0;
+
+	HAL_UART_Receive_DMA(&huart6, &wlanRecvDMABuf[0], SIZE_WIFI_BUFFER);
+	wlanDMAenabled = true;
+}
+
+static void wlanRecvByte(uint8_t byte)
+{
+	if (binNeed > 0)
+	{
+		if (binPos < UART_LINE_MAX_LEN)
+			binBuf[binPos++] = byte;
+		binNeed--;
+	}
+	else if (lineMode) // Line mode
+	{
+		if (linesCnt >= UART_LINES_MAX_CNT) return; // reached maximum lines
+
+		if (byte == '\n' || byte == '\r' || byte == '\0') // check end of line
+		{
+			if (linePos == 0) return; // skip empty lines
+
+			lineBuf[linesCnt][linePos] = '\0'; // got an eol
+			linePos = 0;
+			linesCnt++;
+		}
+		else
+		{
+			if (linePos < UART_LINE_MAX_LEN - 1) // got byte, check line length
+			{
+				lineBuf[linesCnt][linePos++] = byte; // put byte into buffer
+			}
+			//else {} // line overflow, skipping bytes
+		}
+	}
+	else // usual mode mode
+	{
+		WiFibuffer[WiFiBufferReceivedBytes] = byte;
+		WiFiBufferReceivedBytes = (WiFiBufferReceivedBytes + 1) % SIZE_WIFI_BUFFER;
+	}
+}
+
+void wlanRecvExec(void)
+{
+	if (!wlanDMAenabled) return;
+
+	size_t bytesToRead = 0;
+	size_t bytesToWrite = huart6.hdmarx->Instance->NDTR;
+
+	size_t wlanRecvWritePos = SIZE_WIFI_BUFFER - bytesToWrite;
+	if (wlanRecvWritePos >= wlanRecvReadPos)
+		bytesToRead = wlanRecvWritePos - wlanRecvReadPos;
+	else
+		bytesToRead = SIZE_WIFI_BUFFER - wlanRecvReadPos + wlanRecvWritePos;
+
+	while (bytesToRead > 0)
+	{
+		wlanRecvByte(wlanRecvDMABuf[wlanRecvReadPos]);
+
+		if (wlanRecvReadPos == (SIZE_WIFI_BUFFER-1))
+			wlanRecvReadPos = 0;
+		else
+			wlanRecvReadPos++;
+
+		bytesToRead--;
+	}
+}
+
+// Wait for speciffic lines count on receiver
+static bool wlanRecvWaitLines(size_t linesCount, uint32_t timeout)
+{
+	uint32_t i = 0;
+	do
+	{
+		wlanRecvExec();
+		if (linesCnt >= linesCount) return true;
+		HAL_Delay(100);
+		i += 100;
+	}
+	while (i < timeout);
+
+	return false;
+}
+
+static bool wlanSwitchToAT(void)
+{
+	volatile int i;
+	uint8_t ansBuf[1];
+
+	wlanDMAenabled = false;
+	HAL_UART_DMAStop(&huart6);
+	HAL_UART_DeInit(&huart6);
+	MX_USART6_UART_Init();
+
+	for (i = 0; i < 10; i++)
+	{
+		// Send +++ sequence and get response
+		ansBuf[0] = '\0';
+		if (!Socket_Write(SOCKET_SRC_WIFI, "+++", 3)) return 0;
+		HAL_UART_Receive(&huart6, ansBuf, 1, 2000);
+		if (ansBuf[0] == 'a')
+		{
+			wlanRecvStartAT();
+			if (!Socket_Write(SOCKET_SRC_WIFI, "a", 1)) return 0;
+			if (wlanRecvWaitLines(1, 1000) &&
+					(strcmp(lineBuf[0], "+ok") == 0)) break;
+		}
+		else if (ansBuf[0] == '+')
+		{
+			break;
+		}
+	}
+	if (i == 10) return false;
+	return true;
+}
+
+static bool wlanSwitchToAT57600(void)
+{
+	volatile int i;
+	uint8_t ansBuf[1];
+
+	wlanDMAenabled = false;
+	HAL_UART_DMAStop(&huart6);
+	HAL_UART_DeInit(&huart6);
+	huart6.Instance = USART6;
+	huart6.Init.BaudRate = 57600;
+	huart6.Init.WordLength = UART_WORDLENGTH_8B;
+	huart6.Init.StopBits = UART_STOPBITS_1;
+	huart6.Init.Parity = UART_PARITY_NONE;
+	huart6.Init.Mode = UART_MODE_TX_RX;
+	huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	huart6.Init.OverSampling = UART_OVERSAMPLING_16;
+	HAL_UART_Init(&huart6);
+
+	for (i = 0; i < 10; i++)
+	{
+		// Send +++ sequence and get response
+		ansBuf[0] = '\0';
+		if (!Socket_Write(SOCKET_SRC_WIFI, "+++", 3)) return 0;
+		HAL_UART_Receive(&huart6, ansBuf, 1, 2000);
+		if (ansBuf[0] == 'a')
+		{
+			wlanRecvStartAT();
+			if (!Socket_Write(SOCKET_SRC_WIFI, "a", 1)) return 0;
+			if (wlanRecvWaitLines(1, 1000) &&
+					(strcmp(lineBuf[0], "+ok") == 0)) break;
+		}
+		else if (ansBuf[0] == '+')
+		{
+			break;
+		}
+	}
+	if (i == 10) return false;
+	return true;
+}
+
+// req must be null terminated string, without \n
+// resp must be null terminated string, without \n, or NULL if not need to check
+static bool wlanRequestAT(const char* req, const char* resp, uint32_t timeout)
+{
+	wlanRecvStartAT();
+	if (!Socket_Write(SOCKET_SRC_WIFI, req, strlen(req))) return false;
+	if (!Socket_Write(SOCKET_SRC_WIFI, "\n", 1)) return false;
+	if (!wlanRecvWaitLines(2, timeout)) return false;
+	if (strcmp(lineBuf[0], req) != 0) return false;
+	if (resp != NULL && strcmp(lineBuf[1], resp) != 0) return false;
+	return true;
+}
+
+bool wlan_first_config(void)
+{
+	// Try switching to AT with current speed
+	if (!wlanSwitchToAT())
+	{
+		// Try switching to AT with 57600
+		if (!wlanSwitchToAT57600()) return false;
+	}
+
+	// Disable ETH1
+	if (!wlanRequestAT("AT+EPHYA=off", "+ok", 2000));// return false;
+
+	// Set ETH2 to WAN
+	if (!wlanRequestAT("AT+FVEW=enable", "+ok", 5000)) return false;
+
+	// Set UART parameters
+	if (!wlanRequestAT("AT+UART=115200,8,1,NONE,NFC", "+ok", 2000)) return false;
+
+	// Disable DHCP server
+	if (!wlanRequestAT("AT+DHCPDEN=off", "+ok", 2000)) return false;
+
+	// Disable SocketB
+	if (!wlanRequestAT("AT+TCPB=off", "+ok", 2000)) return false;
+
+	// Set AP IP - must be in different subnet from STA address
+	if (!wlanRequestAT(WLAN_SERVER_CONFIG, "+ok", 2000)) return false;
+
+	// Set STA/Client/Wan IP - must be in different subnet from AP address
+	// Disable DHCP and set static IP
+	if (!wlanRequestAT(WLAN_CLIENT_CONFIG, "+ok", 2000)) return false;
+
+	if (!wlanRequestAT("AT+Z", "+ok", 2000)) return false;
+
+	return true;
+}
+
+static void wlanRecvStart(void)
+{
+	wlanDMAenabled = false;
+	HAL_UART_DMAStop(&huart6);
+
+	binNeed = 0;
+	lineMode = false;
+
+	wlanRecvReadPos = 0;
+
+	HAL_UART_Receive_DMA(&huart6, &wlanRecvDMABuf[0], SIZE_WIFI_BUFFER);
+	wlanDMAenabled = true;
+}
+
 
 
 /**
@@ -209,55 +455,44 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 
 
 	} else {
-		MX_USART6_UART_Init();
+		char buf[256];
 
 		// Give module some time to start up
 		HAL_Delay(5000);
 
+		// Init Uart
+		wlanDMAenabled = false;
+		HAL_UART_DMAStop(&huart6);
+		HAL_UART_DeInit(&huart6);
+		MX_USART6_UART_Init();
+
+	#ifdef PERFORM_WLAN_FIRST_TIME_CONFIG
+		// Config WiFi module
+		if (!wlan_first_config()) return SOCKET_ERR_UNKNOWN;
+	#endif
+
+		// Connect to Server
+
 		// Go to command mode
-		uint8_t ansBuf[64];
-		if (HAL_UART_Transmit(&huart6, (uint8_t*)"+++", 3, 1000) != HAL_OK) return 0;
-		HAL_UART_Receive(&huart6, ansBuf, 1, 2000);
-		if (HAL_UART_Transmit(&huart6, (uint8_t*)"a", 1, 1000) != HAL_OK) return 0;
-		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
+		if (!wlanSwitchToAT()) return SOCKET_ERR_UNKNOWN;
 
 		// Remove commands garbage
-		HAL_UART_Transmit(&huart6, (uint8_t*)"AT\n", 3, 1000);
-		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
+		wlanRequestAT("AT", NULL, 1000);
 
 		// Pass host and port using AT commands to the WIFI module
-		char buf[256];
-		int blen = sprintf(buf, "AT+NETP=TCP,CLIENT,%i,%s\n", HTTP_SERVER_PORT, HTTP_SERVER_IP);
-		if (HAL_UART_Transmit(&huart6, (uint8_t*)&buf[0], blen, 1000) != HAL_OK) return 0;
-		HAL_UART_Receive(&huart6, ansBuf, 64, 2000);
+		sprintf(buf, "AT+NETP=TCP,CLIENT,%i,%s", HTTP_SERVER_PORT, HTTP_SERVER_IP);
+		if (!wlanRequestAT(buf, "+ok", 2000)) return SOCKET_ERR_UNKNOWN;
+
+		// Disable socket B
+		if (!wlanRequestAT("AT+TCPB=off", "+ok", 2000)) return SOCKET_ERR_UNKNOWN;
 
 		// Reboot module
-		if (HAL_UART_Transmit(&huart6, (uint8_t*)"AT+Z\n", 5, 1000) != HAL_OK) return 0;
-		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
+		if (!wlanRequestAT("AT+Z", "+ok", 2000)) return SOCKET_ERR_UNKNOWN;
 
-		// After reboot disconnect and connect again, usually not needed
-//		if (HAL_UART_Transmit(&huart6, (uint8_t*)"+++", 3, 1000) != HAL_OK) return 0;
-//		HAL_UART_Receive(&huart6, ansBuf, 1, 2000);
-//		if (HAL_UART_Transmit(&huart6, (uint8_t*)"a", 1, 1000) != HAL_OK) return 0;
-//		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
-//
-//		HAL_UART_Transmit(&huart6, (uint8_t*)"AT\n", 3, 1000);
-//		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
-//
-//		if (HAL_UART_Transmit(&huart6, (uint8_t*)"AT+TCPDIS=off\n", 14, 1000) != HAL_OK) return 0;
-//		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
-//
-//		if (HAL_UART_Transmit(&huart6, (uint8_t*)"AT+TCPDIS=on\n", 13, 1000) != HAL_OK) return 0;
-//		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
-//
-//		// Return to transparent mode
-//		if (HAL_UART_Transmit(&huart6, (uint8_t*)"AT+ENTM\n", 8, 1000) != HAL_OK) return 0;
-//		HAL_UART_Receive(&huart6, ansBuf, 32, 2000);
+		// Wait for connect
+		HAL_Delay(WLAN_CONNECT_TIME); // Increase this time if using slow connection
 
-		HAL_Delay(15000); // Increase this if using slow connection
-
-		HAL_UART_Receive_IT(&huart6, (uint8_t*) &WiFidataBufferIRQ, 1);
-
+		wlanRecvStart();
 	}
 
 
@@ -399,7 +634,9 @@ int Socket_Read(SOCKETS_SOURCE s_in, char *buff_out, int buff_len)
 
 	} else {
 
-	    // Wifi
+		wlanRecvExec();
+
+		// Wifi
 		if (WiFiBufferReceivedBytes) {
 		    // Disable interrupts
 			//HAL_NVIC_DisableIRQ (USART6_IRQn);

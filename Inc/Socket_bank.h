@@ -3,6 +3,7 @@
 
 // --- INCLUDES ---
 #include <string.h>
+#include <stdbool.h>
 #include <Wifi232.h>
 #include "stm32f4xx_hal.h"
 #include "Definitions.h"

@@ -120,6 +120,21 @@
 // WIFI ETH Mode
 #define TRANSPARENT_WLAN
 
+#define PERFORM_WLAN_FIRST_TIME_CONFIG
+
+// Server IP should not be in the same subnet with client IP
+#define WLAN_SERVER_CONFIG "AT+LANN=10.10.100.254,255.255.255.0"
+
+// Define Client configuration for Ethernet and STA WiFi
+//#define WLAN_CLIENT_CONFIG "AT+WANN=static,192.168.1.97,255.255.255.0,192.168.1.1"
+#define WLAN_CLIENT_CONFIG "AT+WANN=DHCP,192.168.1.97,255.255.255.0,192.168.1.1"
+
+// Define time need to reboot and establish connection in msec
+// 15 sec for Ethernet and 30 sec for WiFi (connect to AP, etc.)
+// TODO change this delay to waiting for some AT command checking connection
+//#define WLAN_CONNECT_TIME	15000
+#define WLAN_CONNECT_TIME	30000
+
 #ifdef __cplusplus
 }
 #endif
