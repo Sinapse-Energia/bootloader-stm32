@@ -12,7 +12,7 @@
 
 // --- DEFINES ---
 // Read write memory buffer (quicker operation)
-#define BOOT_BUFFER_SIZE                    128
+#define BOOT_BUFFER_SIZE                    (4*1024lu)//128
 // MCU NVM Flash Memory addresses
 #define BOOT_APPLICATION_ADDR				FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION)
 

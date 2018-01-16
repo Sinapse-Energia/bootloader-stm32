@@ -43,7 +43,7 @@
 #define SIZE_MAIN_SERVER 				60
 #define SIZE_NTP_SERVER 				60
 #define SIZE_GPRS_BUFFER 				256
-#define SIZE_WIFI_BUFFER 				256
+#define SIZE_WIFI_BUFFER 				(4*1024lu)//256
 #define TIMING_TIMEOUT_GPRS 			20
 //#define const_APN 						"\"im2m.matooma.com\",\"movistar\",\"movistar\"\r\0"
 #define const_APN 						"\"m2m.tele2.com\",\"tele2\",\"tele2\"\r\0"

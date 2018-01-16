@@ -54,6 +54,52 @@ static uint8_t binBuf[UART_LINE_MAX_LEN];
 static volatile size_t binPos = 0;
 static volatile size_t binNeed = 0;
 
+// Buffer for received data
+static uint8_t wlanBuf[SIZE_WIFI_BUFFER];
+static volatile size_t wlanWriteIndex = 0;
+static volatile size_t wlanReadIndex = 0;
+
+void wlanRecvExec(void);
+
+static size_t wlanGetAvailableData(void)
+{
+	wlanRecvExec();
+
+	if (wlanReadIndex > wlanWriteIndex)
+	{ // It will never happen, but we must check and fix any way
+		wlanReadIndex = wlanWriteIndex;
+		return 0;
+	}
+	else
+	{
+		return (wlanWriteIndex - wlanReadIndex);
+	}
+}
+
+// 1 - ok, 0 - error
+static int wlanPutByteToBuf(uint8_t byte)
+{
+	// Reset buffer indexes when read reaches write
+	if (wlanReadIndex == wlanWriteIndex)
+	{
+		wlanWriteIndex = 0;
+		wlanReadIndex = 0;
+	}
+
+	// Check for overrun
+	if (wlanWriteIndex >= SIZE_WIFI_BUFFER)
+	{
+		// Buffer overflow
+		return 0;
+	}
+
+	// Put data
+	wlanBuf[wlanWriteIndex] = byte;
+	wlanWriteIndex++;
+
+	return 1;
+}
+
 void MX_DMA_Init(void)
 {
   /* DMA controller clock enable */
@@ -257,8 +303,7 @@ static void wlanRecvByte(uint8_t byte)
 	}
 	else // usual mode mode
 	{
-		WiFibuffer[WiFiBufferReceivedBytes] = byte;
-		WiFiBufferReceivedBytes = (WiFiBufferReceivedBytes + 1) % SIZE_WIFI_BUFFER;
+		wlanPutByteToBuf(byte);
 	}
 }
 
@@ -648,35 +693,12 @@ int Socket_Read(SOCKETS_SOURCE s_in, char *buff_out, int buff_len)
 
 	} else {
 
-		wlanRecvExec();
+		size_t rlen = wlanGetAvailableData();
+		if (rlen > buff_len) rlen = buff_len;
+		memcpy(&buff_out[0], &wlanBuf[wlanReadIndex], rlen);
+		wlanReadIndex += rlen;
+		return rlen;
 
-		// Wifi
-		if (WiFiBufferReceivedBytes) {
-		    // Disable interrupts
-			//HAL_NVIC_DisableIRQ (USART6_IRQn);
-		    //__disable_irq();
-
-			// Clear Rx buffer or shift data left
-			if (buff_len > WiFiBufferReceivedBytes) {
-				buff_len = WiFiBufferReceivedBytes;
-				memcpy(buff_out, WiFibuffer, buff_len);
-				WiFiBufferReceivedBytes = 0;
-			} else {
-
-				memcpy(buff_out, WiFibuffer, buff_len);
-				// Shift data buffer
-				for (p = 0, counter = buff_len; counter < WiFiBufferReceivedBytes; counter++, p++) {
-					WiFibuffer[p] = WiFibuffer[counter];
-				}
-				WiFiBufferReceivedBytes -= buff_len;
-			}
-
-		    // Enable interrupts back
-			//	HAL_NVIC_EnableIRQ(USART6_IRQn);
-		    //__enable_irq();
-
-			return buff_len;
-		}
 	}
 
 	return 0;
@@ -692,7 +714,8 @@ void Socket_Clear(SOCKETS_SOURCE s_in)
 	if (s_in == SOCKET_SRC_GPRS) {
 		cleanningReceptionBuffer(USART3_IRQn, GPRSbuffer, SIZE_GPRS_BUFFER, &GPRSBufferReceivedBytes);
 	} else {
-		cleanningReceptionBuffer(USART6_IRQn, WiFibuffer, SIZE_WIFI_BUFFER, &WiFiBufferReceivedBytes);
+		wlanWriteIndex = 0;
+		wlanReadIndex = 0;
 	}
 
 }

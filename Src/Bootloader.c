@@ -80,7 +80,7 @@ uint8_t Boot_CheckConnection(SOCKETS_SOURCE ssource)
     Socket_ClearTimeout(ssource);
     p = boot_buff;
     len_left = BOOT_BUFFER_SIZE;
-    while (!Socket_GetTimeout(ssource)) {
+    while (!Socket_GetTimeout(ssource) && len_left > 0) {
         len = Socket_Read(ssource, p, len_left);
         if (len) {
         	p += len;
