@@ -1,10 +1,15 @@
 #include <Socket_bank.h>
+#include "circular.h"
+
 
 // Private variables
 IWDG_HandleTypeDef hiwdg;
 TIM_HandleTypeDef  htim7;
 UART_HandleTypeDef huart3;
 UART_HandleTypeDef huart6;
+UART_HandleTypeDef huartDummy;
+
+int modem_init;
 
 uint16_t elapsed10seconds=0; 				/// At beginning this is 0
 uint8_t LOG_ACTIVATED=0;				 	/// Enable to 1 if you want to show log through logUART
@@ -36,6 +41,11 @@ uint16_t WiFiBufferReceivedBytes;     		/// Number of received data from Wifi
 
 uint16_t UART_elapsed_sec = 0; 				/// At beginning this is 0
 uint8_t UART_timeout = 0;
+
+extern int 		application_layer_connection;
+extern int		bydma;
+extern DMA_HandleTypeDef hdma_usart3_rx;
+int		nirqs = 0;
 
 // Buffer for Uart receive DMA HAL function
 static uint8_t wlanRecvDMABuf[SIZE_WIFI_BUFFER];
@@ -103,9 +113,13 @@ static int wlanPutByteToBuf(uint8_t byte)
 void MX_DMA_Init(void)
 {
   /* DMA controller clock enable */
+  __HAL_RCC_DMA1_CLK_ENABLE();
   __HAL_RCC_DMA2_CLK_ENABLE();
 
   /* DMA interrupt init */
+  /* DMA1_Stream1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Stream1_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Stream1_IRQn);
   /* DMA2_Stream1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
@@ -126,7 +140,7 @@ static void MX_IWDG_Init(void)
 /* TIM7 init function */
 static void MX_TIM7_Init(void)
 {
-    //TIM_MasterConfigTypeDef sMasterConfig;
+    TIM_MasterConfigTypeDef sMasterConfig;
 
     htim7.Instance = TIM7;
     htim7.Init.Prescaler= (SystemCoreClock/1000)-1;  /// Este timer se pone a 1KHz
@@ -138,12 +152,12 @@ static void MX_TIM7_Init(void)
         _Error_Handler(__FILE__, __LINE__);
     }
 
-    //sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-    //sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-    //if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
-    //{
-    //  _Error_Handler(__FILE__, __LINE__);
-   // }
+    sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+    sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+    if (HAL_TIMEx_MasterConfigSynchronization(&htim7, &sMasterConfig) != HAL_OK)
+    {
+      _Error_Handler(__FILE__, __LINE__);
+    }
  }
 
 /* USART3 init function */
@@ -190,22 +204,23 @@ static void MX_GPIO_Init(void)
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOD_CLK_ENABLE();
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOB, PWRKEY_Pin|EMERG_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOD, M95_CTRL_PWRKEY_Pin|M95_CTRL_EMERG_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pins : PWRKEY_Pin EMERG_Pin */
-    GPIO_InitStruct.Pin = PWRKEY_Pin|EMERG_Pin;
+    GPIO_InitStruct.Pin = M95_CTRL_PWRKEY_Pin|M95_CTRL_EMERG_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
     /*Configure GPIO pin : STATUSPINM95_Pin */
-    GPIO_InitStruct.Pin = STATUSPINM95_Pin;
+    GPIO_InitStruct.Pin = M95_STATUS_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(STATUSPINM95_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(M95_STATUS_GPIO_Port, &GPIO_InitStruct);
 }
 
 
@@ -217,11 +232,51 @@ static void MX_GPIO_Init(void)
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef * huart)
 {
 	// GPRS
+
+	if (application_layer_connection==1) /// Sva/Seka buffer in application layer
+	{
 	if (huart->Instance == huart3.Instance) {
 		GPRSbuffer[GPRSBufferReceivedBytes] = dataByteBufferIRQ;
 		GPRSBufferReceivedBytes = (GPRSBufferReceivedBytes + 1) % SIZE_GPRS_BUFFER;
 		HAL_UART_Receive_IT(huart, &dataByteBufferIRQ, 1);
 	}
+	}
+
+	else /// Juanra buffer in transport layer
+	{
+
+
+			if (huart->Instance==huart3.Instance)
+			 {
+				  if (! bydma) { // only if not BYDMA
+					 nirqs++;
+						 allnew += Write(DataBuffer, dataByteBufferIRQ);
+						 if (IsFull(DataBuffer)) {
+							DataBuffer->overruns++;
+						}
+			//	  		{
+			//	  			int nextw = (write_offset + 1) % bufsize;  // next position to be written
+			//	  			Cbuffer[write_offset++] =  dataByteBufferIRQ;
+			//	  			write_offset = nextw;
+			//	  	 	 	allnew += Write(dataByteBufferIRQ);
+							balnew++;
+			//	  		}
+
+			//			 (huart,&dataByteBufferIRQ,1);
+			//	  	 }
+			//	  	 {
+							/**
+						  GPRSBufferReceivedBytes++;
+						  GPRSbuffer[indexGPRSBufferReceived]=dataByteBufferIRQ;
+						  indexGPRSBufferReceived=(indexGPRSBufferReceived+1)%SIZE_GPRS_BUFFER;
+						  allold++;
+						  balold++;
+						  **/
+			//	  	 }
+						  HAL_UART_Receive_IT(huart,&dataByteBufferIRQ,1);
+				  }
+			  }/// end Juanra buffer
+	} /// end else
 
 	// Wifi
 	if (huart->Instance == huart6.Instance) {
@@ -499,8 +554,55 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 
 	if (s_in == SOCKET_SRC_GPRS) {
 
+		application_layer_connection=0;
+
 		MX_USART3_UART_Init();
-		HAL_UART_Receive_IT(&huart3, (uint8_t*) &dataByteBufferIRQ, 1);
+
+		if (bydma) { // BYDMA
+					DataBuffer	= CircularBuffer (256, &hdma_usart3_rx);
+					MX_DMA_Init();					// set DMA clock and priorities
+					HAL_UART_DMAStop(&huart3);
+			}
+			else {
+				DataBuffer	= CircularBuffer (256, NULL);
+			}
+
+
+
+		// RAE: Init Modem M95
+					 uint32_t ta, tb;
+					 	if (1) {
+					 		int rc;
+					 		int n = 0;
+					 		ta = HAL_GetTick();
+					 		// pretrace ("INFO Init modem on start\n", n);
+					 		do {
+					 			rc = Modem_Init();
+					 			n++;
+					 		} while (rc != M95_OK);
+					 		tb = HAL_GetTick();
+					 		modem_init = 1;
+
+					 	}
+
+			if (bydma) {  // BYDMA
+				int tries = 0;
+				HAL_StatusTypeDef rc;
+				do {
+					rc = HAL_UART_Receive_DMA(&huart3, DataBuffer->buffer, DataBuffer->size); // starts DMA reception
+					HAL_Delay(200);
+					tries++;
+				} while  (rc != HAL_OK);
+			}
+			else {
+				HAL_UART_Receive_IT(&huart3, &dataByteBufferIRQ, 1); // Enabling IRQ
+			}
+
+
+
+
+
+		//HAL_UART_Receive_IT(&huart3, (uint8_t*) &dataByteBufferIRQ, 1);
 
 	    HAL_Delay(30);
 
@@ -579,6 +681,7 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
 
 	if (s_in == SOCKET_SRC_GPRS) {
 
+/** Original M95 Library
 		stat = M95_Connect(
            		LOG_ACTIVATED,
            		LOG_GPRS,
@@ -610,9 +713,27 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
            		&GPRSBufferReceivedBytes
            		);
 		if (stat != M95_OK) return SOCKET_ERR_NO_CONNECTION;
+           		**/
+
+		/** New M95 Library **/
+		// Default broker parameters
+
+		// ATENTION: This values should be got from shared memory
+		//char	*h = IPPORT;
+		char	*h = HTTP_SERVER_IP;
+		unsigned int p = HTTP_SERVER_PORT;
+		int	s = 0; //Security = 0 = TCP
+
+		char	*apn = APN;
+
+
+		int stat1 = transport_open(h, p, s, apn);
+
+		if (stat1 <= 0) return SOCKET_ERR_NO_CONNECTION;
 
 	}
 
+	application_layer_connection =1; /// We have just connected to application layer.
 	return SOCKET_OK;
 }
 
@@ -646,6 +767,7 @@ SOCKET_STATUS Socket_Close(SOCKETS_SOURCE s_in)
 		if (stat != M95_OK) return SOCKET_ERR_NO_CONNECTION;
 	}
 */
+	application_layer_connection = 0;
 	return SOCKET_OK;
 }
 

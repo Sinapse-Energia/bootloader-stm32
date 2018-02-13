@@ -4,6 +4,7 @@
 #include "stm32f4xx_hal.h"
 #include "M95lite.h"
 #include "Definitions.h"
+#include "circular.h"
 #include "Flash_NVM.h"
 #include "Bootloader.h"
 
@@ -12,6 +13,12 @@ const uint8_t __attribute__((section(".myvars"))) VERSION_NUMBER[6] = {0x01, 0x0
 UART_HandleTypeDef huart6;
 IWDG_HandleTypeDef hiwdg;
 I2C_HandleTypeDef hi2c1;
+
+int application_layer_connection=0;
+int bydma=1;
+
+st_CB *DataBuffer;
+//int modem_init = 0;
 
 // Private function prototypes
 void SystemClock_Config(void);
@@ -24,6 +31,10 @@ int main(void)
 {
  	uint8_t attempt = 0;
  	GPIO_InitTypeDef GPIO_InitStruct;
+
+	// RAE: Init DataBuffer for new M95 Method
+	DataBuffer	= CircularBuffer (256, NULL);
+
 
 	// Reset of all peripherals, Initializes the Flash interface and the Systick.
 	HAL_Init();
@@ -61,7 +72,7 @@ int main(void)
 	
 	// Start to check firmware
 	while (Boot_PerformFirmwareUpdate() != BOOT_OK) {
-		if(++attempt >= NUMBER_RETRIES) break;
+		if(++attempt > NUMBER_RETRIES) break;
 		HAL_Delay(5000);
 		if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT New retry over FW update)\r\n", 33,100); //Francis, for logging
 	}
@@ -302,22 +313,23 @@ void keepingStatus_applicationDepending(void )
 	      __HAL_RCC_GPIOB_CLK_ENABLE();
 	      __HAL_RCC_GPIOC_CLK_ENABLE();
 	      __HAL_RCC_GPIOA_CLK_ENABLE();
+	      __HAL_RCC_GPIOD_CLK_ENABLE();
 
 	      /*Configure GPIO pin Output Level */
-	      HAL_GPIO_WritePin(GPIOB, PWRKEY_Pin|EMERG_Pin, GPIO_PIN_RESET);
+	      HAL_GPIO_WritePin(GPIOD, M95_CTRL_PWRKEY_Pin|M95_CTRL_EMERG_Pin, GPIO_PIN_RESET);
 
 	      /*Configure GPIO pins : PWRKEY_Pin EMERG_Pin */
-	      GPIO_InitStruct.Pin = PWRKEY_Pin|EMERG_Pin;
+	      GPIO_InitStruct.Pin = M95_CTRL_PWRKEY_Pin|M95_CTRL_EMERG_Pin;
 	      GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	      GPIO_InitStruct.Pull = GPIO_NOPULL;
 	      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	      HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	      HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 	      /*Configure GPIO pin : STATUSPINM95_Pin */
-	      GPIO_InitStruct.Pin = STATUSPINM95_Pin;
+	      GPIO_InitStruct.Pin = M95_STATUS_Pin;
 	      GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
 	      GPIO_InitStruct.Pull = GPIO_NOPULL;
-	      HAL_GPIO_Init(STATUSPINM95_GPIO_Port, &GPIO_InitStruct);
+	      HAL_GPIO_Init(M95_STATUS_GPIO_Port, &GPIO_InitStruct);
 
 
 	   GPIO_InitStruct.Pin = CIRC_RELE2_Pin|CIRC_RELE3_Pin|CIRC_RELEGENERAL_Pin|CIRC_RELE4_Pin

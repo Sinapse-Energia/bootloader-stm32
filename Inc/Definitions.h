@@ -9,10 +9,13 @@
 // *************************************************************************************** //
 // *************************************************************************************** //
 
+ // RAE definitions
+#define COMMUNICATION_M95
+
  // Francis definition.
 #define CMC_APPLICATION_DEPENDENT
 #define LOG_WIFI  0
-#define NUMBER_RETRIES 1
+#define NUMBER_RETRIES 2
  /// Dependent Application
 #define START_EEPROM_OWN_CMC_PARAMETERS 	0x10
  /// direcciones dispositivos I2C
@@ -46,7 +49,9 @@
 #define SIZE_WIFI_BUFFER 				(4*1024lu)//256
 #define TIMING_TIMEOUT_GPRS 			20
 //#define const_APN 						"\"im2m.matooma.com\",\"movistar\",\"movistar\"\r\0"
-#define const_APN 						"\"m2m.tele2.com\",\"tele2\",\"tele2\"\r\0"
+//#define const_APN 						"\"m2m.tele2.com\",\"tele2\",\"tele2\"\r\0"
+#define const_APN 						"\"matooma.m2m\",\"\",\"\"\0"
+//#define const_APN 						"\"orangeworld\",\"orange\",\"orange\"\r\0"
 #define const_SERVER_NTP 				"\"0.europe.pool.ntp.org\"\r\0"
 //#define const_MAIN_SERVER				"\"m2m.eclipse.org\",1883\r\0"
 //#define const_MAIN_SERVER 				"\"178.94.164.124\",80\r\0"
@@ -55,7 +60,7 @@
 
 
  // Wait for HTTP server answer (sec)
-#define TIMING_TIMEOUT_UART 			5
+#define TIMING_TIMEOUT_UART 			15
 // HTTP connection
 //#define HTTP_SERVER_IP 					"178.94.164.124"
 //#define HTTP_SERVER_IP 					"89.248.100.11"
