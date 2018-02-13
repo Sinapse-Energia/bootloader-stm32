@@ -9,9 +9,9 @@
 #define CIRCULAR_H_
 
 
-#include "stm32f2xx_it.h"  // DMA or IRQ
-#include "stm32f2xx_hal.h"  // uintxx_t
-#include "stm32f2xx_hal_dma.h"
+#include "stm32f4xx_it.h"  // DMA or IRQ
+#include "stm32f4xx_hal.h"  // uintxx_t
+#include "stm32f4xx_hal_dma.h"
 
 
 extern int			balold;
