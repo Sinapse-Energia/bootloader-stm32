@@ -69,11 +69,11 @@ static uint8_t wlanBuf[SIZE_WIFI_BUFFER];
 static volatile size_t wlanWriteIndex = 0;
 static volatile size_t wlanReadIndex = 0;
 
-void wlanRecvExec(void);
+void wlanRecvExec(UART_HandleTypeDef* huart);
 
-static size_t wlanGetAvailableData(void)
+static size_t wlanGetAvailableData(UART_HandleTypeDef* huart)
 {
-	wlanRecvExec();
+	wlanRecvExec(huart);
 
 	if (wlanReadIndex > wlanWriteIndex)
 	{ // It will never happen, but we must check and fix any way
@@ -211,7 +211,7 @@ static void MX_GPIO_Init(void)
 
     /*Configure GPIO pins : PWRKEY_Pin EMERG_Pin */
     GPIO_InitStruct.Pin = M95_CTRL_PWRKEY_Pin|M95_CTRL_EMERG_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
@@ -362,12 +362,12 @@ static void wlanRecvByte(uint8_t byte)
 	}
 }
 
-void wlanRecvExec(void)
+void wlanRecvExec(UART_HandleTypeDef* huart)
 {
 	if (!wlanDMAenabled) return;
 
 	size_t bytesToRead = 0;
-	size_t bytesToWrite = huart6.hdmarx->Instance->NDTR;
+	size_t bytesToWrite = huart->hdmarx->Instance->NDTR;
 
 	size_t wlanRecvWritePos = SIZE_WIFI_BUFFER - bytesToWrite;
 	if (wlanRecvWritePos >= wlanRecvReadPos)
@@ -394,7 +394,7 @@ static bool wlanRecvWaitLines(size_t linesCount, uint32_t timeout)
 	uint32_t i = 0;
 	do
 	{
-		wlanRecvExec();
+		wlanRecvExec(&huart6);
 		if (linesCnt >= linesCount) return true;
 		HAL_Delay(100);
 		i += 100;
@@ -525,21 +525,25 @@ bool wlan_first_config(void)
 	return true;
 }
 
-static void wlanRecvStart(void)
+void wlanRecvStart(UART_HandleTypeDef* huart)
 {
 	wlanDMAenabled = false;
-	HAL_UART_DMAStop(&huart6);
+	HAL_UART_DMAStop(huart);
 
 	binNeed = 0;
 	lineMode = false;
 
 	wlanRecvReadPos = 0;
 
-	HAL_UART_Receive_DMA(&huart6, &wlanRecvDMABuf[0], SIZE_WIFI_BUFFER);
+	HAL_UART_Receive_DMA(huart, &wlanRecvDMABuf[0], SIZE_WIFI_BUFFER);
 	wlanDMAenabled = true;
 }
 
-
+void wlanRecvStop(UART_HandleTypeDef* huart)
+{
+	wlanDMAenabled = false;
+	HAL_UART_DMAStop(huart);
+}
 
 /**
  * @brief  Initialize Socket source
@@ -570,17 +574,17 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 
 
 		// RAE: Init Modem M95
-					 uint32_t ta, tb;
+					 //uint32_t ta, tb;
 					 	if (1) {
 					 		int rc;
 					 		int n = 0;
-					 		ta = HAL_GetTick();
+					 		//ta = HAL_GetTick();
 					 		// pretrace ("INFO Init modem on start\n", n);
 					 		do {
 					 			rc = Modem_Init();
 					 			n++;
 					 		} while (rc != M95_OK);
-					 		tb = HAL_GetTick();
+					 		//tb = HAL_GetTick();
 					 		modem_init = 1;
 
 					 	}
@@ -653,7 +657,7 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 		// Wait for connect
 		HAL_Delay(WLAN_CONNECT_TIME); // Increase this time if using slow connection
 
-		wlanRecvStart();
+		wlanRecvStart(&huart6);
 	}
 
 
@@ -677,7 +681,7 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
   */
 SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
 {
-	M95Status stat;
+	//M95Status stat;
 
 	if (s_in == SOCKET_SRC_GPRS) {
 
@@ -724,7 +728,7 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
 		unsigned int p = HTTP_SERVER_PORT;
 		int	s = 0; //Security = 0 = TCP
 
-		char	*apn = APN;
+		char	*apn = (char*)APN;
 
 
 		int stat1 = transport_open(h, p, s, apn);
@@ -779,12 +783,14 @@ SOCKET_STATUS Socket_Close(SOCKETS_SOURCE s_in)
   */
 int Socket_Read(SOCKETS_SOURCE s_in, char *buff_out, int buff_len)
 {
-	uint16_t p = 0, counter = 0;
+	//uint16_t p = 0, counter = 0;
+
+	size_t rlen = 0;
 
 	if (s_in == SOCKET_SRC_GPRS) {
 
 	    // GPRS
-		if (GPRSBufferReceivedBytes)
+		/*if (GPRSBufferReceivedBytes)
 		{
 		    // Disable interrupts
 			// HAL_NVIC_DisableIRQ (USART3_IRQn);
@@ -810,20 +816,24 @@ int Socket_Read(SOCKETS_SOURCE s_in, char *buff_out, int buff_len)
 		    //__enable_irq();
 
 			return buff_len;
-		}
+		}*/
 
+		rlen = wlanGetAvailableData(&huart3);
 
 	} else {
 
-		size_t rlen = wlanGetAvailableData();
+		rlen = wlanGetAvailableData(&huart6);
+
+	}
+
 		if (rlen > buff_len) rlen = buff_len;
 		memcpy(&buff_out[0], &wlanBuf[wlanReadIndex], rlen);
 		wlanReadIndex += rlen;
 		return rlen;
 
-	}
+//	}
 
-	return 0;
+//	return 0;
 }
 
 /**
@@ -834,11 +844,13 @@ int Socket_Read(SOCKETS_SOURCE s_in, char *buff_out, int buff_len)
 void Socket_Clear(SOCKETS_SOURCE s_in)
 {
 	if (s_in == SOCKET_SRC_GPRS) {
-		cleanningReceptionBuffer(USART3_IRQn, GPRSbuffer, SIZE_GPRS_BUFFER, &GPRSBufferReceivedBytes);
-	} else {
+		//cleanningReceptionBuffer(USART3_IRQn, GPRSbuffer, SIZE_GPRS_BUFFER, &GPRSBufferReceivedBytes);
+		Reset(DataBuffer);
+
+	} //else {
 		wlanWriteIndex = 0;
 		wlanReadIndex = 0;
-	}
+	//}
 
 }
 

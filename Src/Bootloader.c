@@ -7,6 +7,8 @@ extern UART_HandleTypeDef huart6;
 // R/W buffer
 char boot_buff[BOOT_BUFFER_SIZE];
 
+void wlanRecvStop(UART_HandleTypeDef* huart);
+
 /**
   * @brief  Close bootloader and start Application
   * @param  none
@@ -126,8 +128,11 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     if (Boot_CheckConnection(SOCKET_SRC_WIFI)) {
     	ssource = SOCKET_SRC_WIFI;
     } else {
+    	wlanRecvStop(&huart6);
     	if ((Socket_Connect(SOCKET_SRC_GPRS) == SOCKET_OK) && Boot_CheckConnection(SOCKET_SRC_GPRS)) {
-        	ssource = SOCKET_SRC_GPRS;
+        	transport_close(0);
+        	Socket_Connect(SOCKET_SRC_GPRS);
+    		ssource = SOCKET_SRC_GPRS;
         } else {
         	//No connections!
         	return BOOT_ERR_CONNECTION; //Err

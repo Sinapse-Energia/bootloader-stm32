@@ -11,6 +11,7 @@
 
  // RAE definitions
 #define COMMUNICATION_M95
+#define HYBRID_M95_WLAN_CODE
 
  // Francis definition.
 #define CMC_APPLICATION_DEPENDENT

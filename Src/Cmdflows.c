@@ -144,7 +144,7 @@ CmdProps	*M95ConnectFlow(
 //			{	ATMATCH,	"",		{NTP_TX,}, 			{"\r\nOK\r\n\r\n+QNTP: 0\r\n"},	{1000, 0, 10000}, 1, },
 //			{	ATGET,		"",		{"AT+CCLK?\r"}, 	{NULL,	NULL, SetDateTime},	{1000, 0}, 	1,  },
 			{	ATMATCH,	"",		{"AT+QNITZ=1\r",}, 	{"\r\nOK\r\n"},	{1000, 0, 1000}, 1, },
-			{	ATGET,		"",		{"AT+QLTS\r"}, 		{NULL,	NULL, SetDateTime},	{1000, 0}, 	1,  },
+//			{	ATGET,		"",		{"AT+QLTS\r"}, 		{NULL,	NULL, SetDateTime},	{1000, 0}, 	1,  },
 			{	ATMATCH,	"",		{OPEN_TX,}, 		{"\r\nOK\r\n\r\nCONNECT\r\n"},{2000, 0}, 	1 },
 			{	ATMATCH, 	"END"  },
 			{	ATMATCH, 	NULL	}  // placeholder for error in label lookup

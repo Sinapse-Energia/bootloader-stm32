@@ -16,6 +16,10 @@
 
 #define	AT_ENGINE
 
+#ifdef HYBRID_M95_WLAN_CODE
+void wlanRecvStart(UART_HandleTypeDef* huart);
+void wlanRecvStop(UART_HandleTypeDef* huart);
+#endif
 
 extern M95Status connectedM95;
 extern uint16_t elapsed10secondsTimeoutTCP;
@@ -61,6 +65,12 @@ int transport_open(const char* host, int port, int security, char *apn)
 #ifdef AT_ENGINE
 	int handle;
 
+#ifdef HYBRID_M95_WLAN_CODE
+	wlanRecvStop(&huart3);
+	HAL_UART_Receive_DMA(&huart3, DataBuffer->buffer, DataBuffer->size);
+	Reset(DataBuffer);
+#endif
+
 	handle = ConnectPlus(
 	    	WDT_ENABLED,
 	    	&hiwdg,
@@ -83,6 +93,9 @@ int transport_open(const char* host, int port, int security, char *apn)
 			security
 
 	    	);
+#ifdef HYBRID_M95_WLAN_CODE
+	wlanRecvStart(&huart3);
+#endif
 	return handle;
 #else
 
@@ -163,6 +176,13 @@ int transport_close(int sock)
 #ifdef COMMUNICATION_M95
 
 #ifdef AT_ENGINE
+
+#ifdef HYBRID_M95_WLAN_CODE
+	wlanRecvStop(&huart3);
+	HAL_UART_Receive_DMA(&huart3, DataBuffer->buffer, DataBuffer->size);
+	Reset(DataBuffer);
+#endif
+
 	disconnectM95 =  DisconnectPlus(
 			WDT_ENABLED,
 			&hiwdg,
@@ -545,7 +565,7 @@ M95Status ConnectPlus(
 	else {
 		if (1) {
 			CmdProps DeactCmd = {ATMATCH, "DEACT",{"AT+QIDEACT\r"}, 	{NULL, NULL, SetGeneric},		{1000, 0}, 				1};
-			int num = executeCommand (&DeactCmd, &huart3);
+			/*int num = */executeCommand (&DeactCmd, &huart3);
 
 		}
 //		if (0) {
