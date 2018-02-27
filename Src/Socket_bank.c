@@ -207,14 +207,14 @@ static void MX_GPIO_Init(void)
     __HAL_RCC_GPIOD_CLK_ENABLE();
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOD, M95_CTRL_PWRKEY_Pin|M95_CTRL_EMERG_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(M95_CTRL_PWRKEY_EMERG_GPIO_Port, M95_CTRL_PWRKEY_Pin|M95_CTRL_EMERG_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pins : PWRKEY_Pin EMERG_Pin */
     GPIO_InitStruct.Pin = M95_CTRL_PWRKEY_Pin|M95_CTRL_EMERG_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+    HAL_GPIO_Init(M95_CTRL_PWRKEY_EMERG_GPIO_Port, &GPIO_InitStruct);
 
     /*Configure GPIO pin : STATUSPINM95_Pin */
     GPIO_InitStruct.Pin = M95_STATUS_Pin;
