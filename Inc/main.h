@@ -46,20 +46,20 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define M95_STATUS_Pin GPIO_PIN_9
-#define M95_STATUS_GPIO_Port GPIOD
-#define M95_CTRL_PWRKEY_Pin GPIO_PIN_10
-#define M95_CTRL_PWRKEY_GPIO_Port GPIOD
-#define M95_CTRL_EMERG_Pin GPIO_PIN_11
-#define M95_CTRL_EMERG_GPIO_Port GPIOD
-#define M95_CTRL_PWRKEY_EMERG_GPIO_Port GPIOD
+#define M95_STATUS_Pin GPIO_PIN_8
+#define M95_STATUS_GPIO_Port GPIOA
+#define M95_CTRL_PWRKEY_Pin GPIO_PIN_1
+#define M95_CTRL_PWRKEY_GPIO_Port GPIOB
+#define M95_CTRL_EMERG_Pin GPIO_PIN_15
+#define M95_CTRL_EMERG_GPIO_Port GPIOB
+#define M95_CTRL_PWRKEY_EMERG_GPIO_Port GPIOB
 #define WIFI_RX_Pin GPIO_PIN_6
 #define WIFI_RX_GPIO_Port GPIOC
 #define WIFI_TX_Pin GPIO_PIN_7
 #define WIFI_TX_GPIO_Port GPIOC
 #define LED_1_Pin GPIO_PIN_3
 #define LED_1_GPIO_Port GPIOD
-#define LED_2_Pin GPIO_PIN_7
+#define LED_2_Pin GPIO_PIN_0
 #define LED_2_GPIO_Port GPIOD
 
 /* USER CODE BEGIN Private defines */
