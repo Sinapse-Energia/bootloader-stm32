@@ -1,5 +1,6 @@
 #include <Socket_bank.h>
 #include "sharing_memory.h"
+#include "GPRS_transport.h"
 #include "circular.h"
 
 
@@ -331,10 +332,14 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 					 			Device = Device_Init();
 //					 			rc = Modem_Init();
 					 			n++;
-					 		} while (Device != NULL);
+					 		} while (Device == NULL);
 //					 		} while (rc != M95_OK);
 					 		tb = HAL_GetTick();
 					 		modem_init = 1;
+
+					 		// C Language wrapper to the Modem Abstract Factory
+					 		gtransceiver = MODEMFACTORY(Device);
+
 
 					 	}
 

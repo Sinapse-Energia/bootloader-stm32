@@ -14,6 +14,9 @@
 #include "circular.h"
 #include "utils.h"		// reply-handlers
 
+// Var to avoid using the Context
+int GPRSDEVICE;
+
 // provisional, to be extinguished
 
 extern uint8_t WDT_ENABLED;
@@ -96,10 +99,12 @@ Transceiver	*Transceiver::TRANSCEIVER(void *hconn) {
 	i = ATCommandFlow(InitCmds, (UART_HandleTypeDef *) handler, WDT_ENABLED, &hiwdg, 0);
 
 	if (!strcmp(InitCmds[i].id, "END")) {
-		if (!strcmp(GetVariable("GPRSDEVICE"), "M95")){
+//		if (!strcmp(GetVariable("GPRSDEVICE"), "M95")){
+		if (1) {
 			result = new QuectelM95();
 		}
-		else if (!strcmp(GetVariable("GPRSDEVICE"), "BG96")) {
+		else {
+//			if (!strcmp(GetVariable("GPRSDEVICE"), "BG96")) {
 			result = new QuectelBG96();
 		}
 	}
