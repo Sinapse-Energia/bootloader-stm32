@@ -58,13 +58,23 @@
 	  	//cb->wrindex = cb->size - cb->hdma->Instance->CNDTR;
 		  cb->wrindex = cb->size - cb->hdma->Instance->NDTR;
 	  int stock = Stock(cb);
-	  cb->rindex = cb->wrindex;
+	  if (stock)
+		  cb->rindex = cb->wrindex;
   	return stock;
   }
 
+int		Skip	(st_CB *cb, unsigned int n){
+	int z = Stock(cb);
+	if (z >= n) {
+		cb->rindex = (cb->rindex + n) % cb->size;
+		return n;
+	}
+	return 0;
+}
 
   // Reads ONE byte from the buffer...
   int		Read(st_CB *cb) {
+	  int clear = 0;
 	  if (cb->hdma)
 	  	//cb->wrindex = cb->size - cb->hdma->Instance->CNDTR;
 		  cb->wrindex = cb->size - cb->hdma->Instance->NDTR;
@@ -73,6 +83,8 @@
 	  else {
 		  int nextr = (cb->rindex + 1) % cb->size;  // next position to be read
 		  int result = cb->buffer[cb->rindex];
+		  if (clear) // clear on read...
+			  cb->buffer[cb->rindex] = 0;
 		  cb->rindex = nextr;
 		  balnew--;
 		  return result;

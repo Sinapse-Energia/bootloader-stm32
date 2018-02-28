@@ -5,6 +5,7 @@
  *      Author: juanra
  */
 
+#include <string.h>  //??????
 #include "GPRS_transport.h"
 #include "Transceiver.h"
 #include "M95.h"
@@ -31,7 +32,7 @@ void	*MODEMFACTORY(DEV_HANDLER hconn) {
 }
 
 //		C WRAPPER for Connect method
-int	CON NECT(DEV_HANDLER ph, const char *apn, const char *host, int port, int security){
+int	CONNECT(DEV_HANDLER ph, const char *apn, const char *host, int port, int security){
 	Transceiver *x = (Transceiver *) ph;
 	return x->Connect(apn, host, port, security);
 }

@@ -9,8 +9,56 @@
 #include 	<stdio.h>
 #include 	<string.h>
 #include 	<stdarg.h>
+
+#include "stm32f2xx_hal.h"
+#include 	"main.h"
+
+
 #include	"utils.h"
 
+////////////////////////  LED COLORING ////////////////////////////////
+static int color;
+
+int	getcolor(){
+	return color;
+}
+void	_color(int col){
+	switch (col) {
+		case 0: (blueOFF, redOFF, greenOFF); return;
+		case 1: (blueON,  redOFF, greenOFF); return;
+		case 2: (blueOFF, redON,  greenOFF); return;
+		case 3: (blueOFF, redOFF, greenON); return;
+		case 4: (blueON,  redOFF, greenON); return;
+		case 5: (blueON,  redON,  greenOFF); return;
+		case 6: (blueOFF, redON,  greenON); return;
+		case 7: (blueON,  redON,  greenON); return;
+	}
+}
+
+void	Color(int col){
+	color = col;
+	_color(color);
+}
+
+void	ROTATE(){
+	color = (color + 1) % 8;
+	Color(color);
+}
+
+
+void	Blink() {
+	static int	blink = 0;
+	blink = ! blink;
+	if (blink){
+		_color(color);
+	}
+	else {
+		_color (0);
+	}
+}
+
+
+////////////////////  SYSTEM DATE & TIME  //////////////////////////////////////
 
 struct tm	ECdatetime;
 

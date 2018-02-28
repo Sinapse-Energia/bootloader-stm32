@@ -8,6 +8,9 @@
 #ifndef CIRCULAR_H_
 #define CIRCULAR_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include "stm32f2xx_it.h"  // DMA or IRQ
 #include "stm32f2xx_hal.h"  // uintxx_t
@@ -45,6 +48,7 @@ extern 	int		IsEmpty (st_CB *);
 extern	int		IsFull 	(st_CB *);
 extern	int		Stock 	(st_CB *);
 extern	int		Reset	(st_CB *);
+extern	int		Skip	(st_CB *, unsigned int);
 extern	int		Read	(st_CB *);
 
 extern	int		Write	(st_CB *, uint8_t );   // only when IRQ is used
@@ -55,4 +59,8 @@ extern int	Lookup	(st_CB *, uint8_t *);
 // looks for a pattern from the start of the buffer content
 extern int	Match	(st_CB *, uint8_t *);
 
+
+#ifdef __cplusplus
+}
+#endif
 #endif /* CIRCULAR_H_ */
