@@ -2,6 +2,7 @@
 #include "sharing_memory.h"
 #include "GPRS_transport.h"
 #include "circular.h"
+#include "utils.h"
 
 
 // Private variables
@@ -495,8 +496,10 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
 		char	*apn = CLIENT_VARIABLE.APN;
 		char	*lapn = CLIENT_VARIABLE.LAPN;
 
-
+		int previous = getcolor();
+		Color(COL_CONNECTING);
 		int stat1 = transport_open(h, p, s, apn);
+		Color(previous);
 
 		if (stat1 <= 0) // I retry with LAPN
 		{
