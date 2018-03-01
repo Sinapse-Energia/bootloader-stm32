@@ -1,6 +1,8 @@
 #include <Socket_bank.h>
 #include "sharing_memory.h"
+#include "GPRS_transport.h"
 #include "circular.h"
+#include "utils.h"
 
 
 // Private variables
@@ -296,6 +298,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 */
 SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 {
+	void	*Device;
 	// Initialize all configured peripherals
 	MX_GPIO_Init();
 	// MX_IWDG_Init();
@@ -327,11 +330,15 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 					 		ta = HAL_GetTick();
 					 		// pretrace ("INFO Init modem on start\n", n);
 					 		do {
-					 			rc = Modem_Init();
+					 			Device = Device_Init();
+//					 			rc = Modem_Init();
 					 			n++;
-					 		} while (rc != M95_OK);
+					 		} while (Device == NULL);
+//					 		} while (rc != M95_OK);
 					 		tb = HAL_GetTick();
 					 		modem_init = 1;
+
+
 
 					 	}
 
@@ -350,6 +357,8 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 
 
 
+	 		// C Language wrapper to the Modem Abstract Factory
+	 		gtransceiver = MODEMFACTORY(Device);
 
 
 		//HAL_UART_Receive_IT(&huart6, (uint8_t*) &dataByteBufferIRQ, 1);
@@ -397,7 +406,8 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
   */
 SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
 {
-	M95Status stat;
+	int stat;
+//	M95Status stat;
 
 	if (s_in == SOCKET_SRC_GPRS) {
 
@@ -485,8 +495,9 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
 
 		char	*apn = CLIENT_VARIABLE.APN;
 		char	*lapn = CLIENT_VARIABLE.LAPN;
-
-
+#ifdef DEBUG
+		Color(COL_CONNECTING);
+#endif
 		int stat1 = transport_open(h, p, s, apn);
 
 		if (stat1 <= 0) // I retry with LAPN
@@ -595,7 +606,8 @@ int Socket_Read(SOCKETS_SOURCE s_in, char *buff_out, int buff_len)
 void Socket_Clear(SOCKETS_SOURCE s_in)
 {
 	if (s_in == SOCKET_SRC_GPRS) {
-		cleanningReceptionBuffer(USART6_IRQn, GPRSbuffer, SIZE_GPRS_BUFFER, &GPRSBufferReceivedBytes);
+		Reset(DataBuffer);
+//		cleanningReceptionBuffer(USART6_IRQn, GPRSbuffer, SIZE_GPRS_BUFFER, &GPRSBufferReceivedBytes);
 	} else {
 
 	}

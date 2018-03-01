@@ -9,8 +9,56 @@
 #include 	<stdio.h>
 #include 	<string.h>
 #include 	<stdarg.h>
+
+#include 	"stm32f2xx_hal.h"
+#include 	"main.h"
+
+
 #include	"utils.h"
 
+////////////////////////  LED COLORING ////////////////////////////////
+static int color;
+
+int	getcolor(){
+	return color;
+}
+void	_color(int col){
+	switch (col) {
+		case 0: (blueOFF, redOFF, greenOFF); return;
+		case 1: (blueON,  redOFF, greenOFF); return;
+		case 2: (blueOFF, redON,  greenOFF); return;
+		case 3: (blueOFF, redOFF, greenON); return;
+		case 4: (blueON,  redOFF, greenON); return;
+		case 5: (blueON,  redON,  greenOFF); return;
+		case 6: (blueOFF, redON,  greenON); return;
+		case 7: (blueON,  redON,  greenON); return;
+	}
+}
+
+void	Color(int col){
+	color = col;
+	_color(color);
+}
+
+void	ROTATE(){
+	color = (color + 1) % 8;
+	Color(color);
+}
+
+
+void	Blink() {
+	static int	blink = 0;
+	blink = ! blink;
+	if (blink){
+		_color(color);
+	}
+	else {
+		_color (0);
+	}
+}
+
+
+////////////////////  SYSTEM DATE & TIME  //////////////////////////////////////
 
 struct tm	ECdatetime;
 
@@ -103,6 +151,29 @@ char	*strDateTime() {
 	return DT;
 }
 **/
+// to parse the reply to AT+GMM Command and get the transceiver model
+extern int GPRSDEVICE;
+
+// Returns 0 if the host is an IP address (999.999.999.999) and 1 otherwise
+int isdns(unsigned char * host){
+	int n1, n2, n3, n4;
+	int n = sscanf((const char *)host, "%d.%d.%d.%d", &n1, &n2, &n3, &n4);
+	if (n == 4)
+		return 0;
+	else
+		return 1;
+}
+
+// to parse the reply to AT+GMM Command and get the transceiver model
+int	 SetGPRSDevice(const char *txt){
+	if (!strcmp(txt, "\r\nBG96\r\n\r\nOK\r\n"))
+		GPRSDEVICE = 96;
+	else if (!strcmp(txt, "\r\nQuectel_M95\r\n\r\nOK\r\n"))
+		GPRSDEVICE = 95;
+	else
+		GPRSDEVICE = 95;
+	return 1;
+}
 
 // Pending : to validate the IP format is correct
 
@@ -178,6 +249,12 @@ int		SetState(const char *txt){
 	//const char *tmp = txt;
 
 	return 1;
+}
+
+char *textCert = "";
+unsigned char	*getCertificateTxt(size_t *lcert){
+	*lcert = strlen(textCert);
+	return textCert;
 }
 
 

@@ -1,6 +1,9 @@
 #ifndef _DEFINITIONS_H_
 #define _DEFINITIONS_H_
 
+
+#define DEBUG
+
 #ifdef __cplusplus
  extern "C" {
 #endif
