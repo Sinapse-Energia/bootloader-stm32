@@ -298,6 +298,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     }
 
 
+
 #ifdef CHECK_VERSION
 	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
     // Check is NEW firmware update available
