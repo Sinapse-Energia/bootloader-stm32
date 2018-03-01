@@ -23,7 +23,7 @@
 #define	COL_CONNECTING		ORANGE
 #define	COL_CONNECTED		GREEN
 #define	COL_CONNECTEDGPS	BLUE
-
+#define COL_EXECUTE			CYAN
 
 
 #include	<time.h>

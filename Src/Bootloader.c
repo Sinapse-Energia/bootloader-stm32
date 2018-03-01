@@ -1,6 +1,6 @@
 #include "Bootloader.h"
 #include "sharing_memory.h"
-
+#include "utils.h"
 
 extern uint8_t WDT_ENABLED;
 extern IWDG_HandleTypeDef hiwdg;
@@ -152,6 +152,9 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
        Socket_ClearTimeout(ssource);
        total_len = 0;
        remain = 0;
+#ifdef DEBUG
+       Color (COL_EXECUTE);
+#endif
        while (!Socket_GetTimeout(ssource)) {
 
            len = Socket_Read(ssource, &boot_buff[remain], BOOT_BUFFER_SIZE - remain) + remain;
@@ -173,6 +176,10 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
            	if (remain) {
            		boot_buff[0] = boot_buff[len];
            	}
+#ifdef DEBUG
+           	Blink();
+           	HAL_Delay(10);
+#endif
            }
        }
        // Write remain (if exist)
