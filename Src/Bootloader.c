@@ -178,7 +178,6 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
            	}
 #ifdef DEBUG
            	Blink();
-           	HAL_Delay(10);
 #endif
            }
        }
