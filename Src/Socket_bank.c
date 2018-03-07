@@ -556,6 +556,9 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 	MX_GPIO_Init();
 	// MX_IWDG_Init();
 
+	MX_TIM7_Init();
+    HAL_TIM_Base_Start_IT(&htim7); //Activate IRQ for Timer7
+
 	if (s_in == SOCKET_SRC_GPRS) {
 
 		application_layer_connection=0;
@@ -563,59 +566,44 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 		MX_USART3_UART_Init();
 
 		if (bydma) { // BYDMA
-					DataBuffer	= CircularBuffer (256, &hdma_usart3_rx);
-					MX_DMA_Init();					// set DMA clock and priorities
-					HAL_UART_DMAStop(&huart3);
-			}
-			else {
-				DataBuffer	= CircularBuffer (256, NULL);
-			}
-
-
+			DataBuffer	= CircularBuffer (256, &hdma_usart3_rx);
+			MX_DMA_Init();					// set DMA clock and priorities
+			HAL_UART_DMAStop(&huart3);
+		}
+		else {
+			DataBuffer	= CircularBuffer (256, NULL);
+		}
 
 		// RAE: Init Modem M95
-					 //uint32_t ta, tb;
-					 	if (1) {
-					 		int rc;
-					 		int n = 0;
-					 		//ta = HAL_GetTick();
-					 		// pretrace ("INFO Init modem on start\n", n);
-					 		do {
-					 			rc = Modem_Init();
-					 			n++;
-					 		} while (rc != M95_OK);
-					 		//tb = HAL_GetTick();
-					 		modem_init = 1;
+		int rc;
+		int n = 0;
+		do {
+			rc = Modem_Init();
+			n++;
+			if (n > 3) return SOCKET_ERR_UNKNOWN;
+		} while (rc != M95_OK);
+		modem_init = 1;
 
-					 	}
-
-			if (bydma) {  // BYDMA
-				int tries = 0;
-				HAL_StatusTypeDef rc;
-				do {
-					rc = HAL_UART_Receive_DMA(&huart3, DataBuffer->buffer, DataBuffer->size); // starts DMA reception
-					HAL_Delay(200);
-					tries++;
-				} while  (rc != HAL_OK);
-			}
-			else {
-				HAL_UART_Receive_IT(&huart3, &dataByteBufferIRQ, 1); // Enabling IRQ
-			}
-
-
-
-
-
-		//HAL_UART_Receive_IT(&huart3, (uint8_t*) &dataByteBufferIRQ, 1);
+		if (bydma) {  // BYDMA
+			int tries = 0;
+			HAL_StatusTypeDef rc;
+			do {
+				rc = HAL_UART_Receive_DMA(&huart3, DataBuffer->buffer, DataBuffer->size); // starts DMA reception
+				HAL_Delay(200);
+				tries++;
+				if (tries > 3) return SOCKET_ERR_UNKNOWN;
+			} while  (rc != HAL_OK);
+		}
+		else {
+			HAL_UART_Receive_IT(&huart3, &dataByteBufferIRQ, 1); // Enabling IRQ
+		}
 
 	    HAL_Delay(30);
 
 	    memcpy(APN, const_APN, sizeof(const_APN));
 	    memcpy(IPPORT, const_MAIN_SERVER, sizeof(const_MAIN_SERVER));
 
-
 	    memcpy(SERVER_NTP, const_SERVER_NTP, sizeof(const_SERVER_NTP));
-
 
 	} else {
 		char buf[256];
@@ -659,10 +647,6 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 
 		wlanRecvStart(&huart6);
 	}
-
-
-	MX_TIM7_Init();
-    HAL_TIM_Base_Start_IT(&htim7); //Activate IRQ for Timer7
 
     if (WDT_ENABLED == 1) {
       	 MX_IWDG_Init();
