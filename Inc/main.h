@@ -61,6 +61,8 @@
 #define LED_1_GPIO_Port GPIOD
 #define LED_2_Pin GPIO_PIN_7
 #define LED_2_GPIO_Port GPIOD
+#define USR_WIFI_RESET_Pin GPIO_PIN_0
+#define USR_WIFI_RESET_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

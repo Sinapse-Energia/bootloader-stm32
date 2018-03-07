@@ -209,6 +209,9 @@ static void MX_GPIO_Init(void)
     /*Configure GPIO pin Output Level */
     HAL_GPIO_WritePin(M95_CTRL_PWRKEY_EMERG_GPIO_Port, M95_CTRL_PWRKEY_Pin|M95_CTRL_EMERG_Pin, GPIO_PIN_RESET);
 
+    /*Configure GPIO pin Output Level */
+    HAL_GPIO_WritePin(USR_WIFI_RESET_GPIO_Port, USR_WIFI_RESET_Pin, GPIO_PIN_SET);
+
     /*Configure GPIO pins : PWRKEY_Pin EMERG_Pin */
     GPIO_InitStruct.Pin = M95_CTRL_PWRKEY_Pin|M95_CTRL_EMERG_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
@@ -221,6 +224,13 @@ static void MX_GPIO_Init(void)
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(M95_STATUS_GPIO_Port, &GPIO_InitStruct);
+
+    /*Configure GPIO pin : USR_WIFI_RESET_Pin */
+    GPIO_InitStruct.Pin = USR_WIFI_RESET_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(USR_WIFI_RESET_GPIO_Port, &GPIO_InitStruct);
 }
 
 
