@@ -87,7 +87,8 @@ CmdProps	*M95DisconnectFlow(){
 		{	ATGET,		"",		{"+++"}, 			{NULL, NULL, SetGeneric}, 		{1000, 1000, 1000}, 	1} ,
 		{	ATMATCH,	"",		{"AT+QICLOSE\r"}, 	{NULL, NULL, SetGeneric},		{1000, 0}, 				1} ,
 		{	ATMATCH,	"DEACT",{"AT+QIDEACT\r"}, 	{NULL, NULL, SetGeneric},		{1000, 0}, 				1} ,
-		{	ATMATCH, 	"END", 	NULL }
+		{	ATMATCH, 	"END" },
+		{	ATMATCH, 	NULL	}  // placeholder for error in label lookup
 	};
 	return M95Disconnect;
 }
@@ -136,8 +137,8 @@ CmdProps	*M95ConnectFlow(
 			{	ATGET,		"",		{"AT+GSN\r"}, 		{NULL, NULL ,SetIMEI}, 		{1000, 0}, 	1} ,
 //			{	ATGET,		"",		{"AT+QGSN\r"}, 		{NULL, NULL ,SetIMEI}, 		{1000, 0}, 	1} ,
 
-			{	ATGET,		"",		{"AT+CREG?\r"}, 	{NULL, NULL, ValidateReg}, 	{1000, 0}, 	1 } ,
-			{	ATGET,		"",		{"AT+CGREG?\r"},	{NULL, NULL, ValidateReg},	{1000, 0}, 	1},
+			{	ATGET,		"",		{"AT+CREG?\r"}, 	{NULL, NULL, ValidateReg}, 	{3000, 0}, 	1 } ,
+			{	ATGET,		"",		{"AT+CGREG?\r"},	{NULL, NULL, ValidateReg},	{3000, 0}, 	1},
 			{	ATMATCH,	"",		{"AT+QIREGAPP\r"}, 	{"\r\nOK\r\n"},				{1000, 0}, 	1},
 			{	ATMATCH,	"",		{"AT+QIACT\r"}, 	{"\r\nOK\r\n"},				{1000, 0}, 	1},
 			{	ATGET,		"",		{"AT+QILOCIP\r"}, 	{NULL,	NULL, SetLocalIP}, {1000, 0}, 	1},
