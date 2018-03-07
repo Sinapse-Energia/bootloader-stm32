@@ -82,12 +82,13 @@
 
 
   //  Function to WRITE a char in the corresponding position
-  //	If the Cbuffer is FULL, doesn´t write anything and returns -1
+  //	If the Cbuffer is FULL, doesnï¿½t write anything and returns -1
   //	Otherwise, writes the char , updates the writing offset and returns 1
   int		Write(st_CB *cb, uint8_t x) {
-    if (cb->hdma)
+    if (cb->hdma) {
 	   //cb->wrindex = cb->size - cb->hdma->Instance->CNDTR;
     	cb->wrindex = cb->size - cb->hdma->Instance->NDTR;
+    }
   	if (cb->rindex == (cb->wrindex + 1) % cb->size) {
   		cb->overruns++;
   		return -1;

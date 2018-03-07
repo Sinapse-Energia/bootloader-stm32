@@ -58,7 +58,7 @@ int main(void)
 
 //#ifdef CMC_APPLICATION_DEPENDENT
 	/////// Reading over external eeprom application_dependent variables
-	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT Reading application dependent variables)\r\n", 48,100); //Francis, for logging
+	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, (uint8_t*)"(BOOT Reading application dependent variables)\r\n", 48,100); //Francis, for logging
 	//keepingStatus_applicationDepending();
 //#endif
 
@@ -66,7 +66,7 @@ int main(void)
 	if (LOG_WIFI==1)
 	{
 		
-		HAL_UART_Transmit(&huart6, "(BOOT Init)\r\n", 15,100); //Francis, for logging
+		HAL_UART_Transmit(&huart6, (uint8_t*)"(BOOT Init)\r\n", 15,100); //Francis, for logging
 	}
 
 	
@@ -74,7 +74,7 @@ int main(void)
 	while (Boot_PerformFirmwareUpdate() != BOOT_OK) {
 		if(++attempt > NUMBER_RETRIES) break;
 		HAL_Delay(5000);
-		if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT New retry over FW update)\r\n", 33,100); //Francis, for logging
+		if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, (uint8_t*)"(BOOT New retry over FW update)\r\n", 33,100); //Francis, for logging
 	}
 
 	// Start Application
@@ -90,7 +90,7 @@ int main(void)
 		// Socket_Write(SOCKET_SRC_WIFI, "HI app! ", 8);
 		// attempt = Socket_Read(SOCKET_SRC_WIFI, tmp, 100);
 		// Start to blink Err LED?
-		if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT DANGEROUS ERROR. INFINITE LOOP!", 37,100); //Francis, for logging
+		if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, (uint8_t*)"(BOOT DANGEROUS ERROR. INFINITE LOOP!", 37,100); //Francis, for logging
 		HAL_Delay(1000);
 	}
 }
