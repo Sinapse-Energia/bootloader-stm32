@@ -29,7 +29,7 @@ void SystemClock_Config(void);
 
 int main(void)
 {
- 	uint8_t attempt = 0;
+	uint8_t attempt = 0;
  	GPIO_InitTypeDef GPIO_InitStruct;
 
 	// RAE: Init DataBuffer for new M95 Method
@@ -71,7 +71,8 @@ int main(void)
 
 	
 	// Start to check firmware
-	while (Boot_PerformFirmwareUpdate() != BOOT_OK) {
+	BOOT_ERRORS result = BOOT_ERR_UNKNOWN;
+	while ((result = Boot_PerformFirmwareUpdate()) != BOOT_OK) {
 		if(++attempt > NUMBER_RETRIES) break;
 		HAL_Delay(5000);
 		if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, (uint8_t*)"(BOOT New retry over FW update)\r\n", 33,100); //Francis, for logging
