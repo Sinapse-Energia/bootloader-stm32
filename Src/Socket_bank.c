@@ -15,7 +15,7 @@ uint16_t elapsed10seconds=0; 				/// At beginning this is 0
 uint8_t LOG_ACTIVATED=0;				 	/// Enable to 1 if you want to show log through logUART
 uint8_t LOG_GPRS=0;  						/// For showing only GPRS information
 uint8_t WDT_ENABLED=0; //1					/// Enable for activate independent watch dog timer
-uint8_t timeoutGPRS=0; 						/// At beginning this is 0
+volatile uint8_t timeoutGPRS=0; 						/// At beginning this is 0
 uint32_t timeout=1000;				 		/// Timeout between AT command sending is 1000 milliseconds.
 uint8_t rebootSystem=0;						/// At beginning this is 0
 uint8_t nTimesMaximumFail_GPRS=2; 			/// For initial loop of initializing GPRS device
@@ -39,8 +39,8 @@ static uint8_t WiFibuffer[SIZE_WIFI_BUFFER];/// received buffer with data from W
 static uint8_t WiFidataBufferIRQ;  			/// Last received byte from Wifi
 uint16_t WiFiBufferReceivedBytes;     		/// Number of received data from Wifi
 
-uint16_t UART_elapsed_sec = 0; 				/// At beginning this is 0
-uint8_t UART_timeout = 0;
+volatile uint16_t UART_elapsed_sec = 0; 				/// At beginning this is 0
+volatile uint8_t UART_timeout = 0;
 
 extern int 		application_layer_connection;
 extern int		bydma;

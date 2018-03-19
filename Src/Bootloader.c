@@ -129,18 +129,11 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     	ssource = SOCKET_SRC_WIFI;
     } else {
     	wlanRecvStop(&huart6);
-    	if (Socket_Connect(SOCKET_SRC_GPRS) != SOCKET_OK) {
-    		//No connections!
-			return BOOT_ERR_CONNECTION; //Err
-    	}
-    	if (Boot_CheckConnection(SOCKET_SRC_GPRS)) {
-        	transport_close(0);
-        	Socket_Connect(SOCKET_SRC_GPRS);
+    	if (Socket_Connect(SOCKET_SRC_GPRS) == SOCKET_OK) {
     		ssource = SOCKET_SRC_GPRS;
-        } else {
-        	//No connections!
-        	return BOOT_ERR_CONNECTION; //Err
-        }
+    	} else {
+    		return BOOT_ERR_CONNECTION;
+    	}
     }
 
 
@@ -183,7 +176,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
         	Socket_ClearTimeout(ssource);
         }
     }
-    if (total_len < 10) {
+    if (total_len < 24) {
     	//No file on server!
     	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, (uint8_t*)"(BOOT ERROR No file on server)\r\n", 32,100); //Francis, for logging
     	return BOOT_ERR_CONNECTION; //Err
