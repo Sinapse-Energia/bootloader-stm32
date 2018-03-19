@@ -183,7 +183,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
         	Socket_ClearTimeout(ssource);
         }
     }
-    if (total_len < 10) {
+    if (total_len < 24) {
     	//No file on server!
     	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, (uint8_t*)"(BOOT ERROR No file on server)\r\n", 32,100); //Francis, for logging
     	return BOOT_ERR_CONNECTION; //Err
