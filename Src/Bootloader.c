@@ -173,6 +173,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
         	FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, len);
         	total_len += len;
         	fl_addr += len;
+        	RGB_Color_Blink(RGB_COLOR_RED);
         	Socket_ClearTimeout(ssource);
         }
     }

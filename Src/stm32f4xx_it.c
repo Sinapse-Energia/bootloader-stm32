@@ -178,13 +178,6 @@ void SysTick_Handler(void)
   HAL_SYSTICK_IRQHandler();
   /* USER CODE BEGIN SysTick_IRQn 1 */
 
-  static volatile uint32_t ledCnt = 0;
-  if (++ledCnt >= 250)
-  {
-	  HAL_GPIO_TogglePin(LED_1_GPIO_Port, LED_1_Pin);
-	  ledCnt = 0;
-  }
-
   /* USER CODE END SysTick_IRQn 1 */
 }
 

@@ -55,11 +55,21 @@ typedef enum GPRS_ERRORS
 	ERROR_GPRS_FOLDER_NOT_FOUND
 } GPRS_ERRORS;
 		
+typedef enum {
+	RGB_COLOR_OFF = 0,
+	RGB_COLOR_WHITE,
+	RGB_COLOR_YELLOW,
+	RGB_COLOR_GREEN,
+	RGB_COLOR_RED,
+	RGB_COLOR_CYAN
+} RGB_Color_type;
 
 // Public functions
 void Boot_RebootMCU(void);
 uint8_t Boot_StartApplication(void);
 uint8_t Boot_PerformFirmwareUpdate(void);
 
+void RGB_Color_Set(RGB_Color_type color);
+void RGB_Color_Blink(RGB_Color_type color);
 
 #endif // __STM32_BOOTLOADER_H

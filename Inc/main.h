@@ -57,12 +57,14 @@
 #define WIFI_RX_GPIO_Port GPIOC
 #define WIFI_TX_Pin GPIO_PIN_7
 #define WIFI_TX_GPIO_Port GPIOC
-#define LED_1_Pin GPIO_PIN_3
-#define LED_1_GPIO_Port GPIOD
-#define LED_2_Pin GPIO_PIN_7
-#define LED_2_GPIO_Port GPIOD
 #define USR_WIFI_RESET_Pin GPIO_PIN_0
 #define USR_WIFI_RESET_GPIO_Port GPIOB
+#define LED_RGB_G_Pin GPIO_PIN_3
+#define LED_RGB_G_GPIO_Port GPIOE
+#define LED_RGB_R_Pin GPIO_PIN_4
+#define LED_RGB_R_GPIO_Port GPIOE
+#define LED_RGB_B_Pin GPIO_PIN_5
+#define LED_RGB_B_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
 
