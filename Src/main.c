@@ -45,15 +45,15 @@ int main(void)
 	SystemClock_Config();
 
 	// Config LEDs
-	__HAL_RCC_GPIOD_CLK_ENABLE();
-	HAL_GPIO_WritePin(GPIOD, LED_1_Pin|LED_2_Pin, GPIO_PIN_RESET);
-	GPIO_InitStruct.Pin = LED_1_Pin|LED_2_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	__HAL_RCC_GPIOE_CLK_ENABLE();
+	HAL_GPIO_WritePin(GPIOE, LED_RGB_G_Pin|LED_RGB_R_Pin|LED_RGB_B_Pin, GPIO_PIN_SET);
+	GPIO_InitStruct.Pin = LED_RGB_G_Pin|LED_RGB_R_Pin|LED_RGB_B_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
 	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
-
+	RGB_Color_Set(RGB_COLOR_RED);
 
 
 //#ifdef CMC_APPLICATION_DEPENDENT
@@ -362,8 +362,49 @@ void keepingStatus_applicationDepending(void )
 
 ///////***************************************************************************************///////////////////
 
+void RGB_Color_Set(RGB_Color_type color)
+{
+	switch (color)
+	{
+	case RGB_COLOR_WHITE:
+		HAL_GPIO_WritePin(LED_RGB_R_GPIO_Port, LED_RGB_R_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(LED_RGB_G_GPIO_Port, LED_RGB_G_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(LED_RGB_B_GPIO_Port, LED_RGB_B_Pin, GPIO_PIN_RESET);
+		break;
+	case RGB_COLOR_YELLOW:
+		HAL_GPIO_WritePin(LED_RGB_R_GPIO_Port, LED_RGB_R_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(LED_RGB_G_GPIO_Port, LED_RGB_G_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(LED_RGB_B_GPIO_Port, LED_RGB_B_Pin, GPIO_PIN_SET);
+		break;
+	case RGB_COLOR_GREEN:
+		HAL_GPIO_WritePin(LED_RGB_R_GPIO_Port, LED_RGB_R_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(LED_RGB_G_GPIO_Port, LED_RGB_G_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(LED_RGB_B_GPIO_Port, LED_RGB_B_Pin, GPIO_PIN_SET);
+		break;
+	case RGB_COLOR_RED:
+		HAL_GPIO_WritePin(LED_RGB_R_GPIO_Port, LED_RGB_R_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(LED_RGB_G_GPIO_Port, LED_RGB_G_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(LED_RGB_B_GPIO_Port, LED_RGB_B_Pin, GPIO_PIN_SET);
+		break;
+	case RGB_COLOR_CYAN:
+		HAL_GPIO_WritePin(LED_RGB_R_GPIO_Port, LED_RGB_R_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(LED_RGB_G_GPIO_Port, LED_RGB_G_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(LED_RGB_B_GPIO_Port, LED_RGB_B_Pin, GPIO_PIN_RESET);
+		break;
+	default:
+		HAL_GPIO_WritePin(LED_RGB_R_GPIO_Port, LED_RGB_R_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(LED_RGB_G_GPIO_Port, LED_RGB_G_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(LED_RGB_B_GPIO_Port, LED_RGB_B_Pin, GPIO_PIN_SET);
+		break;
+	}
+}
 
-
+void RGB_Color_Blink(RGB_Color_type color)
+{
+	RGB_Color_Set(color);
+	HAL_Delay(100);
+	RGB_Color_Set(RGB_COLOR_OFF);
+}
 
 /* USER CODE END 4 */
 
