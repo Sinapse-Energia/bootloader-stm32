@@ -14,7 +14,7 @@ int modem_init;
 uint16_t elapsed10seconds=0; 				/// At beginning this is 0
 uint8_t LOG_ACTIVATED=0;				 	/// Enable to 1 if you want to show log through logUART
 uint8_t LOG_GPRS=0;  						/// For showing only GPRS information
-uint8_t WDT_ENABLED=0; //1					/// Enable for activate independent watch dog timer
+uint8_t WDT_ENABLED=1; 						/// Enable for activate independent watch dog timer
 volatile uint8_t timeoutGPRS=0; 						/// At beginning this is 0
 uint32_t timeout=1000;				 		/// Timeout between AT command sending is 1000 milliseconds.
 uint8_t rebootSystem=0;						/// At beginning this is 0
@@ -130,8 +130,8 @@ void MX_DMA_Init(void)
 static void MX_IWDG_Init(void)
 {
     hiwdg.Instance = IWDG;
-    hiwdg.Init.Prescaler = IWDG_PRESCALER_256;
-    hiwdg.Init.Reload = 4095;
+    hiwdg.Init.Prescaler = IWDG_PRESCALER_256; // 32768 Hz / 256 = 125 Hz
+    hiwdg.Init.Reload = 4095; // 125 Hz / 4096 = 32 sec
     if (HAL_IWDG_Init(&hiwdg) != HAL_OK) {
         _Error_Handler(__FILE__, __LINE__);
     }
@@ -404,6 +404,8 @@ static bool wlanRecvWaitLines(size_t linesCount, uint32_t timeout)
 	uint32_t i = 0;
 	do
 	{
+		if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
+
 		wlanRecvExec(&huart6);
 		if (linesCnt >= linesCount) return true;
 		HAL_Delay(100);
@@ -426,6 +428,8 @@ static bool wlanSwitchToAT(void)
 
 	for (i = 0; i < 10; i++)
 	{
+		if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
+
 		// Send +++ sequence and get response
 		ansBuf[0] = '\0';
 		if (Socket_Write(SOCKET_SRC_WIFI, "+++", 3) != SOCKET_OK) return 0;
@@ -442,6 +446,9 @@ static bool wlanSwitchToAT(void)
 			break;
 		}
 	}
+
+	if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
+
 	if (i == 10) return false;
 	return true;
 }
@@ -466,6 +473,8 @@ static bool wlanSwitchToAT57600(void)
 
 	for (i = 0; i < 10; i++)
 	{
+		if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
+
 		// Send +++ sequence and get response
 		ansBuf[0] = '\0';
 		if (Socket_Write(SOCKET_SRC_WIFI, "+++", 3) != SOCKET_OK) return 0;
@@ -482,6 +491,9 @@ static bool wlanSwitchToAT57600(void)
 			break;
 		}
 	}
+
+	if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
+
 	if (i == 10) return false;
 	return true;
 }
@@ -564,7 +576,11 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 {
 	// Initialize all configured peripherals
 	MX_GPIO_Init();
-	// MX_IWDG_Init();
+
+	if (WDT_ENABLED == 1) {
+		 MX_IWDG_Init();
+		 HAL_IWDG_Refresh(&hiwdg);
+	}
 
 	MX_TIM7_Init();
     HAL_TIM_Base_Start_IT(&htim7); //Activate IRQ for Timer7
@@ -583,6 +599,8 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 		else {
 			DataBuffer	= CircularBuffer (256, NULL);
 		}
+
+		if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
 
 		// RAE: Init Modem M95
 		int rc;
@@ -629,6 +647,8 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 		HAL_UART_DeInit(&huart6);
 		MX_USART6_UART_Init();
 
+		if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
+
 	#ifdef PERFORM_WLAN_FIRST_TIME_CONFIG
 		// Config WiFi module
 		if (!wlan_first_config()) return SOCKET_ERR_UNKNOWN;
@@ -653,16 +673,18 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 		if (!wlanRequestAT("AT+Z", "+ok", 2000)) return SOCKET_ERR_UNKNOWN;
 
 		// Wait for connect
-		HAL_Delay(WLAN_CONNECT_TIME); // Increase this time if using slow connection
+		// Increase this time if using slow connection
+		size_t i;
+		for (i = 0; i < WLAN_CONNECT_TIME; i += 1000)
+		{
+			if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
+			HAL_Delay(1000);
+		}
 
 		wlanRecvStart(&huart6);
 	}
 
-    if (WDT_ENABLED == 1) {
-      	 MX_IWDG_Init();
-      	__HAL_IWDG_START(&hiwdg); //no se inicializar watchdog, se deshabilita para debug
-      	  HAL_IWDG_Refresh(&hiwdg);
-    }
+	if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
 
     return SOCKET_OK;
 }

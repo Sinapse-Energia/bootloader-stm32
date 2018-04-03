@@ -74,6 +74,8 @@ uint8_t Boot_CheckConnection(SOCKETS_SOURCE ssource)
 	char* p;
     uint32_t len, len_left;
 
+    if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
+
     // Check connection available
     sprintf(boot_buff, "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_IP);
     Socket_Clear(ssource);
@@ -88,6 +90,8 @@ uint8_t Boot_CheckConnection(SOCKETS_SOURCE ssource)
         	p += len;
         	len_left -= len;
         }
+
+        if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
     }
     if ((BOOT_BUFFER_SIZE - len_left) < 10) {
     	return 0; // Err
@@ -186,6 +190,8 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     // Stop HTTP session
     Socket_Close(ssource);
 
+    RGB_Color_Set(RGB_COLOR_RED);
+
     // NVM flash operation
 	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
 	// Find firmware length
@@ -282,6 +288,8 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     {
     	FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, BOOT_BUFFER_SIZE);
     	FlashNVM_Write(app_addr + i, (uint8_t*)boot_buff, BOOT_BUFFER_SIZE);
+
+    	if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
     }
     // Compare memories again?
     if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, (uint8_t*)"(BOOT updated new FW in Flash_Bank_Application)\r\n", 49,100); //Francis, for logging

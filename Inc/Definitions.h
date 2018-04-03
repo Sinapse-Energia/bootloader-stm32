@@ -61,7 +61,7 @@
 
 
  // Wait for HTTP server answer (sec)
-#define TIMING_TIMEOUT_UART 			15
+#define TIMING_TIMEOUT_UART 			15 // This should be lesser than 30 in order to keep watchdog
 // HTTP connection
 //#define HTTP_SERVER_IP 					"178.94.164.124"
 //#define HTTP_SERVER_IP 					"89.248.100.11"
