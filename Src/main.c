@@ -401,9 +401,9 @@ void RGB_Color_Set(RGB_Color_type color)
 
 void RGB_Color_Blink(RGB_Color_type color)
 {
-	RGB_Color_Set(color);
-	HAL_Delay(100);
 	RGB_Color_Set(RGB_COLOR_OFF);
+	HAL_Delay(100);
+	RGB_Color_Set(color);
 }
 
 /* USER CODE END 4 */
