@@ -186,6 +186,8 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     // Stop HTTP session
     Socket_Close(ssource);
 
+    RGB_Color_Set(RGB_COLOR_RED);
+
     // NVM flash operation
 	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
 	// Find firmware length
