@@ -40,6 +40,8 @@ M95Status	M95_Initialize(
 	HAL_GPIO_WritePin(ctrlPwrkey_PORT, ctrlPwrkey_PIN, GPIO_PIN_RESET); // writing 0 in new M2M
 	countGPRSStatus = 0;
 
+	if (WDT_ENABLED == 1) HAL_IWDG_Refresh(hiwdg);
+
 	do {
 		HAL_Delay(2000);
 		statusM95_statusPin = HAL_GPIO_ReadPin(m95Status_PORT, m95Status_PIN); //awaiting status pin goes to 1
@@ -54,6 +56,9 @@ M95Status	M95_Initialize(
 			countGPRSStatus = 0;
 		}
 		countGPRSStatus++;
+
+		if (WDT_ENABLED == 1) HAL_IWDG_Refresh(hiwdg);
+
 	} while (statusM95_statusPin == GPIO_PIN_RESET);
 
 	//HAL_GPIO_WritePin(ctrlEmerg_PORT, ctrlEmerg_PIN, GPIO_PIN_RESET); //  PWRKEY is released (ARM_CTRL_PWRKEY is the inverted, 0
