@@ -44,8 +44,8 @@
 
  // GPRS init
 #define SIZE_APN 						60
-#define SIZE_MAIN_SERVER 				60
-#define SIZE_NTP_SERVER 				60
+//#define SIZE_MAIN_SERVER 				60
+//#define SIZE_NTP_SERVER 				60
 #define SIZE_GPRS_BUFFER 				256
 #define SIZE_WIFI_BUFFER 				(4*1024lu)//256
 #define TIMING_TIMEOUT_GPRS 			20
@@ -56,8 +56,8 @@
 #define const_SERVER_NTP 				"\"0.europe.pool.ntp.org\"\r\0"
 //#define const_MAIN_SERVER				"\"m2m.eclipse.org\",1883\r\0"
 //#define const_MAIN_SERVER 				"\"178.94.164.124\",80\r\0"
- //#define const_MAIN_SERVER 				"\"89.248.100.11\",80\r\0"
- #define const_MAIN_SERVER 				"\"sinapseenergia.com\",80\r\0"
+//#define const_MAIN_SERVER 				"\"89.248.100.11\",80\r\0"
+//#define const_MAIN_SERVER 				"\"sinapseenergia.com\",80\r\0"
 
 
  // Wait for HTTP server answer (sec)

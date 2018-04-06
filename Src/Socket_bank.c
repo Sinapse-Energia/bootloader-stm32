@@ -12,22 +12,22 @@ UART_HandleTypeDef huartDummy;
 int modem_init;
 
 uint16_t elapsed10seconds=0; 				/// At beginning this is 0
-uint8_t LOG_ACTIVATED=0;				 	/// Enable to 1 if you want to show log through logUART
-uint8_t LOG_GPRS=0;  						/// For showing only GPRS information
+//uint8_t LOG_ACTIVATED=0;				 	/// Enable to 1 if you want to show log through logUART
+//uint8_t LOG_GPRS=0;  						/// For showing only GPRS information
 uint8_t WDT_ENABLED=1; 						/// Enable for activate independent watch dog timer
 volatile uint8_t timeoutGPRS=0; 						/// At beginning this is 0
-uint32_t timeout=1000;				 		/// Timeout between AT command sending is 1000 milliseconds.
+//uint32_t timeout=1000;				 		/// Timeout between AT command sending is 1000 milliseconds.
 uint8_t rebootSystem=0;						/// At beginning this is 0
 uint8_t nTimesMaximumFail_GPRS=2; 			/// For initial loop of initializing GPRS device
-uint8_t retriesGPRS=1; 						/// only one retries per AT command if something goes wrong
-uint8_t existDNS=1; 						/// The IP of main server to connect is not 4 number separated by dot. It is a DNS.
-uint8_t offsetLocalHour=0; 					/// for getting UTC time
+//uint8_t retriesGPRS=1; 						/// only one retries per AT command if something goes wrong
+//uint8_t existDNS=1; 						/// The IP of main server to connect is not 4 number separated by dot. It is a DNS.
+//uint8_t offsetLocalHour=0; 					/// for getting UTC time
 uint8_t APN[SIZE_APN]; 						/// Array where is saved the provider APN (format as example in Definitions.h)
-uint8_t IPPORT[SIZE_MAIN_SERVER]; 			/// Array where is saved main destination server to connect (IP and PORT format as example in Definitions.h)
-uint8_t SERVER_NTP[SIZE_NTP_SERVER]; 		/// Array where is saved server NTP to get UTC time (format as example in Definitions.h)
-uint8_t calendar[10];               		/// Array for saving all calendar parameters get from NTC server
-uint8_t idSIM[30];                 			/// Array where is saved ID from SIMcard
-uint8_t openFastConnection=0;      			/// by default to 0, it is used for doing a quick connection when it is needed to call the connect function again
+//uint8_t IPPORT[SIZE_MAIN_SERVER]; 			/// Array where is saved main destination server to connect (IP and PORT format as example in Definitions.h)
+//uint8_t SERVER_NTP[SIZE_NTP_SERVER]; 		/// Array where is saved server NTP to get UTC time (format as example in Definitions.h)
+//uint8_t calendar[10];               		/// Array for saving all calendar parameters get from NTC server
+//uint8_t idSIM[30];                 			/// Array where is saved ID from SIMcard
+//uint8_t openFastConnection=0;      			/// by default to 0, it is used for doing a quick connection when it is needed to call the connect function again
 uint8_t setTransparentConnection=1;  		/// 1 for transparent connection, 0 for non-transparent. Then all data flow is command AT+ data
 
 static uint8_t GPRSbuffer[SIZE_GPRS_BUFFER];/// received buffer with data from GPRS
@@ -630,9 +630,9 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 	    HAL_Delay(30);
 
 	    memcpy(APN, const_APN, sizeof(const_APN));
-	    memcpy(IPPORT, const_MAIN_SERVER, sizeof(const_MAIN_SERVER));
+//	    memcpy(IPPORT, const_MAIN_SERVER, sizeof(const_MAIN_SERVER));
 
-	    memcpy(SERVER_NTP, const_SERVER_NTP, sizeof(const_SERVER_NTP));
+//	    memcpy(SERVER_NTP, const_SERVER_NTP, sizeof(const_SERVER_NTP));
 
 	} else {
 		char buf[256];
