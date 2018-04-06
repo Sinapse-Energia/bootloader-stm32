@@ -9,11 +9,13 @@
 // Bank B (Bootloader)
 // Bank A (Application)
 // Bank C (Copy of new application firmware in update procedure)
+// Bank D (Shared variables)
 typedef enum
 {
 	FLASH_BANK_BOOTLOADER = 0,
 	FLASH_BANK_APPLICATION,
-	FLASH_BANK_COPY
+	FLASH_BANK_COPY,
+	FLASH_BANK_SHARED
 } FLASH_BANK;
 
 

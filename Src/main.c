@@ -7,6 +7,7 @@
 #include "circular.h"
 #include "Flash_NVM.h"
 #include "Bootloader.h"
+#include "Shared.h"
 
 // Program version memory map prototype
 const uint8_t __attribute__((section(".myvars"))) VERSION_NUMBER[6] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
@@ -26,6 +27,8 @@ void SystemClock_Config(void);
 //#ifdef CMC_APPLICATION_DEPENDENT
 
 //#endif
+
+SharedMemoryData* sharedDataPtr;
 
 int main(void)
 {
@@ -69,14 +72,28 @@ int main(void)
 		HAL_UART_Transmit(&huart6, (uint8_t*)"(BOOT Init)\r\n", 15,100); //Francis, for logging
 	}
 
-	
-	// Start to check firmware
-	BOOT_ERRORS result = BOOT_ERR_UNKNOWN;
-	while ((result = Boot_PerformFirmwareUpdate()) != BOOT_OK) {
-		if(++attempt > NUMBER_RETRIES) break;
-		HAL_Delay(5000);
-		if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, (uint8_t*)"(BOOT New retry over FW update)\r\n", 33,100); //Francis, for logging
-	}
+    static SharedMemoryData sharedData;
+    sharedDataPtr = &sharedData;
+    ReadSharedMemory(&sharedData);
+
+    if (sharedData.variables.UPDFW_COUNT > 0)
+    {
+    	sharedData.variables.UPDFW_COUNT--;
+    	WriteSharedMemory(&sharedData);
+    }
+
+    if (sharedData.variables.UPDFW_COUNT == 0 ||
+    		sharedData.variables.UPDFW == 1 ||
+			sharedData.variables.UPDFW == UPDFW_UNSET)
+    {
+		// Start to check firmware
+		BOOT_ERRORS result = BOOT_ERR_UNKNOWN;
+		while ((result = Boot_PerformFirmwareUpdate()) != BOOT_OK) {
+			if(++attempt > NUMBER_RETRIES) break;
+			HAL_Delay(5000);
+			if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, (uint8_t*)"(BOOT New retry over FW update)\r\n", 33,100); //Francis, for logging
+		}
+    }
 
 	// Start Application
 	Boot_StartApplication();

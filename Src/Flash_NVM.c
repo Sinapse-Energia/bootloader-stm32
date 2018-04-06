@@ -15,7 +15,8 @@ HAL_StatusTypeDef FlashNVM_EraseBank(FLASH_BANK fl_bank)
 
 
 	// Check bank to Erase
-	if ((fl_bank != FLASH_BANK_APPLICATION) && (fl_bank != FLASH_BANK_COPY)) {
+	if ((fl_bank != FLASH_BANK_APPLICATION) && (fl_bank != FLASH_BANK_COPY) &&
+			(fl_bank != FLASH_BANK_SHARED)) {
 		return HAL_ERROR;
 	}
 
@@ -26,9 +27,14 @@ HAL_StatusTypeDef FlashNVM_EraseBank(FLASH_BANK fl_bank)
 	if (fl_bank == FLASH_BANK_APPLICATION) {
 		sector_start = FLASH_BANKA_START_SECTOR;
 		sectors_n = FLASH_BANKA_SECTORS;
-	} else {
+	} else if (fl_bank == FLASH_BANK_COPY) {
 		sector_start = FLASH_BANKC_START_SECTOR;
 		sectors_n = FLASH_BANKC_SECTORS;
+	} else if (fl_bank == FLASH_BANK_SHARED) {
+		sector_start = FLASH_BANKD_START_SECTOR;
+		sectors_n = FLASH_BANKD_SECTORS;
+	} else {
+		return HAL_ERROR;
 	}
 
 	EraseInitStruct.Sector = sector_start;

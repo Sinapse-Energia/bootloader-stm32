@@ -1,6 +1,7 @@
 #include "Bootloader.h"
+#include "Shared.h"
 
-
+extern SharedMemoryData* sharedDataPtr;
 extern uint8_t WDT_ENABLED;
 extern IWDG_HandleTypeDef hiwdg;
 extern UART_HandleTypeDef huart6;
@@ -77,7 +78,8 @@ uint8_t Boot_CheckConnection(SOCKETS_SOURCE ssource)
     if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
 
     // Check connection available
-    sprintf(boot_buff, "GET / HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_IP);
+    sprintf(boot_buff, "GET / HTTP/1.1\r\nHost: %s\r\n\r\n",
+    		sharedDataPtr->variables.FW_SERVER_URI);
     Socket_Clear(ssource);
     Socket_Write(ssource, boot_buff, strlen(boot_buff));
     // Read answer
@@ -163,7 +165,9 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
 
     // Get data
-    sprintf(boot_buff, "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_FW_FILENAME, HTTP_SERVER_IP);
+    sprintf(boot_buff, "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n",
+    		sharedDataPtr->variables.FW_NAME,
+    		sharedDataPtr->variables.FW_SERVER_URI);
     Socket_Clear(ssource);
     Socket_Write(ssource, boot_buff, strlen(boot_buff));
     // Read answer

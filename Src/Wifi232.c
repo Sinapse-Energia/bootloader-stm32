@@ -1,4 +1,7 @@
 #include <Wifi232.h>
+#include "Shared.h"
+
+extern SharedMemoryData* sharedDataPtr;
 
 /**
   * @brief  Send a data throw USR-WIFI232 module using
@@ -43,8 +46,8 @@ void wifi_WriteData(UART_HandleTypeDef huart, uint8_t* data_in, int data_len)
 	HAL_UART_Transmit(&huart, tx, 2, 1000);
 
 	// Destination port 2b
-	tx[0] = HTTP_SERVER_PORT & 0xFF;
-	tx[1] = (HTTP_SERVER_PORT >> 8) & 0xFF;
+	tx[0] = sharedDataPtr->variables.PORT & 0xFF;
+	tx[1] = (sharedDataPtr->variables.PORT >> 8) & 0xFF;
 	crc += tx[0];
 	crc += tx[1];
 	HAL_UART_Transmit(&huart, tx, 2, 1000);

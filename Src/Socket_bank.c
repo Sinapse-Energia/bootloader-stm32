@@ -1,6 +1,6 @@
 #include <Socket_bank.h>
 #include "circular.h"
-
+#include "Shared.h"
 
 // Private variables
 IWDG_HandleTypeDef hiwdg;
@@ -42,6 +42,7 @@ uint16_t WiFiBufferReceivedBytes;     		/// Number of received data from Wifi
 volatile uint16_t UART_elapsed_sec = 0; 				/// At beginning this is 0
 volatile uint8_t UART_timeout = 0;
 
+extern SharedMemoryData* sharedDataPtr;
 extern int 		application_layer_connection;
 extern int		bydma;
 extern DMA_HandleTypeDef hdma_usart3_rx;
@@ -663,7 +664,9 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 		wlanRequestAT("AT", NULL, 1000);
 
 		// Pass host and port using AT commands to the WIFI module
-		sprintf(buf, "AT+NETP=TCP,CLIENT,%i,%s", HTTP_SERVER_PORT, HTTP_SERVER_IP);
+		sprintf(buf, "AT+NETP=TCP,CLIENT,%i,%s",
+				(int)(sharedDataPtr->variables.PORT),
+				sharedDataPtr->variables.FW_SERVER_URI);
 		if (!wlanRequestAT(buf, "+ok", 2000)) return SOCKET_ERR_UNKNOWN;
 
 		// Disable socket B
@@ -740,8 +743,8 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
 
 		// ATENTION: This values should be got from shared memory
 		//char	*h = IPPORT;
-		char	*h = HTTP_SERVER_IP;
-		unsigned int p = HTTP_SERVER_PORT;
+		char	*h = sharedDataPtr->variables.FW_SERVER_URI;
+		unsigned int p = sharedDataPtr->variables.PORT;
 		int	s = 0; //Security = 0 = TCP
 
 		char	*apn = (char*)APN;
