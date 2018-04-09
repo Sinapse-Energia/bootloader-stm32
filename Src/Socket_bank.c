@@ -128,7 +128,7 @@ void MX_DMA_Init(void)
 }
 
 /* IWDG init function */
-static void MX_IWDG_Init(void)
+void MX_IWDG_Init(void)
 {
     hiwdg.Instance = IWDG;
     hiwdg.Init.Prescaler = IWDG_PRESCALER_256; // 32768 Hz / 256 = 125 Hz

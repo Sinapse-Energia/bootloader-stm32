@@ -29,6 +29,9 @@ void SystemClock_Config(void);
 //#endif
 
 SharedMemoryData* sharedDataPtr;
+extern uint8_t WDT_ENABLED;
+
+void MX_IWDG_Init(void);
 
 int main(void)
 {
@@ -58,6 +61,11 @@ int main(void)
 
 	RGB_Color_Set(RGB_COLOR_RED);
 
+	// Start watchdog at bootloader startup
+	if (WDT_ENABLED == 1) {
+		 MX_IWDG_Init();
+		 HAL_IWDG_Refresh(&hiwdg);
+	}
 
 //#ifdef CMC_APPLICATION_DEPENDENT
 	/////// Reading over external eeprom application_dependent variables
