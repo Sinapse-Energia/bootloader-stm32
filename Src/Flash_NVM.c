@@ -75,7 +75,7 @@ HAL_StatusTypeDef FlashNVM_Read(uint32_t start_address, uint8_t* data_out, uint3
 	    start_address++;
 	    sizeCounter++;
 	}
-    return 1;
+    return HAL_OK;
 }
 
 
