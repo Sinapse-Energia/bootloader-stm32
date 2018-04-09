@@ -87,12 +87,15 @@ int main(void)
 			sharedData.variables.UPDFW == UPDFW_UNSET)
     {
 		// Start to check firmware
-		BOOT_ERRORS result = BOOT_ERR_UNKNOWN;
+		volatile BOOT_ERRORS result = BOOT_ERR_UNKNOWN;
 		while ((result = Boot_PerformFirmwareUpdate()) != BOOT_OK) {
 			if(++attempt > NUMBER_RETRIES) break;
 			HAL_Delay(5000);
 			if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, (uint8_t*)"(BOOT New retry over FW update)\r\n", 33,100); //Francis, for logging
 		}
+
+		// Place here a line of code to use as breakpoint line when debugging
+		result = BOOT_ERR_UNKNOWN;
     }
 
 	// Start Application
