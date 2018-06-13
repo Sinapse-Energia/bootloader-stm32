@@ -84,6 +84,96 @@ int main(void)
     sharedDataPtr = &sharedData;
     ReadSharedMemory(&sharedData);
 
+    // Init relays GPIO
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOD_CLK_ENABLE();
+
+    // Set GPIO states
+    uint8_t i;
+    for (i = 1; i < 8; i++)
+    {
+		switch(i)
+		{
+	#ifdef GPIO_RELAY1_Pin
+		case 1:
+			HAL_GPIO_WritePin(GPIO_RELAY1_GPIO_Port,
+					GPIO_RELAY1_Pin,
+					((sharedDataPtr->variables.RELAYS[i] > 0) ? GPIO_PIN_SET :
+							GPIO_PIN_RESET));
+			break;
+	#endif
+	#ifdef GPIO_RELAY2_Pin
+		case 2:
+			HAL_GPIO_WritePin(GPIO_RELAY2_GPIO_Port,
+					GPIO_RELAY2_Pin,
+					((sharedDataPtr->variables.RELAYS[i] > 0) ? GPIO_PIN_SET :
+							GPIO_PIN_RESET));
+			break;
+	#endif
+	#ifdef GPIO_RELAY3_Pin
+		case 3:
+			HAL_GPIO_WritePin(GPIO_RELAY3_GPIO_Port,
+					GPIO_RELAY3_Pin,
+					((sharedDataPtr->variables.RELAYS[i] > 0) ? GPIO_PIN_SET :
+							GPIO_PIN_RESET));
+			break;
+	#endif
+	#ifdef GPIO_RELAY4_Pin
+		case 4:
+			HAL_GPIO_WritePin(GPIO_RELAY4_GPIO_Port,
+					GPIO_RELAY4_Pin,
+					((sharedDataPtr->variables.RELAYS[i] > 0) ? GPIO_PIN_SET :
+							GPIO_PIN_RESET));
+			break;
+	#endif
+	#ifdef GPIO_RELAY5_Pin
+		case 5:
+			HAL_GPIO_WritePin(GPIO_RELAY5_GPIO_Port,
+					GPIO_RELAY5_Pin,
+					((sharedDataPtr->variables.RELAYS[i] > 0) ? GPIO_PIN_SET :
+							GPIO_PIN_RESET));
+			break;
+	#endif
+	#ifdef GPIO_RELAY6_Pin
+		case 6:
+			HAL_GPIO_WritePin(GPIO_RELAY6_GPIO_Port,
+					GPIO_RELAY6_Pin,
+					((sharedDataPtr->variables.RELAYS[i] > 0) ? GPIO_PIN_SET :
+							GPIO_PIN_RESET));
+			break;
+	#endif
+	#ifdef GPIO_RELAY7_Pin
+		case 7:
+			HAL_GPIO_WritePin(GPIO_RELAY7_GPIO_Port,
+					GPIO_RELAY7_Pin,
+					((sharedDataPtr->variables.RELAYS[i] > 0) ? GPIO_PIN_SET :
+							GPIO_PIN_RESET));
+			break;
+	#endif
+		default:
+			break;
+		}
+    }
+
+    GPIO_InitStruct.Pin = GPIO_RELAY1_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(GPIO_RELAY1_GPIO_Port, &GPIO_InitStruct);
+
+	GPIO_InitStruct.Pin = GPIO_RELAY2_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(GPIO_RELAY2_GPIO_Port, &GPIO_InitStruct);
+
+	GPIO_InitStruct.Pin = GPIO_RELAY3_Pin | GPIO_RELAY4_Pin | GPIO_RELAY5_Pin |
+			GPIO_RELAY6_Pin | GPIO_RELAY7_Pin;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+	HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+
     if (sharedData.variables.UPDFW_COUNT > 0)
     {
     	sharedData.variables.UPDFW_COUNT--;

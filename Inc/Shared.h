@@ -36,6 +36,7 @@ typedef struct {
 	char USER[64];
 	char PASSWORD[64];
 	char FW_VERSION[8];
+	uint8_t RELAYS[8];
 } SharedMemoryVariables;
 
 typedef struct {

@@ -66,6 +66,21 @@
 #define LED_RGB_B_Pin GPIO_PIN_5
 #define LED_RGB_B_GPIO_Port GPIOE
 
+#define GPIO_RELAY1_Pin GPIO_PIN_3
+#define GPIO_RELAY1_GPIO_Port GPIOD
+#define GPIO_RELAY2_Pin GPIO_PIN_3
+#define GPIO_RELAY2_GPIO_Port GPIOC
+#define GPIO_RELAY3_Pin GPIO_PIN_6
+#define GPIO_RELAY3_GPIO_Port GPIOE
+#define GPIO_RELAY4_Pin GPIO_PIN_7
+#define GPIO_RELAY4_GPIO_Port GPIOE
+#define GPIO_RELAY5_Pin GPIO_PIN_8
+#define GPIO_RELAY5_GPIO_Port GPIOE
+#define GPIO_RELAY6_Pin GPIO_PIN_9
+#define GPIO_RELAY6_GPIO_Port GPIOE
+#define GPIO_RELAY7_Pin GPIO_PIN_10
+#define GPIO_RELAY7_GPIO_Port GPIOE
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
