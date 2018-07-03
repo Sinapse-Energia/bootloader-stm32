@@ -153,7 +153,7 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
        total_len = 0;
        remain = 0;
 #ifdef DEBUG
-       Color (COL_EXECUTE);
+       Color (COL_OFFLINE);
 #endif
        while (!Socket_GetTimeout(ssource)) {
 
