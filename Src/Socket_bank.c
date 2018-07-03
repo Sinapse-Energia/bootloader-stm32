@@ -496,7 +496,7 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
 		char	*apn = CLIENT_VARIABLE.APN;
 		char	*lapn = CLIENT_VARIABLE.LAPN;
 #ifdef DEBUG
-		Color(COL_CONNECTING);
+		Color(COL_OFFLINE);
 #endif
 		int stat1 = transport_open(h, p, s, apn);
 

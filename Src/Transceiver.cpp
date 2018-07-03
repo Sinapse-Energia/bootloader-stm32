@@ -105,7 +105,8 @@ Transceiver	*Transceiver::TRANSCEIVER(void *hconn) {
 		}
 		else {
 //			if (!strcmp(GetVariable("GPRSDEVICE"), "BG96")) {
-			result = new QuectelBG96();
+//			result = new QuectelBG96();
+			result = NULL;
 		}
 	}
 	else  {
