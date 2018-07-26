@@ -12,8 +12,11 @@ extern void	*gtransceiver;		// PROVISIONAL
 
 typedef		void	*DEV_HANDLER;
 
-	DEV_HANDLER		Device_Init	();
-	void			Device_Reset();
+extern	DEV_HANDLER 	DeviceGPRS_Init();
+extern	DEV_HANDLER		DeviceEth_Init();
+
+extern	void 			DeviceEth_Reset(void);
+extern	void 			Common_Reset(void);
 
 
 	int				CONNECT		(DEV_HANDLER 	ph, const char *apn, const char *host, int port, int security);

@@ -75,6 +75,19 @@ void *Transceiver::handler = NULL;
 Transceiver::Transceiver(){
 }
 
+//
+// protected utility function to active Delay
+//
+
+void Transceiver::Wait	(unsigned int msecs, unsigned int tic){
+	unsigned int ntics = msecs/tic;
+	while (ntics--){
+		if (WDT_ENABLED == 1)HAL_IWDG_Refresh(&hiwdg);
+		Blink();
+		HAL_Delay(tic);
+	}
+}
+
 
 //
 // public abstract Factory

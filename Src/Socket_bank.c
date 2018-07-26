@@ -8,14 +8,32 @@
 // Private variables
 IWDG_HandleTypeDef hiwdg;
 TIM_HandleTypeDef  htim7;
+
+UART_HandleTypeDef huart1;
+UART_HandleTypeDef huart2;
+UART_HandleTypeDef huart4;
 UART_HandleTypeDef huart6;
 UART_HandleTypeDef huartDummy;
 
 extern _SHARING_VARIABLE CLIENT_VARIABLE;
 
+st_CB *DataBuffer;
+st_CB *DataBufferEth;
+
 
 int modem_init;
+typedef enum
+{
 
+	Board1 = 1,  // Square..
+	Board2 = 2,	 // Orange...
+	Board0 = 3,	 // Classic...
+} BoardType;
+
+BoardType BaseBoard = DEFAULTBOARD;
+
+UART_HandleTypeDef *eth_uart;
+UART_HandleTypeDef *gprs_uart;
 uint16_t elapsed10seconds=0; 				/// At beginning this is 0
 uint8_t LOG_ACTIVATED=0;				 	/// Enable to 1 if you want to show log through logUART
 uint8_t LOG_GPRS=0;  						/// For showing only GPRS information
@@ -37,6 +55,7 @@ uint8_t setTransparentConnection=1;  		/// 1 for transparent connection, 0 for n
 
 static uint8_t GPRSbuffer[SIZE_GPRS_BUFFER];/// received buffer with data from GPRS
 static uint8_t dataByteBufferIRQ;  			/// Last received byte from GPRS
+static uint8_t dataByteBufferETH;  			/// Last received byte from ETHERNET
 uint16_t GPRSBufferReceivedBytes;     		/// Number of received data from GPRS after a cleanningReceptionBuffer() is called
 
 
@@ -83,6 +102,51 @@ static void MX_TIM7_Init(void)
  }
 
 
+#if defined(BUILD_RM08)
+/* USART1 init function */
+static void MX_USART1_UART_Init(void) {
+
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+//  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+//  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+/* USART4 init function */
+static void MX_UART4_UART_Init(void)
+{
+
+	huart4.Instance = UART4;
+	huart4.Init.BaudRate = 115200;
+	huart4.Init.WordLength = UART_WORDLENGTH_8B;
+	huart4.Init.StopBits = UART_STOPBITS_1;
+	huart4.Init.Parity = UART_PARITY_NONE;
+	huart4.Init.Mode = UART_MODE_TX_RX;
+	huart4.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	huart4.Init.OverSampling = UART_OVERSAMPLING_16;
+//  huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+//  huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart4) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
+#endif
+
+#if defined GPRS_TRANSPORT
 /* USART6 init function */
 static void MX_USART6_UART_Init(void)
 {
@@ -99,39 +163,53 @@ static void MX_USART6_UART_Init(void)
         _Error_Handler(__FILE__, __LINE__);
     }
 }
+#endif
 
-// Configure pins
- static void MX_GPIO_Init(void)
+
+/** Configure pins as
+        * Analog
+        * Input
+        * Output
+        * EVENT_OUT
+        * EXTI
+*/
+
+
+static void MX_GPIO_Init(BoardType boardtype)
 {
 
 	  GPIO_InitTypeDef GPIO_InitStruct;
+#if defined (BUILD_M95) || defined(BUILD_BG96)
+    GPIO_InitTypeDef GPIO_InitStruct;
 
 	  /* GPIO Ports Clock Enable */
 	  __HAL_RCC_GPIOC_CLK_ENABLE();
-	  __HAL_RCC_GPIOH_CLK_ENABLE();
+    __HAL_RCC_GPIOH_CLK_ENABLE();  // seems unused...
 	  __HAL_RCC_GPIOA_CLK_ENABLE();
-	  __HAL_RCC_GPIOB_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();   // it did conflicts with CAN init
 	  __HAL_RCC_GPIOD_CLK_ENABLE();
 
 	  /*Configure GPIO pin Output Level */
 	  HAL_GPIO_WritePin(GPIOC, blueRGB_Pin|redRGB_Pin|greenRGB_Pin|GPIO_PIN_3
 	                          |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_8|GPIO_PIN_10
-	                          |GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_RESET);
+                            |GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_SET);
 
 	  /*Configure GPIO pin Output Level */
 	  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6
 	                          |GPIO_PIN_7|txDBG_3G_Pin|GPIO_PIN_9|GPIO_PIN_10
 	                          |emerg_3G_Pin|pwrKey_3G_Pin, GPIO_PIN_RESET);
 
+    #if 1
 	  /*Configure GPIO pin Output Level */
 	  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_10
-	                          |GPIO_PIN_11|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15
+                            |GPIO_PIN_11|Relay1_Pin|GPIO_PIN_14|GPIO_PIN_15
 	                          |GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6
 	                          |GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
-
+    #endif
+    #if 1
 	  /*Configure GPIO pin Output Level */
 	  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_2, GPIO_PIN_RESET);
-
+    #endif
 	  /*Configure GPIO pins : blueRGB_Pin redRGB_Pin greenRGB_Pin */
 	  GPIO_InitStruct.Pin = blueRGB_Pin|redRGB_Pin|greenRGB_Pin;
 	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
@@ -162,19 +240,155 @@ static void MX_USART6_UART_Init(void)
 	  GPIO_InitStruct.Pull = GPIO_NOPULL;
 	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
+    #if 1
 	  /*Configure GPIO pins : PB0 PB1 PB2 PB10
 	                           PB11 Relay1_Pin PB14 PB15
 	                           PB3 PB4 PB5 PB6
 	                           PB7 PB8 PB9 */
 	  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_10
-	                          |GPIO_PIN_11|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15
+                            |GPIO_PIN_11|Relay1_Pin|GPIO_PIN_14|GPIO_PIN_15
 	                          |GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6
 	                          |GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9;
 	  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
 	  GPIO_InitStruct.Pull = GPIO_NOPULL;
 	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    #endif
+    /*Configure GPIO pin : PWM_sim_Pin */
+    GPIO_InitStruct.Pin = PWM_sim_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(PWM_sim_GPIO_Port, &GPIO_InitStruct);
+
+    /*Configure GPIO pins : emerg_3G_Pin pwrKey_3G_Pin */
+    GPIO_InitStruct.Pin = emerg_3G_Pin|pwrKey_3G_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    /*Configure GPIO pin : rxDBG_3G_Pin */
+    GPIO_InitStruct.Pin = rxDBG_3G_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(rxDBG_3G_GPIO_Port, &GPIO_InitStruct);
+
+    #if 1
+    /*Configure GPIO pin : PD2 */
+      GPIO_InitStruct.Pin = GPIO_PIN_2;
+      GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+      GPIO_InitStruct.Pull = GPIO_NOPULL;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+      HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+    #endif
+#endif
+
+#if defined (BUILD_RM08)
+		/* GPIO Ports Clock Enable */
+		__HAL_RCC_GPIOC_CLK_ENABLE();
+		__HAL_RCC_GPIOH_CLK_ENABLE();  // seems unused...
+		__HAL_RCC_GPIOA_CLK_ENABLE();
+		__HAL_RCC_GPIOB_CLK_ENABLE();   // conflicts with CAN init
+		__HAL_RCC_GPIOD_CLK_ENABLE();   // leads to CAN_Init timeout
+
+		if (boardtype == Board2) {
+
+		  /*Configure GPIOC pin Output Level */
+		  HAL_GPIO_WritePin(GPIOC, blueRGB_Pin|redRGB_Pin|greenRGB_Pin, GPIO_PIN_SET);
+
+		  /*Configure GPIOA pin Output Level */
+		  // NOTHING
+
+		  /*Configure GPIOB pin Output Level */
+		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10 |GPIO_PIN_11, GPIO_PIN_SET);
+
+		  /*Configure GPIOD pin Output Level */
+		  // NOTHING
+
+		  /*Configure GPIO pins : blueRGB_Pin redRGB_Pin greenRGB_Pin */
+		  GPIO_InitStruct.Pin = blueRGB_Pin|redRGB_Pin|greenRGB_Pin;
+		  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+		  /*Configure GPIO pins : PB0 PB1 PB2 PB10
+								   PB11 Relay1_Pin PB14 PB15
+								   PB3 PB4 PB5 PB6
+								   PB7 PB8 PB9 */
+		  GPIO_InitStruct.Pin = GPIO_PIN_10 |GPIO_PIN_11;
+		  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+		}
+		else {
+
+		  /*Configure GPIOC pin Output Level */
+		  HAL_GPIO_WritePin(GPIOC, blueRGB_Pin|redRGB_Pin|greenRGB_Pin|GPIO_PIN_3
+								  |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_8|GPIO_PIN_10
+								  |GPIO_PIN_11|GPIO_PIN_12, GPIO_PIN_SET);
+
+		  /*Configure GPIOA pin Output Level */
+		  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_0|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6
+								  |GPIO_PIN_7|txDBG_3G_Pin|GPIO_PIN_9|GPIO_PIN_10
+								  |emerg_3G_Pin|pwrKey_3G_Pin, GPIO_PIN_RESET);
+
+
+		  /*Configure GPIOB pin Output Level */
+		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0|//GPIO_PIN_1|
+								  GPIO_PIN_2 // |GPIO_PIN_10 |GPIO_PIN_11 removed
+								  |Relay1_Pin|GPIO_PIN_14|GPIO_PIN_15
+								  |GPIO_PIN_3|GPIO_PIN_4|//GPIO_PIN_5|
+								  GPIO_PIN_6
+								  |GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9, GPIO_PIN_RESET);
+		  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10 |GPIO_PIN_11, GPIO_PIN_SET);
+
+
+		  /*Configure GPIOD pin Output Level */
+		  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_2, GPIO_PIN_RESET);
+
+
+		  /*Configure GPIO pins : blueRGB_Pin redRGB_Pin greenRGB_Pin */
+		  GPIO_InitStruct.Pin = blueRGB_Pin|redRGB_Pin|greenRGB_Pin;
+		  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+		  /*Configure GPIO pins : status_3G_Pin netlight_3G_Pin */
+		  GPIO_InitStruct.Pin = status_3G_Pin|netlight_3G_Pin;
+		  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+		  /*Configure GPIO pins : PC3 PC4 PC5 PC8
+								   PC10 PC11 PC12 */
+		  GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_8
+								  |GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_12;
+		  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+		  /*Configure GPIO pins : PA0 PA4 PA5 PA6
+								   PA7 txDBG_3G_Pin PA9 PA10 */
+		  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6
+								  |GPIO_PIN_7|txDBG_3G_Pin;//GPIO_PIN_9|GPIO_PIN_10;
+		  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+		  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_2|GPIO_PIN_10
+									|GPIO_PIN_11|Relay1_Pin|GPIO_PIN_14|GPIO_PIN_15
+									|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_6
+								  |GPIO_PIN_7|GPIO_PIN_8|GPIO_PIN_9;
+		  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
 	  /*Configure GPIO pin : PWM_sim_Pin */
 	  GPIO_InitStruct.Pin = PWM_sim_Pin;
@@ -202,6 +416,9 @@ static void MX_USART6_UART_Init(void)
 	  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
+		}
+
+#endif
 
 }
 
@@ -217,7 +434,8 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef * huart)
 
 	if (application_layer_connection==1) /// Sva/Seka buffer in application layer
 	{
-			if (huart->Instance == huart6.Instance)
+			if ( (huart->Instance == huart6.Instance)
+			  ||  (huart->Instance == eth_uart->Instance))
 			{
 		GPRSbuffer[GPRSBufferReceivedBytes] = dataByteBufferIRQ;
 		GPRSBufferReceivedBytes = (GPRSBufferReceivedBytes + 1) % SIZE_GPRS_BUFFER;
@@ -228,9 +446,12 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef * huart)
 	else /// Juanra buffer in transport layer
 	{
 
+		if (huart->Instance==eth_uart->Instance) {
+	 		 Write(DataBufferEth, dataByteBufferETH);
+	 		 HAL_UART_Receive_IT(huart,&dataByteBufferETH,1);
 
-			if (huart->Instance==huart6.Instance)
-			 {
+		}
+		else if (huart->Instance==gprs_uart->Instance) {
 				  if (! bydma) { // only if not BYDMA
 					 nirqs++;
 						 allnew += Write(DataBuffer, dataByteBufferIRQ);
@@ -300,8 +521,11 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 {
 	void	*Device;
 	// Initialize all configured peripherals
-	MX_GPIO_Init();
+	MX_GPIO_Init(BaseBoard);
+
 	// MX_IWDG_Init();
+	Color(WHITE);
+
 	 redOFF;
 	 blueOFF;
 	 greenOFF;
@@ -309,7 +533,9 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 
 		application_layer_connection=0;
 
+#if defined (GPRS_TRANSPORT)
 		MX_USART6_UART_Init();
+		gprs_uart = &huart6;
 
 		if (bydma) { // BYDMA
 #if defined (BUILD_DMA)
@@ -332,7 +558,7 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 					 		ta = HAL_GetTick();
 					 		// pretrace ("INFO Init modem on start\n", n);
 					 		do {
-					 			Device = Device_Init();
+								Device = DeviceGPRS_Init();
 //					 			rc = Modem_Init();
 					 			n++;
 					 		} while (Device == NULL);
@@ -362,10 +588,49 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 
 
 	 		// C Language wrapper to the Modem Abstract Factory
+			do {
 	 		gtransceiver = MODEMFACTORY(Device, DataBuffer);
+			} while (!gtransceiver);
 
 
 		//HAL_UART_Receive_IT(&huart6, (uint8_t*) &dataByteBufferIRQ, 1);
+#endif
+#if defined (ETH_TRANSPORT)
+// 			MX_RTC_Init();  NOT needed ... ?
+
+
+			if (BaseBoard == Board2){
+				MX_UART4_UART_Init();
+				eth_uart = &huart4;
+			}
+			else if (BaseBoard == Board1)  {
+				MX_USART1_UART_Init();
+				eth_uart = &huart1;
+			}
+			else { // defaults to Board1
+
+			}
+
+			// 1 Gets the initialized device handler
+			do {
+				Device = DeviceEth_Init();
+			} while (!Device);
+
+
+			// 2 Allocates a circular buffer to work with
+			DataBufferEth	= CircularBuffer (256, NULL);
+
+			// 3 Enables the interrupt to get the characters into the callback
+			HAL_UART_Receive_IT(eth_uart, &dataByteBufferETH, 1); // Enabling IRQ
+
+			// 4 Creates the modem object (so far only issues a single command)
+			do {
+				gtransceiver = ETHFACTORY(Device, DataBufferEth);
+//				if (!gtransceiver)
+//					Device_Reset();
+			} while (!gtransceiver);
+
+#endif
 
 	    HAL_Delay(30);
 
@@ -610,7 +875,13 @@ int Socket_Read(SOCKETS_SOURCE s_in, char *buff_out, int buff_len)
 void Socket_Clear(SOCKETS_SOURCE s_in)
 {
 	if (s_in == SOCKET_SRC_GPRS) {
+#if defined (GPRS_TRANSPORT)
 		Reset(DataBuffer);
+#endif
+#if defined (ETH_TRANSPORT)
+		Reset(DataBufferEth);
+#endif
+
 //		cleanningReceptionBuffer(USART6_IRQn, GPRSbuffer, SIZE_GPRS_BUFFER, &GPRSBufferReceivedBytes);
 	} else {
 
@@ -647,8 +918,14 @@ uint8_t Socket_GetTimeout(SOCKETS_SOURCE s_in)
 SOCKET_STATUS Socket_Write(SOCKETS_SOURCE s_in, const char *data_in, int data_len)
 {
 	if (s_in == SOCKET_SRC_GPRS) {
+#if defined (GPRS_TRANSPORT)
 	    // GPRS
 		if (HAL_UART_Transmit(&huart6, (uint8_t*)data_in, data_len, 1000) != HAL_OK) return SOCKET_ERR_NO_CONNECTION;
+#endif
+#if defined (ETH_TRANSPORT)
+		if (HAL_UART_Transmit(eth_uart, (uint8_t*)data_in, data_len, 1000) != HAL_OK) return SOCKET_ERR_NO_CONNECTION;
+#endif
+
 	} else {
 
 	}

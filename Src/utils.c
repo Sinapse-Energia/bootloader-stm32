@@ -59,6 +59,16 @@ void	ROTATE(){
 }
 */
 
+
+#ifdef BOOTLOADER
+
+
+int		SetMAC (const char *txt){
+	return 1;
+}
+
+
+#endif
 ////////////////////  SYSTEM DATE & TIME  //////////////////////////////////////
 
 struct tm	ECdatetime;

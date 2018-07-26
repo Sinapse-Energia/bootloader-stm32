@@ -9,6 +9,7 @@
 #include "sharing_memory.h"
 #include "Bootloader.h"
 
+extern UART_HandleTypeDef *eth_uart;
 
 // Program version memory map prototype
 const uint8_t __attribute__((section(".myvars"))) VERSION_NUMBER[6] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
@@ -390,7 +391,14 @@ int main(void)
 	/// De init peripherals before entering in app client.
 	HAL_TIM_Base_Stop_IT(&htim7);
 	HAL_TIM_Base_MspDeInit(&htim7);
+
+#if defined (GPRS_TRANSPORT)
 	HAL_UART_MspDeInit(&huart6);
+#endif
+#if defined (ETH_TRANSPORT)
+	HAL_UART_MspDeInit(eth_uart);
+
+#endif
 
 	Boot_StartApplication();
 
@@ -426,7 +434,90 @@ void MX_DMA_Init(void)
 
 /** System Clock Configuration
 */
-void SystemClock_Config(void)
+void SystemClock_Config()
+{
+	RCC_OscInitTypeDef RCC_OscInitStruct;
+	RCC_ClkInitTypeDef RCC_ClkInitStruct;
+	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct;
+#if defined (BUILD_RM08)
+		    /**Initializes the CPU, AHB and APB busses clocks
+		    */
+		  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_LSI
+		                              |RCC_OSCILLATORTYPE_HSE;
+		  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+		  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+		  RCC_OscInitStruct.HSICalibrationValue = 16;
+		  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
+		  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+		  //RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
+		 // RCC_OscInitStruct.PLL.PLLM = 16;
+		 // RCC_OscInitStruct.PLL.PLLN = 192;
+		  //RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+		  //RCC_OscInitStruct.PLL.PLLQ = 4;
+		  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+		  {
+		    _Error_Handler(__FILE__, __LINE__);
+		  }
+
+		    /**Initializes the CPU, AHB and APB busses clocks
+		    */
+		  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+		                              |RCC_CLOCKTYPE_PCLK1;//|RCC_CLOCKTYPE_PCLK2;
+		  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
+		  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+		  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+		 // RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+		  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+		  {
+		    _Error_Handler(__FILE__, __LINE__);
+		  }
+
+		  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+		  PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+		  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+		  {
+		    _Error_Handler(__FILE__, __LINE__);
+		  }
+#endif
+#if defined (BUILD_M95) || defined (BUILD_BG96)
+		/**Initializes the CPU, AHB and APB busses clocks
+		*/
+		RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
+		RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+		RCC_OscInitStruct.LSIState = RCC_LSI_ON;
+		RCC_OscInitStruct.PLL.PLLState = RCC_PLL_NONE;
+		if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+		{
+		_Error_Handler(__FILE__, __LINE__);
+		}
+
+		/**Initializes the CPU, AHB and APB busses clocks
+		*/
+		RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+								  |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+		RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSE;
+		RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+		RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+		RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+		if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+		{
+		_Error_Handler(__FILE__, __LINE__);
+		}
+#endif
+	// COMMON
+    /**Configure the Systick interrupt time */
+	HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+
+    /**Configure the Systick */
+	HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
+
+	/* SysTick_IRQn interrupt configuration */
+	HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
+}
+#if 0
+void SystemClock_ConfigOLD(void)
 {
 
   RCC_OscInitTypeDef RCC_OscInitStruct;
@@ -468,7 +559,7 @@ void SystemClock_Config(void)
   /* SysTick_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
-
+#endif
 /* ADC1 init function */
 static void MX_ADC1_Init(void)
 {
