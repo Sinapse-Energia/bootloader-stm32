@@ -312,9 +312,11 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 		MX_USART6_UART_Init();
 
 		if (bydma) { // BYDMA
+#if defined (BUILD_DMA)
 					DataBuffer	= CircularBuffer (256, &hdma_usart6_rx);
 					MX_DMA_Init();					// set DMA clock and priorities
 					HAL_UART_DMAStop(&huart6);
+#endif
 			}
 			else {
 				DataBuffer	= CircularBuffer (256, NULL);
@@ -343,6 +345,7 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 					 	}
 
 			if (bydma) {  // BYDMA
+#if defined (BUILD_DMA)
 				int tries = 0;
 				HAL_StatusTypeDef rc;
 				do {
@@ -350,6 +353,7 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 					HAL_Delay(200);
 					tries++;
 				} while  (rc != HAL_OK);
+#endif
 			}
 			else {
 				HAL_UART_Receive_IT(&huart6, &dataByteBufferIRQ, 1); // Enabling IRQ

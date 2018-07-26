@@ -174,7 +174,7 @@ int		Transceiver::SendDataTransparent(int sock, const char *data, int length){
 			return -1;
 }
 int		Transceiver::SendDataNonTransparent(int sock, const char *data, int length){
-#ifdef BUILD_NONTRANPARENTMODE
+#ifdef BUILD_NONTRANSPARENTMODE
 	char	cmd[64];  		// small array, where the string for the command to SENT has to be built
 	if (protocol == TCP){
 		// to be completed
@@ -502,7 +502,7 @@ int	ATCommandFlow(CmdProps *lista,
 extern uint8_t nTimesMaximumFail_GPRS;
 extern UART_HandleTypeDef huart6;
 
-
+#if defined (BUILD_M95) || defined(BUILD_BG96)
 DEV_HANDLER Device_Init() {
 	DEV_HANDLER result;
 	if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
@@ -577,14 +577,6 @@ UART_HandleTypeDef *M95_Initialize(
 	return phuart;
 }
 
-
-
-void Device_Reset() {
-	M95_Reset(&huart6,WDT_ENABLED, &hiwdg,
-			Pwrkey_GPIO_Port, Pwrkey_Pin,
-			M95Status_GPIO_Port, M95Status_Pin);
-}
-
 void M95_Reset (
 		UART_HandleTypeDef *phuart,
 		uint8_t WDT_ENABLED,
@@ -606,6 +598,18 @@ void M95_Reset (
 		HAL_Delay(50);
 	} while (statusM95_statusPin != GPIO_PIN_SET);
 }
+
+
+#endif
+
+
+#if defined (BUILD_RM08)
+void Device_Reset() {
+	M95_Reset(&huart6,WDT_ENABLED, &hiwdg,
+			Pwrkey_GPIO_Port, Pwrkey_Pin,
+			M95Status_GPIO_Port, M95Status_Pin);
+}
+#endif
 
 
 

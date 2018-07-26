@@ -120,7 +120,7 @@ int	QuectelM95::ConnectTCP(const char *apn, const char *host, int port){
 
 
 int	QuectelM95::ConnectTLS(const char *apn, const char *host, int port){
-
+#if defined (BUILD_TLS)
 	// Local variables now, but eligible to become members
 
 	char 	GPRS_TX[100]; 	// to build QICSGP AT command
@@ -217,6 +217,9 @@ int	QuectelM95::ConnectTLS(const char *apn, const char *host, int port){
 		// Disconnect..
 		return -i;
 	}
+#else
+	return 0;
+#endif
 }
 
 

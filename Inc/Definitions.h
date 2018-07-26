@@ -3,7 +3,10 @@
 
 
 #define DEBUG
+
 #define BOOTLOADER
+
+
 
 // Value to be used when discovery fails
 // Values are:
@@ -12,7 +15,9 @@
 //  Board2 -> Pretty box (Orange)
 #define	DEFAULTBOARD	Board2
 
+// LABELS for SELECTIVE BUILD
 
+// LABELS FOR TRANSCEIVERS
 #define BUILD_M95
 //#define BUILD_BG96
 //#define BUILD_RM08
@@ -24,6 +29,8 @@
  	#define BUILD_CANBUS
 #endif
 
+
+// TRASPORT LABEL (COMPOSITES)
 #if defined(BUILD_M95) || defined(BUILD_BG96)
 #define GPRS_TRANSPORT
 #define	DEFAULTBOARD	Board0
@@ -32,6 +39,12 @@
 #if defined(BUILD_RM08)
 #define ETH_TRANSPORT
 #endif
+
+// LABELS FOR OPTIONAL FEATURES
+#undef BUILD_RTC
+#undef BUILD_DMA
+#undef BUILD_TLS
+#undef BUILD_NONTRANSPARENTMODE
 
 
 

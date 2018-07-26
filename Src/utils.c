@@ -40,11 +40,6 @@ void	Color(int col){
 	_color(color);
 }
 
-void	ROTATE(){
-	color = (color + 1) % 8;
-	Color(color);
-}
-
 
 void	Blink() {
 	static int	blink = 0;
@@ -57,6 +52,12 @@ void	Blink() {
 	}
 }
 
+/*
+void	ROTATE(){
+	color = (color + 1) % 8;
+	Color(color);
+}
+*/
 
 ////////////////////  SYSTEM DATE & TIME  //////////////////////////////////////
 

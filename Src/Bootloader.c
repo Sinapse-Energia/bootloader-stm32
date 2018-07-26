@@ -53,7 +53,7 @@ uint8_t Boot_StartApplication(void)
     return 1; // OK (but in real app should never reach this point)
 }
 
-
+#if 0
 /**
   * @brief  Check connection to server
   * @param  ssource - SOCKET_SRC_WIFI / SOCKET_SRC_GPRS
@@ -85,6 +85,7 @@ uint8_t Boot_CheckConnection(SOCKETS_SOURCE ssource)
     }
     return 1; // Ok
 }
+#endif
 
 /**
   * @brief  Check for new application firmware available on remote FTP server

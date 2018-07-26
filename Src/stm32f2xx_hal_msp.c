@@ -248,6 +248,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 
 
     if (bydma) {
+#if defined (BUILD_DMA)
     		/* USART6 DMA Init */
     		/* USART6_RX Init */
     		hdma_usart6_rx.Instance = DMA2_Stream1;
@@ -266,6 +267,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
     		}
 
     		__HAL_LINKDMA(huart,hdmarx,hdma_usart6_rx);
+#endif
     }
     /* USART6 interrupt Init */
     HAL_NVIC_SetPriority(USART6_IRQn, 0, 0);
@@ -315,12 +317,14 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
     HAL_GPIO_DeInit(GPIOC, to3G_Pin|from3G_Pin);
 
     if (bydma) { // #ifdef BYDMA
+#if defined (BUILD_DMA)
     	/* USART6 DMA DeInit */
     	HAL_DMA_DeInit(huart->hdmarx);
 
     	/* USART6 interrupt DeInit */
     	HAL_NVIC_DisableIRQ(USART6_IRQn);
     	/* USER CODE BEGIN USART6_MspDeInit 1 */
+#endif
     }
     else { // BYIRQ
     	/**

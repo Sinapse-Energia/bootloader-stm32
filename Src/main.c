@@ -410,7 +410,7 @@ int main(void)
 		HAL_Delay(500);
 	}
 }
-
+#if defined (BUILD_DMA)
 void MX_DMA_Init(void)
 {
   /* DMA controller clock enable */
@@ -422,6 +422,7 @@ void MX_DMA_Init(void)
   HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
 
 }
+#endif
 
 /** System Clock Configuration
 */
