@@ -4,9 +4,10 @@
  *  Created on: 7 feb. 2018
  *      Author: juanra
  */
-
-#include <string.h> // strcmp
 #include "M95.h"
+
+#if defined(BUILD_M95)
+#include <string.h> // strcmp
 #include "circular.h" // DataBuffer
 
 
@@ -45,9 +46,14 @@ int		getRecvPayload1(const char *reply){
 
 
 QuectelM95::QuectelM95() : Transceiver(){
-	urc =		"\r\n+QSSLURC: \"recv\",0,1\r\n";	//  CXT - CLIENT-ID, 
-	recvfmt =	"AT+QSSLRECV=0,1,%d\r";				//  CTX - CLIENT-ID, HOW-MANY
-	phandler =	getRecvPayload1;						//	 
+	// Placeholders for TCP vectors
+	urcs[0]		=	"";
+	recvfmts[0] =	"";
+	phandlers[0]= 	NULL;
+	// TLS vectors
+	urcs[1]		=	"\r\n+QSSLURC: \"recv\",0,1\r\n";	//  CXT - CLIENT-ID, 
+	recvfmts[1] =	"AT+QSSLRECV=0,1,%d\r";				//  CTX - CLIENT-ID, HOW-MANY
+	phandlers[1]=	getRecvPayload1;					//
 }
 
 int	QuectelM95::ConnectTCP(const char *apn, const char *host, int port){
@@ -96,7 +102,7 @@ int	QuectelM95::ConnectTCP(const char *apn, const char *host, int port){
 			{	ATMATCH,	"",		{OPEN_TX,}, 		{"\r\nOK\r\n\r\nCONNECT\r\n"},{5000, 0}, 2 , NULL, NULL, 1},
 			{	ATMATCH, 	"END"  }
 	};
-	int i = ATCommandFlow(TCPFlow, (UART_HandleTypeDef *) handler, WDT_ENABLED, &hiwdg,  0);
+	int i = ATCommandFlow(TCPFlow, (UART_HandleTypeDef *) handler, DataBuffer, WDT_ENABLED, &hiwdg,  0);
 	if (!strcmp(TCPFlow[i].id,"END")){
 		Reset(DataBuffer);
 		if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
@@ -199,7 +205,7 @@ int	QuectelM95::ConnectTLS(const char *apn, const char *host, int port){
 
 
 
-	int i = ATCommandFlow(TLSFlow, (UART_HandleTypeDef *) handler, WDT_ENABLED, &hiwdg,  0);
+	int i = ATCommandFlow(TLSFlow, (UART_HandleTypeDef *) handler, DataBuffer, WDT_ENABLED, &hiwdg,  0);
 	if (!strcmp(TLSFlow[i].id,"END")){
 		Reset(DataBuffer);
 		if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
@@ -217,4 +223,4 @@ int	QuectelM95::ConnectTLS(const char *apn, const char *host, int port){
 
 
 
-
+#endif

@@ -24,14 +24,14 @@ extern IWDG_HandleTypeDef hiwdg;
 
 
 
+st_CB	*Transceiver::DataBuffer = NULL;
 
 //////////////////////////////////////////////////////////////////////////////////////
 //		C  LANGUAGE API ENTRY POINTS
 //////////////////////////////////////////////////////////////////////////////////////
 //		C WRAPPER for OBJECT FACTORY
-void	*MODEMFACTORY(DEV_HANDLER hconn) {
-	Transceiver *Trcvglobal = Transceiver::TRANSCEIVER(hconn);
-	return (void *) Trcvglobal;
+void	*MODEMFACTORY(DEV_HANDLER hconn, st_CB *cb) {
+	return Transceiver::TRANSCEIVER(hconn, cb);
 }
 
 //		C WRAPPER for Connect method
@@ -79,11 +79,11 @@ Transceiver::Transceiver(){
 //
 // public abstract Factory
 //
-Transceiver	*Transceiver::TRANSCEIVER(void *hconn) {
+Transceiver	*Transceiver::TRANSCEIVER(void *hconn, st_CB *cb) {
 	Transceiver  *result = NULL;
 
 	Transceiver::handler = hconn;
-
+	Transceiver::DataBuffer = cb;
 	CmdProps	InitCmds[] = {
 		// just in case to be in data transparent mode ..
 		{	ATGET,		"",		{"+++"}, 				{NULL, NULL, SetGeneric}, 	{200,  1000, 1000}, 1} ,
@@ -96,7 +96,7 @@ Transceiver	*Transceiver::TRANSCEIVER(void *hconn) {
 		{	ATMATCH, 	NULL	}  // placeholder for error in label lookup
 	};
 	int i =0;
-	i = ATCommandFlow(InitCmds, (UART_HandleTypeDef *) handler, WDT_ENABLED, &hiwdg, 0);
+	i = ATCommandFlow(InitCmds, (UART_HandleTypeDef *) handler, DataBuffer, WDT_ENABLED, &hiwdg, 0);
 
 	if (!strcmp(InitCmds[i].id, "END")) {
 //		if (!strcmp(GetVariable("GPRSDEVICE"), "M95")){
@@ -111,7 +111,7 @@ Transceiver	*Transceiver::TRANSCEIVER(void *hconn) {
 	}
 	else  {
 		// if not known, return the base object !
-		result = new Transceiver();
+		result = NULL;
 	}
 //	result = NULL;
 	return result;
@@ -144,7 +144,7 @@ int		Transceiver::DisConnect() {
 		{	ATMATCH, 	"END", 	NULL }
 	};
 
-	i = ATCommandFlow(DisConnectFlow, (UART_HandleTypeDef *) handler, WDT_ENABLED, &hiwdg, 0);
+	i = ATCommandFlow(DisConnectFlow, (UART_HandleTypeDef *) handler, DataBuffer, WDT_ENABLED, &hiwdg, 0);
 	if (!strcmp(DisConnectFlow[i].id,"END"))
 		return 1;
 	else
@@ -156,18 +156,32 @@ int rcvstate = 0 ; // 0 -> buff empty for sure (0) or maybe not(1) (Useless ?)
 extern int gsocket;  // PROVISIONAL...!!!!
 
 //
-// SendData method: facade to switch based on socket value as key to mode (WEAK!!)
+// SendData method: facade to delegate on specialized methods depending on protocol (Weak!)
 //
 int		Transceiver::SendData(int sock, const char *data, int length){
-	if (sock == 1){
+	if (mode == Transparent){
+		return SendDataTransparent(sock, data, length);
+	}
+	else {
+		return SendDataNonTransparent(sock, data, length);
+	}
+}
+
+int		Transceiver::SendDataTransparent(int sock, const char *data, int length){
 		if (HAL_UART_Transmit((UART_HandleTypeDef *) handler, (unsigned char *)data, length, MAXSENDTIMEOUT)== HAL_OK)
 			return 1;
 		else
 			return -1;
+}
+int		Transceiver::SendDataNonTransparent(int sock, const char *data, int length){
+#ifdef BUILD_NONTRANPARENTMODE
+	char	cmd[64];  		// small array, where the string for the command to SENT has to be built
+	if (protocol == TCP){
+		// to be completed
+		return 0;
 	}
-	else {
+	if (protocol == TLS){
 		// Call the TLS Flow for sending command
-		char	cmd[64];  		// array, where the string for the command QSSLSEND to be built
 		sprintf (cmd, "AT+QSSLSEND=1,%d\r", length);
 		CmdProps CmdSend[] = {
 			{ ATMATCH,	"", 	{cmd},				{"\r\n> "},							{3000, 0}, 	1},
@@ -175,20 +189,23 @@ int		Transceiver::SendData(int sock, const char *data, int length){
 			{ ATMATCH,	"END"}
 		};
 
-//		CmdProps *CommandList = QSendFlow((unsigned char *)data, length);
-		int	i = ATCommandFlow(CmdSend, (UART_HandleTypeDef *) handler, WDT_ENABLED, &hiwdg, 0);
+		int	i = ATCommandFlow(CmdSend, (UART_HandleTypeDef *) handler, DataBuffer, WDT_ENABLED, &hiwdg, 0);
 		if (!strcmp(CmdSend[i].id,"END")){
 			return 1;
 		}
 		else
-			return 0;
+			return -i;
 	}
+#else
+	return -1;
+#endif
 }
 
 //
-// GetData method: facade to switch based on socket value as key to mode (WEAK!!)
+// GetData method: facade to delegate on specialized methods depending on protocol (Weak!)
 //
 int		Transceiver::GetData(int count, char *buffer){
+#if !defined (BOOTLOADER)
 	int i;
 	if (gsocket == 1){
 		int z;
@@ -245,7 +262,7 @@ int		Transceiver::GetData(int count, char *buffer){
 
 			sprintf (readcmd, recvfmt, count);
 			CmdProps ReadCmd =  {ATGET,	"",		{readcmd},	{NULL, work, phandler},	{200, 0}, 	1};
-			int num = executeCommand (&ReadCmd, handler);
+			int num = executeCommand (&ReadCmd, handler, DataBuffer);
 			if (num) {
 				for (i = 0; i < num; i++){
 					buffer[i] = work[i];
@@ -259,6 +276,9 @@ int		Transceiver::GetData(int count, char *buffer){
 			}
 		}
 	}
+#else
+	return 0;
+#endif
 }
 
 // DUMMY for ATO. To stinguish
@@ -275,7 +295,7 @@ int		Transceiver::ExecuteCommand			(const char *cmd, char *destination,int (* hf
 			{	ATGET,		"",		{"ATO0\r"}, 		{NULL, NULL, GATO}, 			{1000}, 	1} ,
 			{	ATMATCH, 	"END" }
 		};
-		int	i = ATCommandFlow(ExecuteFlow, (UART_HandleTypeDef *) handler, WDT_ENABLED, &hiwdg, 0);
+		int	i = ATCommandFlow(ExecuteFlow, (UART_HandleTypeDef *) handler, DataBuffer, WDT_ENABLED, &hiwdg, 0);
 		if (i == 3){
 			return 1;
 		}
@@ -287,7 +307,7 @@ int		Transceiver::ExecuteCommand			(const char *cmd, char *destination,int (* hf
 			{	ATGET,		"",		{cmd}, 				{NULL, destination, hfun},			{1000, 0}, 				1} ,
 			{	ATMATCH, 	"END" }
 		};
-		int	i = ATCommandFlow(ExecuteFlow, (UART_HandleTypeDef *) handler, WDT_ENABLED, &hiwdg, 0);
+		int	i = ATCommandFlow(ExecuteFlow, (UART_HandleTypeDef *) handler, DataBuffer,  WDT_ENABLED, &hiwdg, 0);
 		if (i == 1){
 			return 1;
 		}
@@ -310,7 +330,8 @@ CmdProps trerror = {ATGET,	"",		{"AT+GETERROR\r"},			{NULL, ATerror, SetGeneric}
 
 #define		TIMESLICE	100
 
-uint8_t executeCommand( CmdProps *cmd, DEV_HANDLER phuart, unsigned int flags) {
+
+uint8_t executeCommand( CmdProps *cmd, DEV_HANDLER phuart, st_CB *DataBuffer, unsigned int flags) {
 	uint16_t tries = 0;
 	uint16_t initialCounter=0;
 	int x;
@@ -319,7 +340,7 @@ uint8_t executeCommand( CmdProps *cmd, DEV_HANDLER phuart, unsigned int flags) {
 
 
 	if (cmd->flags & 1)
-		executeCommand(&trstate, phuart);
+		executeCommand(&trstate, phuart, DataBuffer);
 
 	while ((tries++ < cmd->nretries)) {
 		size_t lrequest = cmd->request.length?cmd->request.length:strlen(cmd->request.command);
@@ -436,6 +457,7 @@ int	Step(CmdProps *list, const char *label){
 
 int	ATCommandFlow(CmdProps *lista,
 		DEV_HANDLER phuart,
+		st_CB *DataBuffer,
 		uint8_t WDT_ENABLED,
 		IWDG_HandleTypeDef *hiwdg,
 		uint8_t flags
@@ -448,7 +470,7 @@ int	ATCommandFlow(CmdProps *lista,
 //		traza = 1;
 		if (WDT_ENABLED == 1)HAL_IWDG_Refresh(hiwdg);
 		if (1){
-			valid = executeCommand(step, phuart, flags);
+			valid = executeCommand(step, phuart, DataBuffer, flags);
 			if (traza && !valid){
 				executeCommand(&trstate, phuart, 0);
 				executeCommand(&trerror, phuart, 0);

@@ -358,7 +358,7 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 
 
 	 		// C Language wrapper to the Modem Abstract Factory
-	 		gtransceiver = MODEMFACTORY(Device);
+	 		gtransceiver = MODEMFACTORY(Device, DataBuffer);
 
 
 		//HAL_UART_Receive_IT(&huart6, (uint8_t*) &dataByteBufferIRQ, 1);

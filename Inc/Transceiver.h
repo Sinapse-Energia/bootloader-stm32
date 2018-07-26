@@ -10,35 +10,7 @@
 
 #include "GPRS_transport.h"
 #include "Definitions.h"
-
-class Transceiver {
-public:
-	// Factory
-	static Transceiver	*TRANSCEIVER		(DEV_HANDLER);
-	// Public Interface
-	virtual int		Connect					(const char *apn, const char *host, int port, int security);
-	virtual int		ConnectTCP				(const char *apn, const char *host, int port) {return 0;};
-	virtual int		ConnectTLS				(const char *apn, const char *host, int port) {return 0;};
-
-	virtual int		DisConnect				();
-
-	virtual int		SendData				(int sock, const char *data, int length) ;
-	virtual	int		GetData					(int count, char *dest);
-
-	// method to run a transceiver command
-			int		ExecuteCommand			(const char *cmd, char *destination, int (* hfun ) (const char *));
-
-protected:
-					Transceiver				();
-	const char 		*urc;					// sequence for URC
-	const char 		*recvfmt;				// command template for recv
-	int		(* phandler ) (const char *);	// the callback to handle the recv
-
-	static void		*handler;				// the communication channel with the transceiver
-private:
-	int	 			security;
-
-};
+#include "circular.h"
 
 // Enum type to tag the different types of command steps . Son far only two, going to just one in a future
 enum	ATCmdTypes { ATMATCH = 1, ATGET };
@@ -71,6 +43,54 @@ typedef struct	st_atcmdprops {
 
 } CmdProps;
 
+class Transceiver {
+public:
+	// Factory
+	static Transceiver	*TRANSCEIVER		(DEV_HANDLER, st_CB *);
+	// Public Interface
+	virtual int		Connect					(const char *apn, const char *host, int port, int security);
+	virtual int		ConnectTCP				(const char *apn, const char *host, int port) {return 0;};
+	virtual int		ConnectTLS				(const char *apn, const char *host, int port) {return 0;};
+
+	virtual int		DisConnect				();
+
+	virtual int		SendData				(int sock, const char *data, int length);
+	virtual int		SendDataTransparent		(int sock, const char *data, int length);
+	virtual int		SendDataNonTransparent	(int sock, const char *data, int length);
+
+	virtual	int		GetData					(int n, char *dest);
+//	virtual	int		GetDataTransparent		(int n, char *dest);
+//	virtual	int		GetDataNonTransparent	(int n, char *dest);
+
+	virtual int		SynchronizeTime				() { return -1;};
+
+	// method to run a transceiver command
+	virtual		int		ExecuteCommand		(const char *cmd, char *destination, int (* hfun ) (const char *));
+	// method to run a transceiver flow
+			int		ExecuteFlow				(CmdProps *flow);
+			static st_CB	*DataBuffer;			// static because FACTORY uses it
+			static void		*handler;				// the communication channel with the transceiver
+
+protected:
+	enum modes  {Transparent = 1,  NonTransparent = 0};  // the same values have in AT commands
+	enum protocols  {TCP = 0,  TLS = 1};					 // values are fixed, because indexing
+	int			state;
+	int			protocol;				// TCP = 1, TLS = 2...
+	int			context;				// Context number to use
+	modes			mode;					// 1 TRANSPARENT , 0 NON TRANSPARENT
+
+					Transceiver				();
+					static void		Wait					(unsigned int msec, unsigned int tic = 100);
+	const char 		*urcs[2];					// sequence for URC
+	const char 		*recvfmts[2];				// command template for recv
+	int		(* phandlers[2] ) (const char *);		// the callback to handle the recv
+
+private:
+	int	 			security;
+
+};
+
+
 // Timeout to send request. Fixed and small...
 #define TIMEOUT1 	200
 
@@ -86,6 +106,7 @@ extern char	ATerror[];  // to put in scope for the debugger
 //	By now, returns the index of the element in the list wher ethe execution stops
 extern int	ATCommandFlow(CmdProps *list,
 		DEV_HANDLER phuart,
+		st_CB	*DataBuffer,
 		uint8_t WDT_ENABLED,
 		IWDG_HandleTypeDef *hiwdg,
 		uint8_t flags
@@ -95,7 +116,7 @@ extern int	ATCommandFlow(CmdProps *list,
 //   receives a pointer to the ATCommand 'object' ,
 //   executes it, according to its properties
 //   and returns a boolean value (success/fail)
-extern uint8_t executeCommand( CmdProps *cmd, DEV_HANDLER  phuart, unsigned int flags = 0);
+extern uint8_t executeCommand( CmdProps *cmd, DEV_HANDLER  phuart, st_CB *cb, unsigned int flags = 0);
 
 
 
@@ -135,8 +156,6 @@ extern	CmdProps	*QSendFlow(const unsigned char *mssg, size_t len);
 // milliseconds max to send the data througth the UART
 #define	MAXSENDTIMEOUT	1000
 
-// SECONDS to wait for incoming messages
-#define	POLLINGTIMEOUT  2000
 
 
 

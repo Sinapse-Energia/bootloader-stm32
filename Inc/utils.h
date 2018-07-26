@@ -8,6 +8,7 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include "Definitions.h"
 
   // ALIAS for colors
  #define BLACK		0
@@ -101,6 +102,10 @@ extern	int		GetPositioning (const char *cpgga);
 
 extern	int		SetGeneric(const char *reply);
 extern	int		SetState(const char *reply);
+
+// HLK Specifics
+extern	int				SetMAC(const char *reply);
+
 
 extern	char	*GetLocalMessage(int h, char *buffer, int maxsize);
 extern	int		pretrace(char *texto,...);

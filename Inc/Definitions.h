@@ -3,6 +3,40 @@
 
 
 #define DEBUG
+#define BOOTLOADER
+
+// Value to be used when discovery fails
+// Values are:
+//	Board0 -> Classic M2M (Vodafone)
+//  Board1 -> Square, piggyback M2M
+//  Board2 -> Pretty box (Orange)
+#define	DEFAULTBOARD	Board2
+
+
+#define BUILD_M95
+//#define BUILD_BG96
+//#define BUILD_RM08
+
+#if defined(BUILD_ALL)
+ 	#define BUILD_M95
+ 	#define BUILD_BG96
+ 	#define BUILD_RM08
+ 	#define BUILD_CANBUS
+#endif
+
+#if defined(BUILD_M95) || defined(BUILD_BG96)
+#define GPRS_TRANSPORT
+#define	DEFAULTBOARD	Board0
+#endif
+
+#if defined(BUILD_RM08)
+#define ETH_TRANSPORT
+#endif
+
+
+
+
+
 
 #ifdef __cplusplus
  extern "C" {
@@ -20,6 +54,12 @@
 #define LOG_WIFI  1
 #define NUMBER_RETRIES 1
 
+// seconds after submit HLK configuration
+#define	TIME_HLKCONFIG		10  		// In seconds
+
+// seconds after submit HLK connection
+#define	TIME_HLKCONNECT		50  		// In seconds
+
 
  // GPRS init
 #define SIZE_APN 						60
@@ -30,8 +70,8 @@
 #define TIMING_TIMEOUT_GPRS 			20
 //#define const_APN 						"\"im2m.matooma.com\",\"movistar\",\"movistar\"\r\0"
 //#define const_APN 						"\"m2m.tele2.com\",\"tele2\",\"tele2\"\r\0"
-//#define const_APN 						"\"matooma.m2m\",\"\",\"\"\0"
-#define const_APN 						"\"lte.m2m\",\"\",\"\"\0"
+#define const_APN 						"\"matooma.m2m\",\"\",\"\"\0"
+//#define const_APN 						"\"lte.m2m\",\"\",\"\"\0"
 //#define const_APN 						"\"orangeworld\",\"orange\",\"orange\"\r\0"
 #define const_SERVER_NTP 				"\"0.europe.pool.ntp.org\"\r\0"
 //#define const_MAIN_SERVER				"\"m2m.eclipse.org\",1883\r\0"
@@ -41,6 +81,31 @@
 #define const_MAIN_SERVER 				"\"sinapseenergia.com\",80\r\0"
 //#define const_MAIN_SERVER 				"\"sinapseenergia.com\"\r\0"
 
+
+ // Maximum number ot connection tries before resetting the device
+#define	MAX_CONNECT_TRIES	5
+ // Maximum size for the datablock to save & restore from NVM
+#define STORESIZE 512
+
+#define RTC_CLOCK_SOURCE_LSI
+//#define RTC_CLOCK_SOURCE_LSE  //Se usa el externo 32768Hz.
+//#define RTC_CLOCK_SOURCE_HSE  //Se usa el externo 32768Hz.
+
+#ifdef RTC_CLOCK_SOURCE_LSI
+#define RTC_ASYNCH_PREDIV    0x7F
+#define RTC_SYNCH_PREDIV     0x137
+#endif
+
+
+#ifdef RTC_CLOCK_SOURCE_LSE
+#define RTC_ASYNCH_PREDIV  0x7F
+#define RTC_SYNCH_PREDIV   0x00FF
+#endif
+
+#ifdef RTC_CLOCK_SOURCE_HSE
+#define RTC_ASYNCH_PREDIV  100
+#define RTC_SYNCH_PREDIV   8125
+#endif
 
 
  // Wait for HTTP server answer (sec)
@@ -59,7 +124,18 @@
 #define const_ID_DEVICE					"600012\0"
 #define const_GPIO					"10000000\0"
 #define const_PWM					"100\0"
-#define HTTP_SERVER_FW_FILENAME		"600012.bin\0"
+//#define HTTP_SERVER_FW_FILENAME		"600012.bin\0"
+//#define HTTP_SERVER_FW_FILENAME		"TESTING_M2M.bin\0"
+//#define HTTP_SERVER_FW_FILENAME		"EC-M2M-LU_LUM-V114-NODEBUG.bin\0"
+
+// Client using M95
+//#define HTTP_SERVER_FW_FILENAME		"EC-M2M-LU_LUM-V114-DEBUG.bin\0"
+// Client using RM08 on board1 (piggy-back)
+//#define HTTP_SERVER_FW_FILENAME 	"B1-HLK-WIFI-JR-V1.26.bin"
+ // Client using RM08 on board2 (Orange)
+// #define HTTP_SERVER_FW_FILENAME 	"B2-HLK-WIFI-JR-V1.26.bin"
+#define HTTP_SERVER_FW_FILENAME 	"B0-ALL-ETH-JR-V1.26.3.bin"
+//#define HTTP_SERVER_FW_FILENAME 	"B0-ALL-WIFI-JR-V1.26.3.bin"
 #define const_ROUTE_FW_FILENAME     ""
 #define const_UPDFW_COUNT			"1\0"
 #define const_UPDFW					"1\0"

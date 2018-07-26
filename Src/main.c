@@ -339,10 +339,22 @@ int main(void)
 	if ((flashCorruption==0)&(reWriteFlash==1))
 	{
 		itoa(counter,strCounter,10);
-		strcat(storeToSave,strCounter);
-		strcat(storeToSave,";");
+		// Quick fix for avoiding loss of data behinf UPDFW_COUNT
+		if (1){
+			if (strlen(strCounter)==1){
+				pointer[13]=strCounter[0];
+			}
+			else {
+				pointer[13]='9';
+			}
+			MIC_Flash_Memory_Write((const uint8_t *) store, sizeof(storeToSave));
+		}
+		else {  // ALL stuff... truncating ending variables
+			strcat(storeToSave,strCounter);
+			strcat(storeToSave,";");
 
 		MIC_Flash_Memory_Write((const uint8_t *) storeToSave, sizeof(storeToSave));
+		}
 
 
 	}

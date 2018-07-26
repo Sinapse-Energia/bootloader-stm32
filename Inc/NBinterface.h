@@ -67,7 +67,8 @@ extern "C" {
 	void	*GetSubspaceElement	(const char *prefix, const char *id);
 
 
-	void	*MODEMFACTORY		(void *);
+	void	*MODEMFACTORY		(void *, st_CB *);
+	void	*ETHFACTORY			(void *, st_CB *);
 
 
 	int		BuildALL 				(void);
