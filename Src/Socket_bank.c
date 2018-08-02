@@ -180,7 +180,6 @@ static void MX_GPIO_Init(BoardType boardtype)
 
 	  GPIO_InitTypeDef GPIO_InitStruct;
 #if defined (BUILD_M95) || defined(BUILD_BG96)
-    GPIO_InitTypeDef GPIO_InitStruct;
 
 	  /* GPIO Ports Clock Enable */
 	  __HAL_RCC_GPIOC_CLK_ENABLE();

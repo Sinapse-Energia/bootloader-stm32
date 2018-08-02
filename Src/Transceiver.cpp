@@ -516,7 +516,7 @@ extern uint8_t nTimesMaximumFail_GPRS;
 extern UART_HandleTypeDef huart6;
 
 #if defined (BUILD_M95) || defined(BUILD_BG96)
-DEV_HANDLER Device_Init() {
+DEV_HANDLER DeviceGPRS_Init() {
 	DEV_HANDLER result;
 	if (WDT_ENABLED == 1) HAL_IWDG_Refresh(&hiwdg);
 
