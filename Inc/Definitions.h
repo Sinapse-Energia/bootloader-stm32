@@ -13,14 +13,14 @@
 //	Board0 -> Classic M2M (Vodafone)
 //  Board1 -> Square, piggyback M2M
 //  Board2 -> Pretty box (Orange)
-#define	DEFAULTBOARD	Board2
+#define	DEFAULTBOARD	Board1
 
 // LABELS for SELECTIVE BUILD
 
 // LABELS FOR TRANSCEIVERS
-#define BUILD_M95
+//#define BUILD_M95
 //#define BUILD_BG96
-//#define BUILD_RM08
+#define BUILD_RM08
 
 #if defined(BUILD_ALL)
  	#define BUILD_M95
@@ -90,8 +90,7 @@
 //#define const_MAIN_SERVER				"\"m2m.eclipse.org\",1883\r\0"
 //#define const_MAIN_SERVER 				"\"178.94.164.124\",80\r\0"
  //#define const_MAIN_SERVER 				"\"89.248.100.11\",80\r\0"
-
-#define const_MAIN_SERVER 				"\"sinapseenergia.com\",80\r\0"
+//#define const_MAIN_SERVER 				"\"sinapseenergia.com\",80\r\0"
 //#define const_MAIN_SERVER 				"\"sinapseenergia.com\"\r\0"
 
 
@@ -126,6 +125,7 @@
 // HTTP connection
 
 #define HTTP_SERVER_IP 					"sinapseenergia.com\0"
+//#define HTTP_SERVER_IP 					"www.eluxoon.com\0"
 
 #define HTTP_SERVER_IP_03				89//178
 #define HTTP_SERVER_IP_02				248//94
@@ -145,10 +145,15 @@
 //#define HTTP_SERVER_FW_FILENAME		"EC-M2M-LU_LUM-V114-DEBUG.bin\0"
 // Client using RM08 on board1 (piggy-back)
 //#define HTTP_SERVER_FW_FILENAME 	"B1-HLK-WIFI-JR-V1.26.bin"
- // Client using RM08 on board2 (Orange)
+// Client using RM08 on board2 (Orange)
 // #define HTTP_SERVER_FW_FILENAME 	"B2-HLK-WIFI-JR-V1.26.bin"
+
 #define HTTP_SERVER_FW_FILENAME 	"B0-ALL-ETH-JR-V1.26.3.bin"
 //#define HTTP_SERVER_FW_FILENAME 	"B0-ALL-WIFI-JR-V1.26.3.bin"
+
+//define HTTP_SERVER_FW_FILENAME 	"B1-ALL-WIFI-JR-V1.26.3.bin"
+//#define HTTP_SERVER_FW_FILENAME 	"B1-ALL-ETH-JR-V1.26.3.bin"
+
 #define const_ROUTE_FW_FILENAME     ""
 #define const_UPDFW_COUNT			"1\0"
 #define const_UPDFW					"1\0"
