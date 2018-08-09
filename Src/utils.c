@@ -200,6 +200,10 @@ int	 SetLocalIP(const char *txt){
 	return 1;
 }
 
+int	 SetLocalIP2(const char *txt){
+	return 1;
+}
+
 
 // Pending : to validate the SIM format is correct
 
@@ -215,6 +219,9 @@ int	SetIdSIM(const char *txt){
 	return 1;
 }
 
+int	SetIdSIM2(const char *txt){
+	return 1;
+}
 
 int	SetIMEI(const char *txt){
 	/**

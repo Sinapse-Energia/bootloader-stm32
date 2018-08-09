@@ -111,22 +111,13 @@ Transceiver	*Transceiver::TRANSCEIVER(void *hconn, st_CB *cb) {
 	int i =0;
 	i = ATCommandFlow(InitCmds, (UART_HandleTypeDef *) handler, DataBuffer, WDT_ENABLED, &hiwdg, 0);
 
-	if (!strcmp(InitCmds[i].id, "END")) {
-//		if (!strcmp(GetVariable("GPRSDEVICE"), "M95")){
-		if (1) {
-			result = new QuectelM95();
-		}
-		else {
-//			if (!strcmp(GetVariable("GPRSDEVICE"), "BG96")) {
-//			result = new QuectelBG96();
-			result = NULL;
-		}
-	}
-	else  {
-		// if not known, return the base object !
-		result = NULL;
-	}
-//	result = NULL;
+#if defined (BUILD_M95)
+	result = new QuectelM95();
+#endif
+#if defined (BUILD_BG96)
+	result = new QuectelBG96();
+#endif
+
 	return result;
 }
 
