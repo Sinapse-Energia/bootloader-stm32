@@ -28,6 +28,7 @@ typedef enum
 	Board1 = 1,  // Square..
 	Board2 = 2,	 // Orange...
 	Board0 = 3,	 // Classic...
+	TFiberBoard = 4, // Talking fiber board
 } BoardType;
 
 BoardType BaseBoard = DEFAULTBOARD;
@@ -174,11 +175,100 @@ static void MX_USART6_UART_Init(void)
         * EXTI
 */
 
+//15.08.18 CHANGED ACCORDING TO TALKING FIBER BOARD
+
 
 static void MX_GPIO_Init(BoardType boardtype)
 {
+	GPIO_InitTypeDef GPIO_InitStruct;
 
-	  GPIO_InitTypeDef GPIO_InitStruct;
+	if (boardtype == TFiberBoard)
+	{
+		  /* GPIO Ports Clock Enable */
+		  __HAL_RCC_GPIOC_CLK_ENABLE();
+		  __HAL_RCC_GPIOH_CLK_ENABLE();
+		  __HAL_RCC_GPIOA_CLK_ENABLE();
+		  __HAL_RCC_GPIOB_CLK_ENABLE();
+		  __HAL_RCC_GPIOD_CLK_ENABLE();
+
+		  /*Configure GPIO pin Output Level */
+		  HAL_GPIO_WritePin(GPIOC, LED_BLUE_Pin|LED_RED_Pin|LED_GREEN_Pin|nSHDN_Pin
+		                          |GPIO_SLEEP_GPRS_Pin, GPIO_PIN_RESET);
+
+		  /*Configure GPIO pin Output Level */
+		  HAL_GPIO_WritePin(GPIOB, EX_RESET_PHOTODIODE_Pin|EX_ENABLE_GPRS_BATTERY_Pin, GPIO_PIN_SET);
+
+		  HAL_GPIO_WritePin(GPIOA, CTRL_EMERG_RESET_Pin|CONTROL_PWRKEY_Pin, GPIO_PIN_RESET);
+
+		  /*Configure GPIO pin Output Level */
+		  HAL_GPIO_WritePin(SPI1_NSS_GPIO_Port, SPI1_NSS_Pin, GPIO_PIN_SET);
+
+		  /*Configure GPIO pins : PCPin PCPin PCPin PCPin
+		                           PCPin */
+		  GPIO_InitStruct.Pin = LED_BLUE_Pin|LED_RED_Pin|LED_GREEN_Pin|nSHDN_Pin
+		                          |GPIO_SLEEP_GPRS_Pin;
+		  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+		  /*Configure GPIO pins : PC0 PC3 PC4 PC10
+		                           PC11 */
+		  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_10
+		                          |GPIO_PIN_11;
+		  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+		  /*Configure GPIO pins : PCPin PCPin */
+		  GPIO_InitStruct.Pin = STATUS_Pin|NETLIGHT_Pin;
+		  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+		  /*Configure GPIO pins : PA0 PA4 PA8 */
+		  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_4|GPIO_PIN_8;
+		  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+		  /*Configure GPIO pins : PB0 PB2 PB10 PB11
+		                           PB13 PB8 PB9 */
+		  GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_2|GPIO_PIN_10|GPIO_PIN_11
+		                          |GPIO_PIN_13|GPIO_PIN_8|GPIO_PIN_9;
+		  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+		  /*Configure GPIO pins : PBPin PBPin */
+		  GPIO_InitStruct.Pin = SDCARD_CD_Pin|IN_RESET_HARDWARE_Pin;
+		  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+		  /*Configure GPIO pins : PBPin PBPin */
+		  GPIO_InitStruct.Pin = EX_RESET_PHOTODIODE_Pin|EX_ENABLE_GPRS_BATTERY_Pin;
+		  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+		  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+		  /*Configure GPIO pins : PAPin PAPin */
+		  GPIO_InitStruct.Pin = CTRL_EMERG_RESET_Pin|CONTROL_PWRKEY_Pin;
+		  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+		  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+		  /*Configure GPIO pin : PtPin */
+		  GPIO_InitStruct.Pin = SPI1_NSS_Pin;
+		  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		  GPIO_InitStruct.Pull = GPIO_NOPULL;
+		  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+		  HAL_GPIO_Init(SPI1_NSS_GPIO_Port, &GPIO_InitStruct);
+	}
+	else
+	{
 #if defined (BUILD_M95) || defined(BUILD_BG96)
 
 	  /* GPIO Ports Clock Enable */
@@ -418,7 +508,7 @@ static void MX_GPIO_Init(BoardType boardtype)
 		}
 
 #endif
-
+	}
 }
 
 

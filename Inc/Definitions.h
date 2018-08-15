@@ -13,14 +13,15 @@
 //	Board0 -> Classic M2M (Vodafone)
 //  Board1 -> Square, piggyback M2M
 //  Board2 -> Pretty box (Orange)
-#define	DEFAULTBOARD	Board1
+//#define	DEFAULTBOARD	Board1
+#define DEFAULTBOARD TFiberBoard
 
 // LABELS for SELECTIVE BUILD
 
 // LABELS FOR TRANSCEIVERS
-//#define BUILD_M95
+#define BUILD_M95
 //#define BUILD_BG96
-#define BUILD_RM08
+//#define BUILD_RM08
 
 #if defined(BUILD_ALL)
  	#define BUILD_M95
@@ -33,7 +34,7 @@
 // TRASPORT LABEL (COMPOSITES)
 #if defined(BUILD_M95) || defined(BUILD_BG96)
 #define GPRS_TRANSPORT
-#define	DEFAULTBOARD	Board0
+#define	DEFAULTBOARD	TFiberBoard
 #endif
 
 #if defined(BUILD_RM08)

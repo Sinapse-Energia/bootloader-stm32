@@ -115,6 +115,46 @@
 #define _NOP() do { __asm__ __volatile__ ("nop"); } while (0)
 /* USER CODE BEGIN Private defines */
 
+//Changed pins definitions, according to signal names in
+//schematic of TalkingFiber for basic GPIO_init() function
+
+#define LED_BLUE_Pin GPIO_PIN_13
+#define LED_BLUE_GPIO_Port GPIOC
+#define LED_RED_Pin GPIO_PIN_14
+#define LED_RED_GPIO_Port GPIOC
+#define LED_GREEN_Pin GPIO_PIN_15
+#define LED_GREEN_GPIO_Port GPIOC
+#define STATUS_Pin GPIO_PIN_1
+#define STATUS_GPIO_Port GPIOC
+#define NETLIGHT_Pin GPIO_PIN_2
+#define NETLIGHT_GPIO_Port GPIOC
+#define AMP_RSSI_TO_ANALOG_Pin GPIO_PIN_1
+#define AMP_RSSI_TO_ANALOG_GPIO_Port GPIOA
+#define AD_EXTERNAL_BATTERY_Pin GPIO_PIN_5
+#define AD_EXTERNAL_BATTERY_GPIO_Port GPIOA
+#define PFM_TO_ANALOGUE_Pin GPIO_PIN_6
+#define PFM_TO_ANALOGUE_GPIO_Port GPIOA
+#define RSSI_TO_ANALOGUE_Pin GPIO_PIN_7
+#define RSSI_TO_ANALOGUE_GPIO_Port GPIOA
+#define nSHDN_Pin GPIO_PIN_5
+#define nSHDN_GPIO_Port GPIOC
+#define SDCARD_CD_Pin GPIO_PIN_1
+#define SDCARD_CD_GPIO_Port GPIOB
+#define IN_RESET_HARDWARE_Pin GPIO_PIN_12
+#define IN_RESET_HARDWARE_GPIO_Port GPIOB
+#define EX_RESET_PHOTODIODE_Pin GPIO_PIN_14
+#define EX_RESET_PHOTODIODE_GPIO_Port GPIOB
+#define EX_ENABLE_GPRS_BATTERY_Pin GPIO_PIN_15
+#define EX_ENABLE_GPRS_BATTERY_GPIO_Port GPIOB
+#define GPIO_SLEEP_GPRS_Pin GPIO_PIN_9
+#define GPIO_SLEEP_GPRS_GPIO_Port GPIOC
+#define CTRL_EMERG_RESET_Pin GPIO_PIN_11
+#define CTRL_EMERG_RESET_GPIO_Port GPIOA
+#define CONTROL_PWRKEY_Pin GPIO_PIN_12
+#define CONTROL_PWRKEY_GPIO_Port GPIOA
+#define SPI1_NSS_Pin GPIO_PIN_15
+#define SPI1_NSS_GPIO_Port GPIOA
+
 /* USER CODE END Private defines */
 
 void _Error_Handler(char *, int);
