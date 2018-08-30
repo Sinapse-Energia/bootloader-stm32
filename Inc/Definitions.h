@@ -13,14 +13,14 @@
 //	Board0 -> Classic M2M (Vodafone)
 //  Board1 -> Square, piggyback M2M
 //  Board2 -> Pretty box (Orange)
-#define	DEFAULTBOARD	Board1
+#define	DEFAULTBOARD	Board0
 
 // LABELS for SELECTIVE BUILD
 
 // LABELS FOR TRANSCEIVERS
-//#define BUILD_M95
+#define BUILD_M95
 //#define BUILD_BG96
-#define BUILD_RM08
+//#define BUILD_RM08
 
 #if defined(BUILD_ALL)
  	#define BUILD_M95
@@ -33,7 +33,6 @@
 // TRASPORT LABEL (COMPOSITES)
 #if defined(BUILD_M95) || defined(BUILD_BG96)
 #define GPRS_TRANSPORT
-#define	DEFAULTBOARD	Board0
 #endif
 
 #if defined(BUILD_RM08)
@@ -124,8 +123,8 @@
 #define TIMING_TIMEOUT_UART 			15
 // HTTP connection
 
-#define HTTP_SERVER_IP 					"sinapseenergia.com\0"
-//#define HTTP_SERVER_IP 					"www.eluxoon.com\0"
+//#define HTTP_SERVER_IP 					"sinapseenergia.com\0"
+#define HTTP_SERVER_IP 					"www.eluxoon.com\0"
 
 #define HTTP_SERVER_IP_03				89//178
 #define HTTP_SERVER_IP_02				248//94
@@ -148,8 +147,8 @@
 // Client using RM08 on board2 (Orange)
 // #define HTTP_SERVER_FW_FILENAME 	"B2-HLK-WIFI-JR-V1.26.bin"
 
-#define HTTP_SERVER_FW_FILENAME 	"B0-ALL-ETH-JR-V1.26.3.bin"
-//#define HTTP_SERVER_FW_FILENAME 	"B0-ALL-WIFI-JR-V1.26.3.bin"
+//#define HTTP_SERVER_FW_FILENAME 	"B0-ALL-ETH-JR-V1.26.3.bin"
+#define HTTP_SERVER_FW_FILENAME 	"B0-ALL-WIFI-JR-V1.26.3.bin"
 
 //define HTTP_SERVER_FW_FILENAME 	"B1-ALL-WIFI-JR-V1.26.3.bin"
 //#define HTTP_SERVER_FW_FILENAME 	"B1-ALL-ETH-JR-V1.26.3.bin"
