@@ -99,7 +99,7 @@ int	QuectelM95::ConnectTCP(const char *apn, const char *host, int port){
 			{	ATGET,		"",		{"AT+QLTS\r"}, 		{NULL,	NULL, SetDateTime},	{1000, 0}, 	1,  },
 #endif
 //			{	ATMATCH,	"",		{OPEN_TX,}, 		{"\r\nOK\r\n\r\nCONNECT OK\r\n"},{3000, 0}, 	1 , NULL, NULL, 1},
-			{	ATMATCH,	"",		{OPEN_TX,}, 		{"\r\nOK\r\n\r\nCONNECT\r\n"},{5000, 0}, 2 , NULL, NULL, 1},
+			{	ATMATCH,	"",		{OPEN_TX,}, 		{"\r\nOK\r\n\r\nCONNECT\r\n"},{5000, 0}, 2 , NULL, NULL},
 			{	ATMATCH, 	"END"  }
 	};
 	int i = ATCommandFlow(TCPFlow, (UART_HandleTypeDef *) handler, DataBuffer, WDT_ENABLED, &hiwdg,  0);
