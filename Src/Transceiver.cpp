@@ -476,8 +476,8 @@ int	ATCommandFlow(CmdProps *lista,
 		if (1){
 			valid = executeCommand(step, phuart, DataBuffer, flags);
 			if (traza && !valid){
-				executeCommand(&trstate, phuart, 0);
-				executeCommand(&trerror, phuart, 0);
+				executeCommand(&trstate, phuart, DataBuffer, 0);
+				executeCommand(&trerror, phuart, DataBuffer, 0);
 			}
 			if (valid) {
 				if (step->onsuccess)
