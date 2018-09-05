@@ -25,9 +25,10 @@ int modem_init;
 typedef enum
 {
 
-	Board1 = 1,  // Square..
-	Board2 = 2,	 // Orange...
-	Board0 = 3,	 // Classic...
+	IoT_Hub = 1,  		// Square..
+	IoT_Presence = 2,	 // Orange...
+	IoT_EC = 3,	 		// Classic...
+	IoT_Livestock = 4,
 } BoardType;
 
 BoardType BaseBoard = DEFAULTBOARD;
@@ -290,7 +291,7 @@ static void MX_GPIO_Init(BoardType boardtype)
 		__HAL_RCC_GPIOB_CLK_ENABLE();   // conflicts with CAN init
 		__HAL_RCC_GPIOD_CLK_ENABLE();   // leads to CAN_Init timeout
 
-		if (boardtype == Board2) {
+		if (boardtype == IoT_Presence) {
 
 		  /*Configure GPIOC pin Output Level */
 		  HAL_GPIO_WritePin(GPIOC, blueRGB_Pin|redRGB_Pin|greenRGB_Pin, GPIO_PIN_SET);
@@ -598,15 +599,15 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 // 			MX_RTC_Init();  NOT needed ... ?
 
 
-			if (BaseBoard == Board2){
+			if (BaseBoard == IoT_Presence){
 				MX_UART4_UART_Init();
 				eth_uart = &huart4;
 			}
-			else if (BaseBoard == Board1)  {
+			else if (BaseBoard == IoT_Hub)  {
 				MX_USART1_UART_Init();
 				eth_uart = &huart1;
 			}
-			else { // defaults to Board1
+			else { // defaults to ...
 
 			}
 
