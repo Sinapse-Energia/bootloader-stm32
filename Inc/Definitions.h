@@ -58,13 +58,26 @@
 #define ETH_TRANSPORT
 #endif
 
+#ifndef	LAN_MODE
+	// 1 LAN 	2 WIFI
+	#define		LAN_MODE		2
+#endif
+
+#ifndef WIFI_SSID
+	#define	WIFI_SSID		"MOVISTAR_E3B0"
+#endif
+#ifndef WIFI_PASSWORD
+	#define	WIFI_PASSWORD	"E3FpEo7lnnj74TuFpwpp"
+#endif
+
+
 // LABELS FOR OPTIONAL FEATURES
 #undef BUILD_RTC
 #undef BUILD_DMA
 #undef BUILD_TLS
 #undef BUILD_NONTRANSPARENTMODE
 
-#ifndef APN
+#ifndef const_APN
 	//#define const_APN 						"\"im2m.matooma.com\",\"movistar\",\"movistar\"\r\0"
 	//#define const_APN 						"\"m2m.tele2.com\",\"tele2\",\"tele2\"\r\0"
 	#define const_APN 						"\"matooma.m2m\",\"\",\"\"\0"

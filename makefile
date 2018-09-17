@@ -82,7 +82,7 @@ CFGFLAGS += -DMODEM=95
 else ifeq ($(MODEM), BG96)
 CFGFLAGS += -DMODEM=96
 else ifeq ($(MODEM), RM08)
-CFGFLAGS += -DMODEM=08
+CFGFLAGS += -DMODEM=8
 else ifeq ($(MODEM), ALL)
 CFGFLAGS += -DMODEM=-1
 else 
@@ -93,7 +93,7 @@ endif
 
 #####  APN (alltogether) 
 ifneq ($(APN),)
-CFGFLAGS += -DAPN=\'$(APN)\'
+CFGFLAGS += -Dconst_APN=\'$(APN)\'
 endif
 
 
@@ -119,7 +119,7 @@ endif
 
 #####  HTTP SERVER PORT
 ifneq ($(HTTP_PORT),)
-CFGFLAGS += -DHTTP_PORT=$(HTTP_SERVER_PORT)
+CFGFLAGS += -DHTTP_SERVER_PORT=$(HTTP_PORT)
 endif
 
 #####  BINARY FILE PATH 
@@ -171,6 +171,28 @@ RM := 		rm -rf
 # All Target
 all: $(OUT)/$(EXENAME).elf secondary-outputs  
 
+
+help:
+	$(info make -f Makefile  <PARAMS, ...>)
+	$(info PARAMS:)
+	$(info ROOT  			The project source rootdir (default: makefile home) ) 
+	$(info OUT  			The directory to send the output (default: current dir)) 
+	$(info PFILE			Response file of stored PARAMS (default NONE))
+	$(info MODEM 			Tranceiver. Values: M95, BG96, RM08, ALL )
+	$(info BOARD			Base Board.: Values IoT_EC, IoT_Hub, IoT_Presence, IoT_Livestock)
+	$(info APN   			Full GPRS APN string)
+	$(info LAN_MODE 		Values: 1 ETHERNET 2 WIFI)
+	$(info WIFI_SSID 		SSID for WIFI LAN mode)
+	$(info WIFI_PASSWORD	WPA2-PSK password for WIFI LAN mode)	
+	$(info HPPP_SERVER		Web Server IP or DNS)
+	$(info HTTP_PORT 		Web Server Port)
+	$(info FILE_PATH 		Web route to the binary file)
+	$(info FILE_NAME 		binary file to download)
+	$(info UPDATE_FW		Flag 1, 0 to update firmware)
+	$(info UPDATE_FW_COUNT	Initial counter for firmware update)
+	
+	
+	
 
 ### Builds the list of -DNAME=Value to the compiler, after the really defined parameters
 ###  by make behavoiur if VAR is passed from command line, it overrides this variable assignement, which are, in fact, ignored (VERIFY)

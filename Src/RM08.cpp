@@ -27,9 +27,9 @@ extern IWDG_HandleTypeDef hiwdg;
 
 extern UART_HandleTypeDef *eth_uart;
 
-int		ethmode = 1;  // 1 LAN 2 WIFI
-const char	*wifi_ssid = "MOVISTAR_E3B0";
-const char	*wifi_password = "E3FpEo7lnnj74TuFpwpp";
+int			ethmode 		= LAN_MODE;
+const char	*wifi_ssid 		= WIFI_SSID;
+const char	*wifi_password 	= WIFI_PASSWORD;
 
 
 
