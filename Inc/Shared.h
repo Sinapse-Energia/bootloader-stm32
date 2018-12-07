@@ -37,6 +37,12 @@ typedef struct {
 	char PASSWORD[64];
 	char FW_VERSION[8];
 	uint8_t RELAYS[8];
+    int8_t RELAY_PER_STATE[8];
+    int32_t RELAY_PER_NTIMES[8];
+    uint8_t RELAY_PER_H1[8];
+    uint8_t RELAY_PER_M1[8];
+    uint8_t RELAY_PER_H2[8];
+    uint8_t RELAY_PER_M2[8];
 } SharedMemoryVariables;
 
 typedef struct {

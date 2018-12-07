@@ -17,6 +17,10 @@
 static void InitializeData(SharedMemoryData* data)
 {
 	memset(data, 0, sizeof(SharedMemoryData));
+    for (size_t i = 0; i < 8; i++)
+    {
+        data->variables.RELAY_PER_STATE[i] = -1;
+    }
 	data->variables.UPDFW = UPDFW_UNSET;
 	strncpy(data->variables.FW_NAME, HTTP_SERVER_FW_FILENAME, 63);
 	strncpy(data->variables.FW_SERVER_URI, HTTP_SERVER_IP, 63);
