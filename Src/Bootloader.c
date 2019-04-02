@@ -137,7 +137,40 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     	wlanRecvStop(&huart6);
     	if (Socket_Connect(SOCKET_SRC_GPRS) == SOCKET_OK) {
     		ssource = SOCKET_SRC_GPRS;
+
+    		if ((strcmp(sharedDataPtr->variables.ANAME,
+    		        sharedDataPtr->variables.PANAME) != 0) ||
+                (strcmp(sharedDataPtr->variables.AUSER,
+                    sharedDataPtr->variables.PAUSER) != 0) ||
+                (strcmp(sharedDataPtr->variables.APSWD,
+                    sharedDataPtr->variables.PAPSWD) != 0))
+    		{
+    		    strncpy(sharedDataPtr->variables.PANAME,
+    		            sharedDataPtr->variables.ANAME, 63);
+    		    strncpy(sharedDataPtr->variables.PAUSER,
+                        sharedDataPtr->variables.AUSER, 63);
+    		    strncpy(sharedDataPtr->variables.PAPSWD,
+                        sharedDataPtr->variables.APSWD, 63);
+    		    WriteSharedMemory(sharedDataPtr);
+    		}
+
     	} else {
+    	    if ((strcmp(sharedDataPtr->variables.ANAME,
+                    sharedDataPtr->variables.PANAME) != 0) ||
+                (strcmp(sharedDataPtr->variables.AUSER,
+                    sharedDataPtr->variables.PAUSER) != 0) ||
+                (strcmp(sharedDataPtr->variables.APSWD,
+                    sharedDataPtr->variables.PAPSWD) != 0))
+            {
+                strncpy(sharedDataPtr->variables.ANAME,
+                        sharedDataPtr->variables.PANAME, 63);
+                strncpy(sharedDataPtr->variables.AUSER,
+                        sharedDataPtr->variables.PAUSER, 63);
+                strncpy(sharedDataPtr->variables.APSWD,
+                        sharedDataPtr->variables.PAPSWD, 63);
+                WriteSharedMemory(sharedDataPtr);
+            }
+
     		return BOOT_ERR_CONNECTION;
     	}
     }

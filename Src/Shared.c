@@ -26,6 +26,12 @@ static void InitializeData(SharedMemoryData* data)
 	strncpy(data->variables.FW_SERVER_URI, HTTP_SERVER_IP, 63);
 	data->variables.PORT = HTTP_SERVER_PORT;
 	strncpy(data->variables.PROTOCOL, "HTTP", 7);
+    strncpy(data->variables.ANAME, DEF_APN, 63);
+    strncpy(data->variables.AUSER, DEF_USR, 63);
+    strncpy(data->variables.APSWD, DEF_PASSWD, 63);
+    strncpy(data->variables.PANAME, DEF_APN, 63);
+    strncpy(data->variables.PAUSER, DEF_USR, 63);
+    strncpy(data->variables.PAPSWD, DEF_PASSWD, 63);
 }
 
 bool ReadSharedMemory(SharedMemoryData* outData)
