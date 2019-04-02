@@ -43,12 +43,6 @@ typedef struct {
     uint8_t RELAY_PER_M1[8];
     uint8_t RELAY_PER_H2[8];
     uint8_t RELAY_PER_M2[8];
-    char ANAME[64];
-    char AUSER[64];
-    char APSWD[64];
-    char PANAME[64];
-    char PAUSER[64];
-    char PAPSWD[64];
 } SharedMemoryVariables;
 
 typedef struct {

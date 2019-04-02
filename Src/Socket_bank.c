@@ -629,9 +629,7 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 
 	    HAL_Delay(30);
 
-//	    memcpy(APN, const_APN, sizeof(const_APN));
-	    sprintf(APN, "\"%s\",\"%s\",\"%s\"\r", sharedDataPtr->variables.ANAME,
-	            sharedDataPtr->variables.AUSER, sharedDataPtr->variables.APSWD);
+	    memcpy(APN, const_APN, sizeof(const_APN));
 //	    memcpy(IPPORT, const_MAIN_SERVER, sizeof(const_MAIN_SERVER));
 
 //	    memcpy(SERVER_NTP, const_SERVER_NTP, sizeof(const_SERVER_NTP));
