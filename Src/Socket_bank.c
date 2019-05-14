@@ -639,13 +639,6 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 
 		MX_DMA_Init();
 
-    #ifdef PERFORM_WLAN_FIRST_TIME_CONFIG
-		// Factory reset USR if first config enabled
-		HAL_GPIO_WritePin(USR_WIFI_RELOAD_GPIO_Port, USR_WIFI_RELOAD_Pin, GPIO_PIN_RESET);
-        osDelay(4000);
-        HAL_GPIO_WritePin(USR_WIFI_RELOAD_GPIO_Port, USR_WIFI_RELOAD_Pin, GPIO_PIN_SET);
-    #endif
-
 		// Give module some time to start up
 		HAL_Delay(5000);
 
