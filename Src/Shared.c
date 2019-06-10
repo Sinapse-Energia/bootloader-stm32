@@ -14,6 +14,11 @@
 #include "Flash_NVM.h"
 #include "crc16.h"
 
+/* An AES-256 key (32 bytes = 256 bits) */
+static uint8_t HardcAES[32] = { 0xfe, 0xff, 0xe9, 0x92, 0x86, 0x65, 0x73, 0x1c,
+        0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08, 0xfe, 0xff, 0xe9, 0x92,
+        0x86, 0x65, 0x73, 0x1c, 0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08 };
+
 static void InitializeData(SharedMemoryData* data)
 {
 	memset(data, 0, sizeof(SharedMemoryData));
@@ -26,6 +31,10 @@ static void InitializeData(SharedMemoryData* data)
 	strncpy(data->variables.FW_SERVER_URI, HTTP_SERVER_IP, 63);
 	data->variables.PORT = HTTP_SERVER_PORT;
 	strncpy(data->variables.PROTOCOL, "HTTP", 7);
+    for (size_t i = 0; i < 32; i++)
+    {
+        data->variables.AES_KEY[i] = HardcAES[i];
+    }
 }
 
 bool ReadSharedMemory(SharedMemoryData* outData)
