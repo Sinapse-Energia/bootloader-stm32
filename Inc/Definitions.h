@@ -13,7 +13,7 @@
 //	IoT_Presence 	-> Orange...
 //	IoT_Livestock 	-> iNEMO
 #ifndef DEFAULTBOARD
-	#define	DEFAULTBOARD	IoT_Presence
+	#define	DEFAULTBOARD	IoT_Hub
 #endif
 
 // LABELS for SELECTIVE BUILD
