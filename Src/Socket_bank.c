@@ -517,7 +517,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
  * @param  s_in: one of SOCKETS_SOURCE
  * @retval SOCKET_OK_CONNECTED or SOCKET_ERR_xxx if error
 */
-SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
+void *Socket_Init(SOCKETS_SOURCE s_in)
 {
 	void	*Device;
 	// Initialize all configured peripherals
@@ -664,7 +664,7 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
       	  HAL_IWDG_Refresh(&hiwdg);
     }
 
-    return SOCKET_OK;
+    return Device;
 }
 
 
@@ -777,7 +777,7 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
 
 	}
 
-	application_layer_connection =1; /// We have just connected to application layer.
+//	application_layer_connection =1; /// We have just connected to application layer.
 	return SOCKET_OK;
 }
 

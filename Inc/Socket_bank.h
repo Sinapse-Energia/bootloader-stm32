@@ -28,7 +28,7 @@ typedef enum
 
 
 // Public Functions
-SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in);
+void	* Socket_Init(SOCKETS_SOURCE s_in);
 SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in);
 SOCKET_STATUS Socket_Close(SOCKETS_SOURCE s_in);
 SOCKET_STATUS Socket_Write(SOCKETS_SOURCE s_in, const char *data_in, int data_len);
