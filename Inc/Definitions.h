@@ -60,7 +60,7 @@
 
 #ifndef	LAN_MODE
 	// 1 LAN 	2 WIFI
-	#define		LAN_MODE		2
+	#define		LAN_MODE		1
 #endif
 
 #ifndef WIFI_SSID
@@ -124,7 +124,7 @@
  // Francis definition.
 #define CMC_APPLICATION_DEPENDENT
 #define LOG_WIFI  1
-#define NUMBER_RETRIES 1
+#define NUMBER_RETRIES 2
 
 // seconds after submit HLK configuration
 #define	TIME_HLKCONFIG		10  		// In seconds
