@@ -604,8 +604,8 @@ SOCKET_STATUS Socket_Init(SOCKETS_SOURCE s_in)
 				eth_uart = &huart4;
 			}
 			else if (BaseBoard == IoT_Hub)  {
-				MX_USART1_UART_Init();
-				eth_uart = &huart1;
+				MX_UART4_UART_Init();
+				eth_uart = &huart4;
 			}
 			else { // defaults to ...
 
