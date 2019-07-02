@@ -381,8 +381,11 @@ int main(void)
 
 	// Start to check firmware
 	while (Boot_PerformFirmwareUpdate() != BOOT_OK) {
+		// It failed: restore flag to use Transceiver again
+		application_layer_connection = 0;
 		attempt+=1;
-		if(attempt >= NUMBER_RETRIES) break;
+		if(attempt >= NUMBER_RETRIES)
+			break;
 		HAL_Delay(5000);
 	}
 
