@@ -37,5 +37,7 @@ void Socket_Clear(SOCKETS_SOURCE s_in);
 void Socket_ClearTimeout(SOCKETS_SOURCE s_in);
 uint8_t Socket_GetTimeout(SOCKETS_SOURCE s_in);
 
+extern uint16_t	getseconds();
+
 
 #endif // __SOCKET_BANK_H

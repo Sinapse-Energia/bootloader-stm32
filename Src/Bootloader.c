@@ -95,7 +95,7 @@ uint8_t Boot_CheckConnection(SOCKETS_SOURCE ssource)
   * @param  none
   * @retval Return BOOT_OK on success or BOOT_ERR_xxx on error
   */
-BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
+BOOT_ERRORS Boot_PerformFirmwareUpdateOLD(void)
 {
 
     char* p;
@@ -110,138 +110,142 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
 
 
 
-    Socket_Init(SOCKET_SRC_GPRS);
-    orangeRGB(1);
+    void *dh = Socket_Init(SOCKET_SRC_GPRS);
+    if (dh) {
+		orangeRGB(1);
 
-    initializePWM();
+		initializePWM();
 
-        if (strcmp(CLIENT_VARIABLE.GPIO,"00000000")==0) relayDeactivation(Relay1_GPIO_Port,Relay1_Pin);
-        else relayActivation(Relay1_GPIO_Port,Relay1_Pin);
+			if (strcmp(CLIENT_VARIABLE.GPIO,"00000000")==0) relayDeactivation(Relay1_GPIO_Port,Relay1_Pin);
+			else relayActivation(Relay1_GPIO_Port,Relay1_Pin);
 
-        dimming(atoi(CLIENT_VARIABLE.PWM));
+			dimming(atoi(CLIENT_VARIABLE.PWM));
 
-    if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+		if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
 
-	if (Socket_Connect(SOCKET_SRC_GPRS) == SOCKET_OK) {
-
-
-    	ssource = SOCKET_SRC_GPRS;
-    } else
-    	return BOOT_ERR_CONNECTION; //Err
+		if (Socket_Connect(SOCKET_SRC_GPRS) == SOCKET_OK) {
 
 
-	orangeRGB(0);
+			ssource = SOCKET_SRC_GPRS;
+		} else
+			return BOOT_ERR_CONNECTION; //Err
 
 
-	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+		orangeRGB(0);
 
-    // Clear buffer flash first
 
-    FlashNVM_EraseBank(FLASH_BANK_COPY);
-    orangeRGB(1);
-    if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+		 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
 
-#define M2CORTEX
-#ifdef M2CORTEX
-    	uint8_t remain;
-    // Get data
-       //sprintf(boot_buff, "GET /PruebaBL/%s HTTP/1.1\r\nHost: %s\r\n\r\n", CLIENT_VARIABLE.UPDFW_NAME, HTTP_SERVER_IP);
-       sprintf(boot_buff, "GET /%s%s HTTP/1.1\r\nHost: %s\r\n\r\n", CLIENT_VARIABLE.UPDFW_ROUTE,CLIENT_VARIABLE.UPDFW_NAME, CLIENT_VARIABLE.UPDFW_HOST);
-       Socket_Clear(ssource);
-       Socket_Write(ssource, boot_buff, strlen(boot_buff));
-       // Read answer
-       Socket_ClearTimeout(ssource);
-       total_len = 0;
-       remain = 0;
-#ifdef DEBUG
-       Color (COL_OFFLINE);
-#endif
-       while (!Socket_GetTimeout(ssource)) {
+		// Clear buffer flash first
 
-           len = Socket_Read(ssource, &boot_buff[remain], BOOT_BUFFER_SIZE - remain) + remain;
-           // Check two byte boundary
-           if (len & 0x01) {
-           	remain = 1;
-           	len -=1;
-           } else {
-           	remain = 0;
-           }
+		FlashNVM_EraseBank(FLASH_BANK_COPY);
+		orangeRGB(1);
+		if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
 
-           if (len) {
-           	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
-           	FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, len);
-           	total_len += len;
-           	fl_addr += len;
-           	Socket_ClearTimeout(ssource);
-           	// Shift remain on a first position
-           	if (remain) {
-           		boot_buff[0] = boot_buff[len];
-           	}
-#ifdef DEBUG
-           	Blink();
-#endif
-           }
-       }
-       // Write remain (if exist)
-       if (remain) {
-       	FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, 2);
-       	total_len +=2;
-       }
-#else
+	#define M2CORTEX
+	#ifdef M2CORTEX
+			uint8_t remain;
+		// Get data
+		   //sprintf(boot_buff, "GET /PruebaBL/%s HTTP/1.1\r\nHost: %s\r\n\r\n", CLIENT_VARIABLE.UPDFW_NAME, HTTP_SERVER_IP);
+		   sprintf(boot_buff, "GET /%s%s HTTP/1.1\r\nHost: %s\r\n\r\n", CLIENT_VARIABLE.UPDFW_ROUTE,CLIENT_VARIABLE.UPDFW_NAME, CLIENT_VARIABLE.UPDFW_HOST);
+		   Socket_Clear(ssource);
+		   Socket_Write(ssource, boot_buff, strlen(boot_buff));
+		   // Read answer
+		   Socket_ClearTimeout(ssource);
+		   total_len = 0;
+		   remain = 0;
+	#ifdef DEBUG
+		   Color (COL_OFFLINE);
+	#endif
+		   while (!Socket_GetTimeout(ssource)) {
 
-    // Get data
-    sprintf(boot_buff, "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_FW_FILENAME, HTTP_SERVER_IP);
-    Socket_Clear(ssource);
-    Socket_Write(ssource, boot_buff, strlen(boot_buff));
-    // Read answer
-    //orangeRGB(0);
-    Socket_ClearTimeout(ssource);
-    total_len = 0;
-    while (!Socket_GetTimeout(ssource)) {
+			   len = Socket_Read(ssource, &boot_buff[remain], BOOT_BUFFER_SIZE - remain) + remain;
+			   // Check two byte boundary
+			   if (len & 0x01) {
+				remain = 1;
+				len -=1;
+			   } else {
+				remain = 0;
+			   }
 
-        len = Socket_Read(ssource, boot_buff, BOOT_BUFFER_SIZE);
-        if (len) {
-        	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
-        	FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, len);
-        	total_len += len;
-        	fl_addr += len;
-        	Socket_ClearTimeout(ssource);
-        }
+			   if (len) {
+				if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+				FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, len);
+				total_len += len;
+				fl_addr += len;
+				Socket_ClearTimeout(ssource);
+				// Shift remain on a first position
+				if (remain) {
+					boot_buff[0] = boot_buff[len];
+				}
+	#ifdef DEBUG
+				Blink();
+	#endif
+			   }
+		   }
+		   // Write remain (if exist)
+		   if (remain) {
+			FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, 2);
+			total_len +=2;
+		   }
+	#else
+
+		// Get data
+		sprintf(boot_buff, "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_FW_FILENAME, HTTP_SERVER_IP);
+		Socket_Clear(ssource);
+		Socket_Write(ssource, boot_buff, strlen(boot_buff));
+		// Read answer
+		//orangeRGB(0);
+		Socket_ClearTimeout(ssource);
+		total_len = 0;
+		while (!Socket_GetTimeout(ssource)) {
+
+			len = Socket_Read(ssource, boot_buff, BOOT_BUFFER_SIZE);
+			if (len) {
+				if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+				FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, len);
+				total_len += len;
+				fl_addr += len;
+				Socket_ClearTimeout(ssource);
+			}
+		}
+	#endif
+		if (total_len < 10) {
+			//No file on server!
+
+			return BOOT_ERR_CONNECTION; //Err
+		}
+
+		// Stop HTTP session
+		Socket_Close(ssource);
+		orangeRGB(0);
+
+		// NVM flash operation
+		 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+		 //orangeRGB(1);
+		// Find firmware length
+		fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
+		len = total_len - 24;
+		for (i = 0; i < len; i++)
+		{
+
+			if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+			FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 24);
+			boot_buff[15] = '\0';
+			if (strstr(boot_buff, "Content-Length:")) {
+				sscanf(boot_buff + 15 + 1, "%ui", &fw_len);
+				fw_len -= 4; //dec CRC
+				break;
+			}
+		}
+		if (i == len) {
+			//no data length found
+
+			return BOOT_ERR_NODATA; //Err
+		}
     }
-#endif
-    if (total_len < 10) {
-    	//No file on server!
-
-    	return BOOT_ERR_CONNECTION; //Err
-    }
-
-    // Stop HTTP session
-    Socket_Close(ssource);
-    orangeRGB(0);
-
-    // NVM flash operation
-	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
-	 //orangeRGB(1);
-	// Find firmware length
-    fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
-	len = total_len - 24;
-    for (i = 0; i < len; i++)
-    {
-
-      	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
-    	FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 24);
-    	boot_buff[15] = '\0';
-    	if (strstr(boot_buff, "Content-Length:")) {
-        	sscanf(boot_buff + 15 + 1, "%ui", &fw_len);
-        	fw_len -= 4; //dec CRC
-        	break;
-    	}
-    }
-    if (i == len) {
-    	//no data length found
-
-    	return BOOT_ERR_NODATA; //Err
-    }
+    else
+    	return BOOT_ERR_CONNECTION;
 
 
 
@@ -332,6 +336,254 @@ BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
     orangeRGB(0);
     return BOOT_OK;
 }
+
+
+BOOT_ERRORS Boot_PerformFirmwareUpdate(void)
+{
+
+    char* p;
+    uint32_t len, i;
+    uint32_t total_len, crc32;
+    uint32_t fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
+    uint32_t app_addr;
+    unsigned int fw_len;
+    SOCKETS_SOURCE ssource;
+
+    // Init sources
+
+
+
+    void *trscv = Socket_Init(SOCKET_SRC_GPRS);  // in WHITE
+    if (trscv) {
+    	initializePWM();
+
+    	if (strcmp(CLIENT_VARIABLE.GPIO,"00000000")==0)
+    		relayDeactivation(Relay1_GPIO_Port,Relay1_Pin);
+    	else
+    		relayActivation(Relay1_GPIO_Port,Relay1_Pin);
+
+    	dimming(atoi(CLIENT_VARIABLE.PWM));
+
+		if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+
+		if (Socket_Connect(SOCKET_SRC_GPRS) == SOCKET_OK) { // in RED
+
+			ssource = SOCKET_SRC_GPRS;
+		}
+		else
+			return BOOT_ERR_CONNECTION; //Err
+
+
+
+		 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+
+		// Clear buffer flash first
+
+		FlashNVM_EraseBank(FLASH_BANK_COPY);
+		if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+
+	#define M2CORTEX
+	#ifdef M2CORTEX
+			uint8_t remain;
+		// Get data
+		   sprintf(boot_buff, "GET /%s%s HTTP/1.1\r\nHost: %s\r\n\r\n", CLIENT_VARIABLE.UPDFW_ROUTE,CLIENT_VARIABLE.UPDFW_NAME, CLIENT_VARIABLE.UPDFW_HOST);
+		   SENDDATA(trscv, ssource, boot_buff, strlen(boot_buff));
+
+		   uint16_t last = getseconds();
+		   uint16_t first = last;
+		   total_len = 0;
+		   remain = 0;
+		   uint32_t total = 0;
+		   uint32_t histo[256] = {0};
+
+	#ifdef DEBUG
+		   Color (WHITE);
+	#endif
+		   int TIMEOUT = 15; // max time SIn recibir datos
+		   while ((getseconds()- last) < TIMEOUT){
+			   len = GETDATA(trscv, BOOT_BUFFER_SIZE - remain, boot_buff+remain);
+				histo[len]++;
+				total++;
+				if (len) {
+					len = len + remain;
+					last = getseconds();
+					// Check two byte boundary
+					if (len & 0x01) {
+						remain = 1;
+						len -=1;
+					} else {
+						remain = 0;
+					}
+
+					if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+					FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, len);
+					total_len += len;
+					fl_addr += len;
+					Socket_ClearTimeout(ssource);
+					// Shift remain on a first position
+					if (remain) {
+						boot_buff[0] = boot_buff[len];
+					}
+	#ifdef DEBUG
+					Blink();
+	#endif
+			   }
+		   }
+		   int last2 = getseconds();
+		   // Write remain (if exist)
+		   if (remain) {
+			FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, 2);
+			total_len +=2;
+		   }
+	#else
+
+		// Get data
+		sprintf(boot_buff, "GET /%s HTTP/1.1\r\nHost: %s\r\n\r\n", HTTP_SERVER_FW_FILENAME, HTTP_SERVER_IP);
+		Socket_Clear(ssource);
+		Socket_Write(ssource, boot_buff, strlen(boot_buff));
+		// Read answer
+		//orangeRGB(0);
+		Socket_ClearTimeout(ssource);
+		total_len = 0;
+		while (!Socket_GetTimeout(ssource)) {
+
+			len = Socket_Read(ssource, boot_buff, BOOT_BUFFER_SIZE);
+			if (len) {
+				if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+				FlashNVM_Write(fl_addr, (uint8_t*)boot_buff, len);
+				total_len += len;
+				fl_addr += len;
+				Socket_ClearTimeout(ssource);
+			}
+		}
+	#endif
+		if (total_len < 10) {
+			//No file on server!
+
+			return BOOT_ERR_CONNECTION; //Err
+		}
+
+		// Stop HTTP session
+		Socket_Close(ssource);
+		orangeRGB(0);
+
+		// NVM flash operation
+		 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+		 //orangeRGB(1);
+		// Find firmware length
+		fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
+		len = total_len - 24;
+		for (i = 0; i < len; i++)
+		{
+
+			if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+			FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 24);
+			boot_buff[15] = '\0';
+			if (strstr(boot_buff, "Content-Length:")) {
+				sscanf(boot_buff + 15 + 1, "%ui", &fw_len);
+				fw_len -= 4; //dec CRC
+				break;
+			}
+		}
+		if (i == len) {
+			//no data length found
+
+			return BOOT_ERR_NODATA; //Err
+		}
+    }
+    else
+    	return BOOT_ERR_CONNECTION;
+
+
+
+	// Find firmware start position
+    //orangeRGB(0);
+    fl_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_COPY);
+	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+	 orangeRGB(1);
+    len = total_len - 4;
+    for (i = 0; i < len; i++)
+    {
+
+    	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+    	FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 4);
+    	boot_buff[4] = '\0';
+    	p = strstr(boot_buff, "\r\n\r\n");
+    	if (p) {
+    		fl_addr += (i + 4);
+    		break;
+    	}
+    }
+    if (i == len) {
+    	//no file found
+
+    	return BOOT_ERR_NODATA; //Err
+    }
+
+
+    // Count firmware CRC (last 4 byte of the firmware will be - CRC32 checksum)
+   // orangeRGB(1);
+    crc32_Clear();
+	len = 0;
+	orangeRGB(0);
+	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+    for (i = 0; i < fw_len; i++)
+    {
+    	FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 1);
+    	crc32_Add(boot_buff[0]);
+    }
+    crc32 = crc32_Value();
+    FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, 4);
+    // swap order
+    boot_buff[4] = boot_buff[0];
+    boot_buff[0] = boot_buff[3];
+    boot_buff[3] = boot_buff[4];
+    boot_buff[4] = boot_buff[1];
+    boot_buff[1] = boot_buff[2];
+    boot_buff[2] = boot_buff[4];
+    // And check it
+    if (memcmp(boot_buff, &crc32, 4) != 0) {
+    	//Firmware CRC error!
+
+    	return BOOT_ERR_CRC; //Err
+    }
+
+
+
+#ifdef CHECK_VERSION
+	 if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+    // Check is NEW firmware update available
+    FlashNVM_Read(fl_addr + APP_VER_ADDR_LOW, (uint8_t*)&len, 2);
+    FlashNVM_Read(FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION) + APP_VER_ADDR_LOW, (uint8_t*)&i, 2);
+    i   &= 0xFFFF;
+    len &= 0xFFFF;
+    if (i != 0xFFFF)
+    if (i >= len) {
+    	//"No new firmware available!");
+    	if (LOG_WIFI==1) HAL_UART_Transmit(&huart6, "(BOOT No New FW)\r\n", 18,100); //Francis, for logging
+    	return BOOT_OK;
+    }
+#endif
+
+    //orangeRGB(0);
+    // Update firmware (copy buffer to Application flash memory)
+    orangeRGB(1);
+    FlashNVM_EraseBank(FLASH_BANK_APPLICATION);
+
+    //orangeRGB(1);
+    app_addr = FlashNVM_GetBankStartAddress(FLASH_BANK_APPLICATION);
+	if (WDT_ENABLED==1)  HAL_IWDG_Refresh(&hiwdg);
+    for (i = 0; i < fw_len; i += 128)
+    {
+    	FlashNVM_Read(fl_addr + i, (uint8_t*)boot_buff, BOOT_BUFFER_SIZE);
+    	FlashNVM_Write(app_addr + i, (uint8_t*)boot_buff, BOOT_BUFFER_SIZE);
+    }
+    // Compare memories again?
+
+    orangeRGB(0);
+    return BOOT_OK;
+}
+
 
 
 /**

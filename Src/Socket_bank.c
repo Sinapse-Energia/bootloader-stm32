@@ -63,6 +63,9 @@ uint16_t GPRSBufferReceivedBytes;     		/// Number of received data from GPRS af
 uint16_t UART_elapsed_sec = 0; 				/// At beginning this is 0
 uint8_t UART_timeout = 0;
 
+// MIO
+uint16_t	tseconds = 0;
+
 extern int 		application_layer_connection;
 extern int		bydma;
 extern DMA_HandleTypeDef hdma_usart6_rx;
@@ -501,6 +504,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 
   		// UART timeout
   		if (!UART_timeout) {
+  			tseconds++;
   			UART_elapsed_sec++;
   			if (UART_elapsed_sec % TIMING_TIMEOUT_UART == 0) {
   				UART_elapsed_sec = 0;
@@ -510,7 +514,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   	}
 }
 
-
+uint16_t	getseconds(){
+	return tseconds;
+}
 
 /**
  * @brief  Initialize Socket source
@@ -520,6 +526,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void *Socket_Init(SOCKETS_SOURCE s_in)
 {
 	void	*Device;
+	void 	*transceiver;
 	// Initialize all configured peripherals
 	MX_GPIO_Init(BaseBoard);
 
@@ -664,7 +671,7 @@ void *Socket_Init(SOCKETS_SOURCE s_in)
       	  HAL_IWDG_Refresh(&hiwdg);
     }
 
-    return Device;
+    return gtransceiver;
 }
 
 

@@ -58,6 +58,7 @@ QuectelM95::QuectelM95() : Transceiver(){
 
 int	QuectelM95::ConnectTCP(const char *apn, const char *host, int port){
 
+	mode = Transparent;
 	// Local variables now, but eligible to become members
 	char 	GPRS_TX[100]; 	// to build QICSGP AT command
 	char 	NTP_TX[100]; 	// to build QINTP AT command

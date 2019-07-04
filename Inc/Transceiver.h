@@ -59,8 +59,8 @@ public:
 	virtual int		SendDataNonTransparent	(int sock, const char *data, int length);
 
 	virtual	int		GetData					(int n, char *dest);
-//	virtual	int		GetDataTransparent		(int n, char *dest);
-//	virtual	int		GetDataNonTransparent	(int n, char *dest);
+	virtual	int		GetDataTransparent		(int n, char *dest);
+	virtual	int		GetDataNonTransparent	(int n, char *dest);
 
 	virtual int		SynchronizeTime				() { return -1;};
 

@@ -208,81 +208,44 @@ int		Transceiver::SendDataNonTransparent(int sock, const char *data, int length)
 //
 // GetData method: facade to delegate on specialized methods depending on protocol (Weak!)
 //
-int		Transceiver::GetData(int count, char *buffer){
-#if !defined (BOOTLOADER)
-	int i;
-	if (gsocket == 1){
-		int z;
-		int  timeout = POLLINGTIMEOUT / 50;
-		while (Stock(DataBuffer) < count && timeout-- > 0) {
-			HAL_Delay(50);
-		}
-
-		z = Stock(DataBuffer);
-
-		if  (count <= z){
-			int i;
-	//		HAL_NVIC_DisableIRQ(USART6_IRQn);
-			for (i = 0; i < count; i++){
-				buffer[i] = Read(DataBuffer);
-			}
-	//		HAL_NVIC_EnableIRQ(USART6_IRQn);
-			return count;
-		}
-		else {
-			return 0;
-		}
+int Transceiver::GetData(int count, char *buffer) {
+	if (mode == Transparent){
+		return GetDataTransparent(count, buffer);
 	}
 	else {
-		int z;
-		if (count == 0)
-			return 0;
-
-		if (1){  // This step must be done always, not only to know if there are new data, but also for cleaning before the "recv"
-			// int j = -1;
-			int	prcount = strlen(urc);
-			// 1 sec timeout for URC get...
-			int  timeout = 20;
-			while ((Stock(DataBuffer) < prcount) && timeout-- > 0){
-				HAL_Delay(50);
-			}
-			z = Stock(DataBuffer);
-			if (z) {
-				int x = Match(DataBuffer, (uint8_t *) urc);
-				if (x) {
-					Skip (DataBuffer, prcount);
-					rcvstate = 1;
-				}
-				else
-					printf ("Other...."); // CATCH Un regalo que NO ES UN URC ????
-				//  +QSSLURC: "closed",<ssid>
-				// "\r\n+QSSLURC: \"closed\",1\r\n"
-			}
-		}
-		{
-			// always try to fetch characters from internal M95 buffer as soon as possible, ...
-			char 	readcmd[32];
-			char	work[128];					// safe place where GET type Command QSSLRECV reply work with
-
-			sprintf (readcmd, recvfmt, count);
-			CmdProps ReadCmd =  {ATGET,	"",		{readcmd},	{NULL, work, phandler},	{200, 0}, 	1};
-			int num = executeCommand (&ReadCmd, handler, DataBuffer);
-			if (num) {
-				for (i = 0; i < num; i++){
-					buffer[i] = work[i];
-				}
-				rcvstate = 1;
-				return num;
-			}
-			else {
-				rcvstate = 0;
-				return 0;
-			}
-		}
+		return GetDataNonTransparent(count, buffer);
 	}
-#else
+}
+
+int timepolling = 1;
+
+
+// VERSION MODIFICADA en la que count no es el minimo sino el máximo a traer
+int		Transceiver::GetDataTransparent(int count, char *buffer){
+	int z;
+	int toreturn;
+	/**
+	int  timeout = (timepolling*1000) / 50;
+	while (Stock(DataBuffer) < count && timeout-- > 0) {
+		HAL_Delay(50);
+	}
+	**/
+
+	HAL_Delay(4);
+	z = Stock(DataBuffer);
+	if  (count <= z)
+		toreturn = count;
+	else
+		toreturn = z;
+
+	for (int i = 0; i < toreturn; i++){
+		buffer[i] = Read(DataBuffer);
+	}
+	return toreturn;
+}
+
+int Transceiver::GetDataNonTransparent(int count, char *buffer) {
 	return 0;
-#endif
 }
 
 // DUMMY for ATO. To stinguish

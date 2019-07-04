@@ -3,6 +3,7 @@
 
 
 #define DEBUG
+#define NOMESTIZE
 
 #define BOOTLOADER
 
@@ -13,14 +14,14 @@
 //	IoT_Presence 	-> Orange...
 //	IoT_Livestock 	-> iNEMO
 #ifndef DEFAULTBOARD
-	#define	DEFAULTBOARD	IoT_Hub
+	#define	DEFAULTBOARD	IoT_EC
 #endif
 
 // LABELS for SELECTIVE BUILD
 
 
 #ifndef MODEM
-	#define MODEM  8
+	#define MODEM  95
 #endif
 
 
