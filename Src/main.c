@@ -296,7 +296,7 @@ int main(void)
 	}
 	else
 	{
-		flashCorruption=1; /// corrpution in flash
+		flashCorruption=1; /// corruption in flash
 	}
 
 
