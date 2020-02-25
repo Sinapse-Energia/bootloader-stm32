@@ -5,6 +5,21 @@
 #include "utils.h"
 
 
+#define	APN_MATOOMA		"\"matooma.m2m\",\"\",\"\""
+#define	APN_TELE2		"\"m2m.tele2.com\",\"tele2\",\"tele2\"\r"
+#define	APN_MOVISTAR	"\"im2m.matooma.com\",\"movistar\",\"movistar\"\r"
+#define	APN_LTE			"\"lte.m2m\",\"\",\"\""
+
+
+char	*APN_list[] =		{ 	APN_MATOOMA,
+								APN_TELE2,
+								APN_MOVISTAR,
+								APN_LTE,
+								NULL
+	};
+
+
+
 // Private variables
 IWDG_HandleTypeDef hiwdg;
 TIM_HandleTypeDef  htim7;
@@ -680,8 +695,7 @@ void *Socket_Init(SOCKETS_SOURCE s_in)
   * @param  s_in: one of SOCKETS_SOURCE
   * @retval SOCKET_OK_CONNECTED or SOCKET_ERR_xxx if error
   */
-SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
-{
+SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in) {
 	int stat;
 //	M95Status stat;
 
@@ -774,18 +788,32 @@ SOCKET_STATUS Socket_Connect(SOCKETS_SOURCE s_in)
 #ifdef DEBUG
 		Color(COL_OFFLINE);
 #endif
-		int stat1 = transport_open(h, p, s, apn);
+		int stat = transport_open(h, p, s, apn);
 
-		if (stat1 <= 0) // I retry with LAPN
-		{
-			int stat2 = transport_open(h, p, s, lapn);
-			if (stat2<=0) return SOCKET_ERR_NO_CONNECTION;
+		if (stat <= 0) {
+			// I retry with LAPN
+			int stat = transport_open(h, p, s, lapn);
+			if (stat <=0) {
+				int i = 0;
+				char *apn; ;
+				while (apn = APN_list[i]){
+					stat = transport_open(h, p, s, apn);
+					if (stat > 0)
+						break;
+					i++;
+				}
+			}
+
 		}
 
+		if (stat > 0)
+			//	application_layer_connection =1; /// We have just connected to application layer.
+			return SOCKET_OK;
+		else
+			return SOCKET_ERR_NO_CONNECTION;
 	}
-
-//	application_layer_connection =1; /// We have just connected to application layer.
-	return SOCKET_OK;
+	else
+		return SOCKET_ERR_NO_CONNECTION;
 }
 
 /**
