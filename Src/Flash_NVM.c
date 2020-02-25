@@ -102,7 +102,7 @@ HAL_StatusTypeDef FlashNVM_Read(uint32_t start_address, uint8_t* data_out, uint3
 	    start_address++;
 	    sizeCounter++;
 	}
-    return 1;
+    return HAL_OK;
 }
 
 
@@ -232,7 +232,6 @@ int MIC_Flash_Memory_Read(const uint8_t *data_out, uint32_t size)
 	uint32_t sizeReceived=0;
 
 	status=FlashNVM_Read(ORIGIN_SECTOR+4, data_out, size); // start to read all data.
-	status=FlashNVM_Read(ORIGIN_SECTOR+4, data_out, size); // start to read all data.
 
 	if (status==HAL_ERROR) return -1; // if fails, it returns -1;
 
@@ -240,8 +239,10 @@ int MIC_Flash_Memory_Read(const uint8_t *data_out, uint32_t size)
 
 	if (status==HAL_ERROR) return -1; // if fails, it returns -1;
 
-	if ((status==HAL_OK)&&(sizeReceived==size)) return sizeReceived; // if all goes fine, it returns size of data.
-
+	if ((status==HAL_OK)&&(sizeReceived <= size))
+		return sizeReceived; // if all goes fine, it returns size of data.
+	else
+		return HAL_ERROR;
 
 }
 
