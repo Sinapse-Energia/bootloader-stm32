@@ -21,7 +21,7 @@
 
 
 #ifndef MODEM
-	#define MODEM  95
+	#define MODEM  96
 #endif
 
 
@@ -34,7 +34,7 @@
 		#define BUILD_M95
 	#endif
 	#if (MODEM == 96)
-		#define BUILD_BG95
+		#define BUILD_BG96
 	#endif
 	#if (MODEM == 8)
 		#define BUILD_RM08
