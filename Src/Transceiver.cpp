@@ -231,7 +231,7 @@ int		Transceiver::GetDataTransparent(int count, char *buffer){
 	}
 	**/
 
-	HAL_Delay(4);
+//	HAL_Delay(4);
 	z = Stock(DataBuffer);
 	if  (count <= z)
 		toreturn = count;

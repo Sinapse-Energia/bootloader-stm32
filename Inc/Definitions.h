@@ -2,7 +2,7 @@
 #define _DEFINITIONS_H_
 
 
-#define DEBUG
+//#define DEBUG
 #define NOMESTIZE
 
 #define BOOTLOADER
@@ -87,8 +87,8 @@
 #endif
 
 #ifndef HTTP_SERVER_IP
-	#define HTTP_SERVER_IP 					"sinapseenergia.com\0"
-	//#define HTTP_SERVER_IP 					"www.eluxoon.com\0"
+	// #define HTTP_SERVER_IP 					"sinapseenergia.com\0"
+	#define HTTP_SERVER_IP 					"www.eluxoon.com"
 #endif
 
 #ifndef HTTP_SERVER_PORT
@@ -96,11 +96,13 @@
 #endif
 
 #ifndef HTTP_SERVER_FW_FILENAME
-	#define HTTP_SERVER_FW_FILENAME 	"B0-ALL-WIFI-JR-V1.26.3.bin"
+//	#define HTTP_SERVER_FW_FILENAME 	"B0-ALL-WIFI-JR-V1.26.3.bin"
+	#define HTTP_SERVER_FW_FILENAME 	"EC-M2M_SDalton.bin"
+
 #endif
 
 #ifndef const_ROUTE_FW_FILENAME
-	#define const_ROUTE_FW_FILENAME     ""
+	#define const_ROUTE_FW_FILENAME     "m2m_fw/"
 #endif
 
 #ifndef const_UPDFW
