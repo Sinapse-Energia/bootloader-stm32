@@ -546,11 +546,8 @@ void *Socket_Init(SOCKETS_SOURCE s_in)
 	MX_GPIO_Init(BaseBoard);
 
 	// MX_IWDG_Init();
-	Color(WHITE);
+	Color(COL_OFFLINE);
 
-	 redOFF;
-	 blueOFF;
-	 greenOFF;
 	if (s_in == SOCKET_SRC_GPRS) {
 
 		application_layer_connection=0;
